@@ -1,0 +1,670 @@
+using SevsModManager.Core;
+using SevsModManager.Theme;
+using SevsModManager.UI.Controls;
+using SevsModManager;
+
+namespace SevsModManager.UI.Panels;
+
+internal sealed class SettingsPanel : UserControl
+{
+    private readonly Label   _gamePathLbl, _loaderStatusLbl;
+    private readonly RButton _changeGameBtn, _installLoaderBtn, _updateLoaderBtn, _openGameFolderBtn;
+    private readonly FlowLayoutPanel _customGamesHost;
+    private readonly RadioButton _themeBlack, _themeWhite, _themeCustom, _themeSynced, _themeR2Modman;
+    private readonly RadioButton _styleSmm, _styleR2Modman, _styleMmm;
+    private readonly RButton _customBgBtn, _customAccentBtn, _customApplyBtn;
+    private readonly RPanel  _customBgSwatch, _customAccentSwatch;
+    private readonly FlowLayoutPanel _customRow;
+    private string _pendingCustomBg = "", _pendingCustomAccent = "";
+    private readonly CheckBox _useThunderstoreCheck;
+    private readonly Label   _thunderstoreCommunityLbl;
+    private readonly RButton _changeThunderstoreCommunityBtn;
+    private bool _updatingThunderstoreUi;
+    private readonly Label   _statusLabel;
+    private Panel?  _scrollHost;
+    private PictureBox? _mascotBox;
+
+    public SettingsPanel()
+    {
+        Dock = DockStyle.Fill;
+        DoubleBuffered = true;
+
+        _statusLabel = new Label { Dock = DockStyle.Bottom, Height = 22, Padding = new Padding(8, 0, 0, 0), TextAlign = ContentAlignment.MiddleLeft };
+        _statusLabel.Tag = "subtext";
+        Controls.Add(_statusLabel);
+
+        var styleGroup = MakeGroup("Style");
+
+        bool narrow = AppState.Settings.Layout == AppLayout.MonkeModManager;
+
+        _styleSmm       = MakeRadio("Sev's Mod Manager (default)");
+        _styleR2Modman  = MakeRadio("r2modman");
+        _styleMmm       = MakeRadio("MonkeModManager");
+        foreach (var r in new[] { _styleSmm, _styleR2Modman, _styleMmm }) WrapIfNarrow(r, narrow);
+
+        _styleSmm.Checked = true;
+
+        void UpdateLayout()
+        {
+            var layout = _styleR2Modman.Checked ? AppLayout.R2Modman
+                       : _styleMmm.Checked       ? AppLayout.MonkeModManager
+                       :                           AppLayout.SevsModManager;
+            if (layout == AppState.Settings.Layout) return;
+
+            AppState.Settings.Layout = layout;
+            AppState.Settings.Theme = layout switch
+            {
+                AppLayout.MonkeModManager => ThemeMode.White,
+                AppLayout.R2Modman        => ThemeMode.R2Modman,
+                _                         => ThemeMode.Black,
+            };
+            AppState.Save();
+
+            Program.RestartApp(skipPicker: true);
+        }
+
+        _styleSmm.CheckedChanged      += (_, __) => { if (_styleSmm.Checked)      UpdateLayout(); };
+        _styleR2Modman.CheckedChanged += (_, __) => { if (_styleR2Modman.Checked) UpdateLayout(); };
+        _styleMmm.CheckedChanged      += (_, __) => { if (_styleMmm.Checked)      UpdateLayout(); };
+
+        styleGroup.Controls.Add(_styleSmm);
+        styleGroup.Controls.Add(_styleR2Modman);
+        styleGroup.Controls.Add(_styleMmm);
+
+        var gameGroup = MakeGroup("Game");
+
+        _gamePathLbl     = MakeLabel("No game selected.");
+        _loaderStatusLbl = MakeLabel("Mod loader: checking...");
+
+        if (narrow) { _gamePathLbl.AutoSize = false; _gamePathLbl.Width = 220; _gamePathLbl.AutoEllipsis = true; }
+
+        _changeGameBtn     = MakeBtn("Change Game");
+        _installLoaderBtn  = MakeBtn("Install Mod Loader");
+        _updateLoaderBtn   = MakeBtn("Update Mod Loader");
+        _openGameFolderBtn = MakeBtn("Open Game Folder ↗");
+
+        _changeGameBtn.Click     += async (_, __) => await ChangeGame();
+        _installLoaderBtn.Click  += async (_, __) => await InstallLoader(AppState.DetectLoaderKind());
+        _updateLoaderBtn.Click   += async (_, __) => await InstallLoader(AppState.DetectLoaderKind());
+        _openGameFolderBtn.Click += (_, __) => { if (AppState.GameDir != null) System.Diagnostics.Process.Start("explorer.exe", AppState.GameDir); };
+
+        var gameBtnRow = new FlowLayoutPanel
+        {
+            AutoSize = true, FlowDirection = FlowDirection.LeftToRight, WrapContents = narrow,
+            MaximumSize = narrow ? new Size(220, 0) : Size.Empty,
+            Margin = new Padding(0, 6, 0, 0),
+        };
+        foreach (var b in new[] { _changeGameBtn, _installLoaderBtn, _updateLoaderBtn, _openGameFolderBtn })
+        { b.Margin = new Padding(0, 0, 8, 6); gameBtnRow.Controls.Add(b); }
+
+        gameGroup.Controls.Add(_gamePathLbl);
+        gameGroup.Controls.Add(_loaderStatusLbl);
+        gameGroup.Controls.Add(gameBtnRow);
+
+        var manageGamesGroup = MakeGroup("Manage Games");
+
+        foreach (var preset in AppState.Presets.Where(p => p.Name != "Custom"))
+        {
+            var p = preset;
+            var chk = new CheckBox
+            {
+                Text = $"Show {p.Name} in picker", AutoSize = true,
+                Font = new Font("Segoe UI", 9.5f), Cursor = Cursors.Hand,
+                Checked = !AppState.Settings.HiddenPresets.Contains(p.Name),
+                Margin = new Padding(0, 2, 0, 2),
+            };
+            chk.CheckedChanged += (_, __) =>
+            {
+                if (chk.Checked) AppState.Settings.HiddenPresets.Remove(p.Name);
+                else AppState.Settings.HiddenPresets.Add(p.Name);
+                AppState.Save();
+            };
+            WrapIfNarrow(chk, narrow);
+            manageGamesGroup.Controls.Add(chk);
+        }
+
+        var customGamesLbl = MakeLabel("Custom games:");
+        customGamesLbl.Margin = new Padding(0, 8, 0, 2);
+        _customGamesHost = new FlowLayoutPanel
+        {
+            AutoSize = true, FlowDirection = FlowDirection.TopDown, WrapContents = false,
+        };
+        RebuildCustomGamesList();
+
+        manageGamesGroup.Controls.Add(customGamesLbl);
+        manageGamesGroup.Controls.Add(_customGamesHost);
+
+        var modSourceGroup = MakeGroup("Mod Source");
+
+        _useThunderstoreCheck = new CheckBox
+        {
+            Text = "Use Thunderstore for this game", AutoSize = true,
+            Font = new Font("Segoe UI", 9.5f), Cursor = Cursors.Hand, Margin = new Padding(0, 2, 0, 6),
+        };
+        WrapIfNarrow(_useThunderstoreCheck, narrow);
+        _thunderstoreCommunityLbl = MakeLabel("");
+        _thunderstoreCommunityLbl.Tag = "subtext";
+        WrapIfNarrow(_thunderstoreCommunityLbl, narrow);
+        _changeThunderstoreCommunityBtn = MakeBtn("Change Community...");
+        _changeThunderstoreCommunityBtn.Margin = new Padding(0, 4, 0, 0);
+
+        _useThunderstoreCheck.CheckedChanged += async (_, __) => await OnThunderstoreToggle();
+        _changeThunderstoreCommunityBtn.Click += async (_, __) => await PickThunderstoreCommunity();
+
+        modSourceGroup.Controls.Add(_useThunderstoreCheck);
+        modSourceGroup.Controls.Add(_thunderstoreCommunityLbl);
+        modSourceGroup.Controls.Add(_changeThunderstoreCommunityBtn);
+
+        var themeGroup = MakeGroup("Theme");
+
+        _themeBlack     = MakeRadio("Black (default)");
+        _themeWhite     = MakeRadio("White");
+        _themeCustom    = MakeRadio("Custom");
+        _themeSynced    = MakeRadio("Synced with Several Bees");
+        _themeR2Modman  = MakeRadio("r2modman");
+        foreach (var r in new[] { _themeBlack, _themeWhite, _themeCustom, _themeSynced, _themeR2Modman }) WrapIfNarrow(r, narrow);
+
+        _themeBlack.Checked = true;
+
+        _pendingCustomBg     = AppState.Settings.CustomBackground;
+        _pendingCustomAccent = AppState.Settings.CustomAccent;
+
+        _customBgSwatch     = MakeSwatch(Color.FromArgb(20, 20, 20));
+        _customAccentSwatch = MakeSwatch(Color.FromArgb(124, 58, 237));
+        _customBgBtn        = MakeBtn("Background Color");
+        _customAccentBtn    = MakeBtn("Accent Color");
+        _customApplyBtn     = MakeBtn("Apply Custom Theme");
+
+        _customBgBtn.Click     += (_, __) => PickColor(ref _pendingCustomBg,     _customBgSwatch);
+        _customAccentBtn.Click += (_, __) => PickColor(ref _pendingCustomAccent, _customAccentSwatch);
+        _customApplyBtn.Click  += (_, __) =>
+        {
+            AppState.Settings.CustomBackground = _pendingCustomBg;
+            AppState.Settings.CustomAccent = _pendingCustomAccent;
+            AppState.Settings.Theme = ThemeMode.Custom;
+            AppState.Save();
+            Program.RestartApp(skipPicker: true);
+        };
+
+        _customRow = new FlowLayoutPanel
+        {
+            AutoSize = true, FlowDirection = FlowDirection.LeftToRight, WrapContents = narrow,
+            MaximumSize = narrow ? new Size(220, 0) : Size.Empty,
+            Visible = false, Margin = new Padding(20, 4, 0, 0),
+        };
+        _customRow.Controls.Add(_customBgSwatch);
+        _customRow.Controls.Add(_customBgBtn);
+        _customRow.Controls.Add(new Panel { Width = 8, Height = 1 });
+        _customRow.Controls.Add(_customAccentSwatch);
+        _customRow.Controls.Add(_customAccentBtn);
+        _customRow.Controls.Add(new Panel { Width = 8, Height = 1 });
+        _customRow.Controls.Add(_customApplyBtn);
+
+        void UpdateTheme()
+        {
+            var mode = _themeBlack.Checked    ? ThemeMode.Black
+                     : _themeWhite.Checked    ? ThemeMode.White
+                     : _themeCustom.Checked   ? ThemeMode.Custom
+                     : _themeR2Modman.Checked ? ThemeMode.R2Modman
+                     :                          ThemeMode.SyncedSB;
+            _customRow.Visible = _themeCustom.Checked;
+            if (mode == AppState.Settings.Theme) return;
+
+            AppState.Settings.Theme = mode;
+            AppState.Save();
+
+            if (_themeCustom.Checked)
+                ApplySavedTheme();
+            else
+                Program.RestartApp(skipPicker: true);
+        }
+
+        _themeBlack.CheckedChanged     += (_, __) => { if (_themeBlack.Checked)     UpdateTheme(); };
+        _themeWhite.CheckedChanged     += (_, __) => { if (_themeWhite.Checked)     UpdateTheme(); };
+        _themeCustom.CheckedChanged    += (_, __) => { if (_themeCustom.Checked)    UpdateTheme(); };
+        _themeSynced.CheckedChanged    += (_, __) => { if (_themeSynced.Checked)    UpdateTheme(); };
+        _themeR2Modman.CheckedChanged  += (_, __) => { if (_themeR2Modman.Checked)  UpdateTheme(); };
+
+        themeGroup.Controls.Add(_themeBlack);
+        themeGroup.Controls.Add(_themeWhite);
+        themeGroup.Controls.Add(_themeCustom);
+        themeGroup.Controls.Add(_themeSynced);
+        themeGroup.Controls.Add(_themeR2Modman);
+        themeGroup.Controls.Add(_customRow);
+
+        var aboutGroup = MakeGroup("About");
+
+        var aboutLine = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.LeftToRight, WrapContents = false, Margin = new Padding(0, 2, 0, 0) };
+
+        var byLabel = new Label
+        {
+            Text = "Sev's Mod Manager by ",
+            AutoSize = true,
+            Font = new Font("Segoe UI", 9.5f),
+            Margin = Padding.Empty,
+            Padding = Padding.Empty,
+        };
+
+        var sevLink = new LinkLabel
+        {
+            Text = "sev",
+            AutoSize = true,
+            Font = new Font("Segoe UI", 9.5f),
+            LinkColor = Color.FromArgb(64, 148, 255),
+            ActiveLinkColor = Color.FromArgb(100, 180, 255),
+            Cursor = Cursors.Hand,
+            Margin = Padding.Empty,
+            Padding = Padding.Empty,
+        };
+        sevLink.LinkClicked += (_, __) =>
+        {
+            try { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo { FileName = "https://sevvy-wevvy.com/", UseShellExecute = true }); }
+            catch { }
+        };
+
+        var smileLabel = new Label
+        {
+            Text = " :)",
+            AutoSize = true,
+            Font = new Font("Segoe UI", 9.5f),
+            Margin = Padding.Empty,
+            Padding = Padding.Empty,
+        };
+
+        aboutLine.Controls.Add(byLabel);
+        aboutLine.Controls.Add(sevLink);
+        aboutLine.Controls.Add(smileLabel);
+
+        var donateLink = new LinkLabel
+        {
+            Text = "Please donate if you like this project!",
+            AutoSize = true,
+            Font = new Font("Segoe UI", 9.5f),
+            LinkColor = Color.FromArgb(64, 148, 255),
+            ActiveLinkColor = Color.FromArgb(100, 180, 255),
+            Cursor = Cursors.Hand,
+            Margin = new Padding(0, 6, 0, 0),
+        };
+        donateLink.LinkClicked += (_, __) =>
+        {
+            try { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo { FileName = "https://sevvy-wevvy.com/donate", UseShellExecute = true }); }
+            catch { }
+        };
+
+        aboutGroup.Controls.Add(aboutLine);
+        aboutGroup.Controls.Add(donateLink);
+
+        if (AppState.Settings.Layout == AppLayout.MonkeModManager)
+            BuildMmmLayout(styleGroup, gameGroup, manageGamesGroup, modSourceGroup, themeGroup, aboutGroup);
+        else
+            BuildStackedLayout(styleGroup, gameGroup, manageGamesGroup, modSourceGroup, themeGroup, aboutGroup);
+
+        ThemeEngine.ThemeChanged += ApplyTheme;
+        HandleCreated += (_, __) => ThemeEngine.ApplyScrollTheme(this);
+        ApplyTheme();
+        Reload();
+    }
+
+    private void BuildStackedLayout(Control styleGroup, Control gameGroup, Control manageGamesGroup, Control modSourceGroup, Control themeGroup, Control aboutGroup)
+    {
+        var scroll = new Panel { Dock = DockStyle.Fill, AutoScroll = true };
+        _scrollHost = new Panel { Dock = DockStyle.Top, AutoSize = true, Padding = new Padding(20, 16, 20, 20) };
+        scroll.Controls.Add(_scrollHost);
+        Controls.Add(scroll);
+
+        foreach (var g in new[] { aboutGroup, themeGroup, modSourceGroup, manageGamesGroup, gameGroup, styleGroup })
+        {
+            g.Margin = new Padding(0, 0, 0, 14);
+            _scrollHost.Controls.Add(g);
+        }
+    }
+
+    private void BuildMmmLayout(Control styleGroup, Control gameGroup, Control manageGamesGroup, Control modSourceGroup, Control themeGroup, Control aboutGroup)
+    {
+        var scroll = new Panel { Dock = DockStyle.Fill, AutoScroll = true };
+        Controls.Add(scroll);
+
+        var leftCol   = new Panel { Dock = DockStyle.Left,  Width = 300, Padding = new Padding(16) };
+        var rightCol  = new Panel { Dock = DockStyle.Right, Width = 300, Padding = new Padding(16) };
+        var centerCol = new Panel { Dock = DockStyle.Fill };
+
+        styleGroup.Margin = new Padding(0, 0, 0, 14);
+        gameGroup.Margin  = new Padding(0, 0, 0, 14);
+        manageGamesGroup.Margin = new Padding(0, 0, 0, 14);
+        modSourceGroup.Margin = new Padding(0, 0, 0, 14);
+        leftCol.Controls.Add(modSourceGroup);
+        leftCol.Controls.Add(manageGamesGroup);
+        leftCol.Controls.Add(gameGroup);
+        leftCol.Controls.Add(styleGroup);
+
+        themeGroup.Margin = new Padding(0, 0, 0, 14);
+        aboutGroup.Margin = new Padding(0, 0, 0, 14);
+        rightCol.Controls.Add(aboutGroup);
+        rightCol.Controls.Add(themeGroup);
+
+        _mascotBox = new PictureBox { Image = AppIcons.Png, SizeMode = PictureBoxSizeMode.Zoom, Width = 160, Height = 160 };
+        centerCol.Controls.Add(_mascotBox);
+        centerCol.Resize += (_, __) =>
+        {
+            _mascotBox.Left = (centerCol.Width - _mascotBox.Width) / 2;
+            _mascotBox.Top  = (centerCol.Height - _mascotBox.Height) / 2;
+        };
+
+        scroll.Controls.Add(centerCol);
+        scroll.Controls.Add(rightCol);
+        scroll.Controls.Add(leftCol);
+    }
+
+    public void Reload()
+    {
+        _gamePathLbl.Text = AppState.Settings.GamePath.Length > 0
+            ? $"Game: {AppState.Settings.GamePath}"
+            : "No game selected.";
+
+        var detectedLoader = AppState.DetectLoaderKind();
+        bool loaderOk = AppState.GameDir != null && AppState.IsLoaderInstalled(detectedLoader, AppState.GameDir);
+        string loaderName = AppState.LoaderName(detectedLoader);
+        _loaderStatusLbl.Text = loaderOk ? $"{loaderName}: Installed ✓" : $"{loaderName}: Not found";
+        _loaderStatusLbl.ForeColor = loaderOk ? Color.FromArgb(39, 201, 63) : Color.FromArgb(255, 95, 86);
+
+        _installLoaderBtn.Text = $"Install {loaderName}";
+        _updateLoaderBtn.Text  = $"Update {loaderName}";
+        _installLoaderBtn.Enabled = AppState.GameDir != null && !loaderOk;
+        _updateLoaderBtn.Enabled  = AppState.GameDir != null && loaderOk;
+        _openGameFolderBtn.Enabled = AppState.GameDir != null;
+
+        _themeBlack.Checked    = AppState.Settings.Theme == ThemeMode.Black;
+        _themeWhite.Checked    = AppState.Settings.Theme == ThemeMode.White;
+        _themeCustom.Checked   = AppState.Settings.Theme == ThemeMode.Custom;
+        _themeSynced.Checked   = AppState.Settings.Theme == ThemeMode.SyncedSB;
+        _themeR2Modman.Checked = AppState.Settings.Theme == ThemeMode.R2Modman;
+        _customRow.Visible     = AppState.Settings.Theme == ThemeMode.Custom;
+
+        _pendingCustomBg     = AppState.Settings.CustomBackground;
+        _pendingCustomAccent = AppState.Settings.CustomAccent;
+        if (ThemeEngine.TryHex(AppState.Settings.CustomBackground, out var bg)) _customBgSwatch.BackColor = bg;
+        if (ThemeEngine.TryHex(AppState.Settings.CustomAccent,     out var ac)) _customAccentSwatch.BackColor = ac;
+
+        _styleSmm.Checked      = AppState.Settings.Layout == AppLayout.SevsModManager;
+        _styleR2Modman.Checked = AppState.Settings.Layout == AppLayout.R2Modman;
+        _styleMmm.Checked      = AppState.Settings.Layout == AppLayout.MonkeModManager;
+
+        ReloadThunderstoreSection();
+    }
+
+    private void ReloadThunderstoreSection()
+    {
+        bool active = AppState.Settings.ThunderstoreCommunities.TryGetValue(AppState.Settings.GameName, out var community);
+
+        _updatingThunderstoreUi = true;
+        _useThunderstoreCheck.Checked = active;
+        _updatingThunderstoreUi = false;
+
+        _thunderstoreCommunityLbl.Text = active
+            ? $"Community: {community}"
+            : "Uses Sev's Mod Manager's own mod list.";
+        _changeThunderstoreCommunityBtn.Visible = active;
+    }
+
+    private void RebuildCustomGamesList()
+    {
+        _customGamesHost.Controls.Clear();
+
+        if (AppState.Settings.CustomGames.Count == 0)
+        {
+            var none = MakeLabel("(none)");
+            none.Tag = "subtext";
+            _customGamesHost.Controls.Add(none);
+            return;
+        }
+
+        foreach (var name in AppState.Settings.CustomGames.Keys.ToList())
+        {
+            var row = new FlowLayoutPanel
+            {
+                AutoSize = true, FlowDirection = FlowDirection.LeftToRight, WrapContents = false,
+                Margin = new Padding(0, 2, 0, 2),
+            };
+            var lbl = new Label
+            {
+                Text = name, AutoSize = true, Font = new Font("Segoe UI", 9.5f),
+                Padding = new Padding(0, 6, 8, 0),
+            };
+            var removeBtn = MakeBtn("Remove");
+            removeBtn.Click += (_, __) =>
+            {
+                AppState.Settings.CustomGames.Remove(name);
+                AppState.Save();
+                RebuildCustomGamesList();
+                _statusLabel.Text = $"Removed \"{name}\" from the picker.";
+            };
+            row.Controls.Add(lbl);
+            row.Controls.Add(removeBtn);
+            _customGamesHost.Controls.Add(row);
+        }
+    }
+
+    private async Task ChangeGame()
+    {
+        using var dlg = new OpenFileDialog
+        {
+            Title  = "Select Game Executable",
+            Filter = "Executable|*.exe",
+        };
+        if (AppState.GameDir != null && Directory.Exists(AppState.GameDir))
+            dlg.InitialDirectory = AppState.GameDir;
+        if (dlg.ShowDialog() != DialogResult.OK) return;
+
+        AppState.Settings.GamePath = dlg.FileName;
+        AppState.Settings.GameName = "Custom";
+
+        foreach (var preset in AppState.Presets.Where(p => p.Name != "Custom"))
+        {
+            if (preset.DefaultPaths.Any(p => string.Equals(p, dlg.FileName, StringComparison.OrdinalIgnoreCase)))
+            { AppState.Settings.GameName = preset.Name; break; }
+            if (Path.GetFileNameWithoutExtension(dlg.FileName).ToLowerInvariant().Contains(preset.Slug))
+            { AppState.Settings.GameName = preset.Name; break; }
+        }
+
+        AppState.Save();
+        AppState.EnsureSbFolder();
+        DataBridge.LoadSettings();
+        Reload();
+        _statusLabel.Text = $"Game set to: {AppState.Settings.GameName}";
+
+        var loaderKind = AppState.DetectLoaderKind();
+        if (AppState.GameDir != null && !AppState.IsLoaderInstalled(loaderKind, AppState.GameDir))
+        {
+            string loaderName = AppState.LoaderName(loaderKind);
+            var result = MessageBox.Show(
+                $"This game doesn't have a mod loader installed. Sev's Mod Manager needs {loaderName} to install and manage mods. Install it now?",
+                $"{loaderName} Required", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+
+            if (result == DialogResult.Yes) await InstallLoader(loaderKind);
+            else Application.Exit();
+        }
+    }
+
+    private async Task OnThunderstoreToggle()
+    {
+        if (_updatingThunderstoreUi) return;
+        string game = AppState.Settings.GameName;
+
+        if (_useThunderstoreCheck.Checked)
+        {
+            _statusLabel.Text = "Looking up Thunderstore community...";
+            string? guess = await ThunderstoreApi.GuessCommunityAsync(game);
+            if (guess != null)
+            {
+                AppState.Settings.ThunderstoreCommunities[game] = guess;
+                AppState.Save();
+                _statusLabel.Text = $"Using Thunderstore community \"{guess}\".";
+                ReloadThunderstoreSection();
+            }
+            else
+            {
+                _statusLabel.Text = "Couldn't guess a community for this game, pick one.";
+                if (!await PickThunderstoreCommunity())
+                {
+
+                    _updatingThunderstoreUi = true;
+                    _useThunderstoreCheck.Checked = false;
+                    _updatingThunderstoreUi = false;
+                    _statusLabel.Text = "Ready.";
+                }
+            }
+        }
+        else
+        {
+            AppState.Settings.ThunderstoreCommunities.Remove(game);
+            AppState.Save();
+            _statusLabel.Text = $"{game} now uses Sev's Mod Manager's own mod list.";
+            ReloadThunderstoreSection();
+        }
+    }
+
+    private async Task<bool> PickThunderstoreCommunity()
+    {
+        _statusLabel.Text = "Loading Thunderstore communities...";
+        var communities = await ThunderstoreApi.ListCommunitiesAsync();
+        if (communities.Count == 0)
+        {
+            MessageBox.Show("Couldn't reach Thunderstore right now. Check your connection and try again.", "Thunderstore", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            _statusLabel.Text = "Ready.";
+            return false;
+        }
+
+        using var picker = new ThunderstoreCommunityPickerForm(communities);
+        if (picker.ShowDialog() != DialogResult.OK || picker.Selected == null)
+        {
+            _statusLabel.Text = "Ready.";
+            return false;
+        }
+
+        AppState.Settings.ThunderstoreCommunities[AppState.Settings.GameName] = picker.Selected.Identifier;
+        AppState.Save();
+
+        _updatingThunderstoreUi = true;
+        _useThunderstoreCheck.Checked = true;
+        _updatingThunderstoreUi = false;
+
+        _statusLabel.Text = $"Using Thunderstore community \"{picker.Selected.Name}\".";
+        ReloadThunderstoreSection();
+        return true;
+    }
+
+    private async Task InstallLoader(ModLoaderKind kind)
+    {
+        if (AppState.GameDir == null) return;
+        bool wasInstalled = AppState.IsLoaderInstalled(kind, AppState.GameDir);
+        string loaderName = AppState.LoaderName(kind);
+        _installLoaderBtn.Enabled = false;
+        _updateLoaderBtn.Enabled = false;
+        var prog = new Progress<(int pct, string msg)>(r => _statusLabel.Text = $"[{r.pct}%] {r.msg}");
+        try
+        {
+            await AppState.InstallLoaderAsync(kind, AppState.GameDir, prog);
+            _statusLabel.Text = wasInstalled ? $"{loaderName} updated." : $"{loaderName} installed.";
+        }
+        catch (Exception ex)
+        {
+            _statusLabel.Text = "Install failed: " + ex.Message;
+        }
+        Reload();
+    }
+
+    private void PickColor(ref string pending, RPanel swatch)
+    {
+        using var dlg = new ColorDialog { Color = swatch.BackColor, FullOpen = true };
+        if (dlg.ShowDialog() != DialogResult.OK) return;
+        pending = ThemeEngine.ToHex(dlg.Color);
+        swatch.BackColor = dlg.Color;
+    }
+
+    private static void ApplySavedTheme()
+    {
+        string? sbAccent = null;
+        if (AppState.Settings.Theme == ThemeMode.SyncedSB && DataBridge.HasSbFolder)
+        {
+            DataBridge.LoadSettings();
+            sbAccent = DataBridge.GetString("Theme1");
+        }
+        ThemeEngine.Apply(AppState.Settings.Theme, AppState.Settings.CustomBackground, AppState.Settings.CustomAccent, sbAccent);
+    }
+
+    private void ApplyTheme()
+    {
+        var t = ThemeEngine.Current;
+        BackColor = t.Background;
+
+        ThemeEngine.Recolor(this);
+
+        if (AppState.GameDir != null)
+            _loaderStatusLbl.ForeColor = AppState.IsLoaderInstalled(AppState.DetectLoaderKind(), AppState.GameDir)
+                ? Color.FromArgb(39, 201, 63) : Color.FromArgb(255, 95, 86);
+    }
+
+    private static RFlowPanel MakeGroup(string title)
+    {
+        var lbl = new Label
+        {
+            Text = title.ToUpperInvariant(), AutoSize = false, Dock = DockStyle.Top, Height = 22,
+            Font = new Font("Segoe UI", 7.5f, FontStyle.Bold), Padding = new Padding(0, 2, 0, 4),
+        };
+        lbl.Tag = "subtext";
+
+        var group = new RFlowPanel
+        {
+            AutoSize = true, Dock = DockStyle.Top,
+            FlowDirection = FlowDirection.TopDown,
+            WrapContents = false,
+            Padding = new Padding(14, 4, 14, 14),
+            CornerRadius = 0,
+        };
+        group.Controls.Add(lbl);
+        return group;
+    }
+
+    private static Label MakeLabel(string text) => new()
+    {
+        Text = text, AutoSize = true,
+        Font = new Font("Segoe UI", 9.5f),
+        Margin = new Padding(0, 2, 0, 4),
+    };
+
+    private static RadioButton MakeRadio(string text) => new()
+    {
+        Text = text, AutoSize = true,
+        Font = new Font("Segoe UI", 9.5f),
+        Margin = new Padding(0, 2, 0, 2), Cursor = Cursors.Hand,
+    };
+
+    private static void WrapIfNarrow(Control c, bool narrow, int width = 220)
+    {
+        if (!narrow) return;
+        c.AutoSize = false;
+        var preferred = c.GetPreferredSize(new Size(width, 0));
+        c.Width = width;
+        c.Height = Math.Max(c.Height, preferred.Height);
+    }
+
+    private static RPanel MakeSwatch(Color c) => new()
+    {
+        Width = 24, Height = 24, BackColor = c,
+        CornerRadius = 8,
+        Margin = new Padding(0, 0, 6, 0), Cursor = Cursors.Hand,
+        Tag = "swatch",
+    };
+
+    private static RButton MakeBtn(string text) => new()
+    {
+        Text = text, Style = RButtonStyle.Outline, CornerRadius = 8,
+        AutoSize = true, Padding = new Padding(10, 3, 10, 3),
+    };
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing) ThemeEngine.ThemeChanged -= ApplyTheme;
+        base.Dispose(disposing);
+    }
+}
