@@ -27,6 +27,35 @@
 </p>
 
 <details>
+<summary align="center"><b>📃 Features 📃</b></summary>
+
+<p align="center">
+<b>Mods</b>
+ Download and browse mods from thunderstore
+ Download, brose, and upvote mods from the officail SB api
+ Unistall mods
+ Search Mods
+ Sort Mods
+<b>Installed</b>
+ Browse, toggle, and delete installed mods
+<b>Loadouts</b>
+ Setup "loadouts" that will log what mods you have enabled and disabled to quickly switch between diffrent mod setups without needing to move files or download/delete anything
+<b>Modpacks</b>
+ Create modpacks
+ Choose what items you want to be included in your modpack
+ Share modpacks for freinds to easly get your configs, mods, patches, and much more instantly working
+ Switch between mods that loudouts doesnt work properly for
+<b>Config</b>
+ Manage config for mods
+<b>Settings</b>
+ Choose diffrent styles, between teh clasic look, r2modman look, or monkie mod manager look!
+ Change theme
+ Update modloader
+ And much more
+</p>
+</details>
+
+<details>
 <summary align="center"><b>🛠 Pull Requests 🛠</b></summary>
 
 <p align="center">
