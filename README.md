@@ -1,11 +1,11 @@
-<h1 align="center">Sevs Mod Manager</h1>
+ <h1 align="center">Sevs Mod Manager</h1>
 
 <p align="center">
-<b>A mod manager that works for all games. Currently only supports bepinex.</b>
+<b>A mod manager that works for nearly all unity games.</b>
 </p>
 
 <div align="center">
- <img src="https://github.com/sevvy-wevvy/sevs-mod-manager/blob/main/sbn1.png?raw=true" width=70% height=auto</img> <img src="https://github.com/sevvy-wevvy/sevs-mod-manager/blob/main/sbn2.png?raw=true" width=70% height=auto</img><br>
+ <img src="https://github.com/sevvy-wevvy/sevs-mod-manager/blob/main/prev.png?raw=true" width=70% height=auto</img>
 </div><br>
 
 <p align="center">
@@ -72,7 +72,3 @@ I accept donations over few platforms, below are where you can help support my p
 <b>Throne</b> - https://sevvy-wevvy.com/throne
 </p>
 </details>
-
-> [!NOTE]</h2>
-> This product is not affiliated with Gorilla Tag or Another Axiom LLC and is not endorsed or otherwise sponsored by Another Axiom LLC.  
-> Portions of the materials contained herein are property of Another Axiom LLC. © 2021 Another Axiom LLC.  
