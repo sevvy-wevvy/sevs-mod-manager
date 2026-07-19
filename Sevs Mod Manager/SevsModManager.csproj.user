@@ -1,0 +1,59 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Compile Update="Form1.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="UI\Controls\RButton.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="UI\Controls\RDropdown.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="UI\Controls\RFlowPanel.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="UI\Controls\RPanel.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="UI\Controls\RScrollBar.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="UI\Controls\RTextBox.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="UI\GamePickerForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="UI\MainForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="UI\ModpackExportDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="UI\Panels\ConfigPanel.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="UI\Panels\InstalledPanel.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="UI\Panels\LoadoutsPanel.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="UI\Panels\ModpacksPanel.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="UI\Panels\ModsPanel.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="UI\Panels\SettingsPanel.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="UI\SteamGameBrowserDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="UI\ThunderstoreCommunityPickerForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+  </ItemGroup>
+</Project>
