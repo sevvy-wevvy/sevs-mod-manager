@@ -23,6 +23,8 @@ internal sealed class ModsPanel : UserControl
     private string? _loginCode;
 
     private List<SbMod> _thunderstoreCache = new();
+    private readonly Dictionary<string, Image?> _iconCache = new();
+    private readonly HashSet<string> _iconLoading = new();
 
     private static bool UseThunderstore =>
         AppState.Settings.ThunderstoreCommunities.ContainsKey(AppState.Settings.GameName);
@@ -41,10 +43,11 @@ internal sealed class ModsPanel : UserControl
     private readonly RPanel    _listPanel;
     private readonly RPanel    _detail;
     private readonly Label     _detailName, _detailAuthor, _detailDesc, _detailStatus;
-    private readonly RButton   _installBtn, _uninstallBtn, _upvoteBtn, _ghBtn;
+    private readonly RButton   _installBtn, _uninstallBtn, _upvoteBtn, _ghBtn, _changelogBtn;
     private readonly RButton   _loadMoreBtn;
     private readonly RButton   _installExternalBtn;
     private readonly Label     _statusLabel;
+    private readonly RProgressStrip _progressStrip;
 
     private static readonly string[] _tabs = { "all", "featured", "verified", "unverified" };
 
@@ -153,6 +156,14 @@ internal sealed class ModsPanel : UserControl
 
         _list.HandleCreated += (_, __) => ThemeEngine.ApplyScrollTheme(this);
 
+        _list.MouseDown += (_, e) =>
+        {
+            if (e.Button != MouseButtons.Right) return;
+            int idx = _list.IndexFromPoint(e.Location);
+            if (idx >= 0) _list.SelectedIndex = idx;
+        };
+        _list.ContextMenuStrip = BuildModContextMenu();
+
         _loadMoreBtn = MakeBtn("Load More", tag: null);
         _loadMoreBtn.Dock = DockStyle.Bottom;
         _loadMoreBtn.Height = 32;
@@ -167,11 +178,14 @@ internal sealed class ModsPanel : UserControl
         };
         _statusLabel.Tag = "subtext";
 
+        _progressStrip = new RProgressStrip { Value = 0 };
+
         bool r2 = AppState.Settings.Layout == AppLayout.R2Modman;
 
         _listPanel = new RPanel { Dock = r2 ? DockStyle.Right : DockStyle.Left, Width = 380, CornerRadius = 0, Padding = new Padding(2) };
         _listPanel.Controls.Add(_list);
         _listPanel.Controls.Add(_loadMoreBtn);
+        _listPanel.Controls.Add(_progressStrip);
         _listPanel.Controls.Add(_statusLabel);
 
         _detail = new RPanel { Dock = DockStyle.Fill, Padding = new Padding(16), CornerRadius = 0 };
@@ -182,47 +196,61 @@ internal sealed class ModsPanel : UserControl
         _detailAuthor.Tag = "subtext";
         _detailDesc   = MakeLabel("", 10) ;
         _detailDesc.Tag = "subtext";
-        _detailStatus = MakeLabel("", 10);
+        _detailDesc.Dock = DockStyle.Fill;
+        _detailDesc.AutoSize = false;
+        _detailStatus = MakeLabel("", 10, bold: true);
+        _detailStatus.Dock = DockStyle.Right;
+        _detailStatus.AutoSize = false;
+        _detailStatus.Width = 150;
+        _detailStatus.TextAlign = ContentAlignment.MiddleRight;
 
         _installBtn   = MakeBtn("Install",          "accent");
         _uninstallBtn = MakeBtn("Uninstall",         null);
         _upvoteBtn    = MakeBtn("▲ Upvote",          null);
         _ghBtn        = MakeBtn("GitHub ↗",          null);
+        _changelogBtn = MakeBtn("Changelog ↗",       null);
 
         _installBtn.Click   += async (_, __) => await DoInstall();
         _uninstallBtn.Click += (_, __) => DoUninstall();
         _upvoteBtn.Click    += async (_, __) => await DoUpvote();
         _ghBtn.Click        += (_, __) => { if (_selected != null) OpenUrl(_selected.RepoUrl); };
+        _changelogBtn.Click += (_, __) => { if (_selected != null) OpenUrl(_selected.RepoUrl.TrimEnd('/') + "/changelog/"); };
 
         var btnRow = new FlowLayoutPanel
         {
             FlowDirection = FlowDirection.LeftToRight,
-            WrapContents = true,
+            WrapContents = false,
             AutoSize = true,
+            AutoSizeMode = AutoSizeMode.GrowAndShrink,
+            Anchor = AnchorStyles.Left,
         };
-        foreach (var b in new[] { _installBtn, _upvoteBtn, _uninstallBtn, _ghBtn })
+        foreach (var b in new[] { _installBtn, _upvoteBtn, _uninstallBtn, _ghBtn, _changelogBtn })
         {
             b.Margin = new Padding(0, 0, 6, 6);
             btnRow.Controls.Add(b);
         }
+
+        var actionRow = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, RowCount = 1, AutoSize = false };
+        actionRow.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        actionRow.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        actionRow.Controls.Add(btnRow, 0, 0);
+        actionRow.Controls.Add(_detailStatus, 1, 0);
 
         var detailLayout = new TableLayoutPanel
         {
             Dock = DockStyle.Fill,
             ColumnCount = 1,
             AutoSize = false,
-            RowCount = 5,
+            RowCount = 4,
         };
         detailLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         detailLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         detailLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-        detailLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        detailLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        detailLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 60));
         detailLayout.Controls.Add(_detailName,   0, 0);
         detailLayout.Controls.Add(_detailAuthor, 0, 1);
         detailLayout.Controls.Add(_detailDesc,   0, 2);
-        detailLayout.Controls.Add(_detailStatus, 0, 3);
-        detailLayout.Controls.Add(btnRow,        0, 4);
+        detailLayout.Controls.Add(actionRow,     0, 3);
         detailLayout.Dock = DockStyle.Fill;
         _detail.Controls.Add(detailLayout);
 
@@ -421,7 +449,10 @@ internal sealed class ModsPanel : UserControl
         bool installed = IsInstalled(mod);
         bool disabled  = !installed && IsDisabled(mod);
 
-        _detailStatus.Text = installed ? "● Installed" : disabled ? "● Disabled" : "○ Not installed";
+        bool squareGlyph = AppState.Settings.Layout is AppLayout.R2Modman or AppLayout.MonkeModManager;
+        string dotOn  = squareGlyph ? "■" : "●";
+        string dotOff = squareGlyph ? "□" : "○";
+        _detailStatus.Text = installed ? $"{dotOn} Installed" : disabled ? $"{dotOn} Disabled" : $"{dotOff} Not installed";
         _detailStatus.ForeColor = installed ? Color.FromArgb(39, 201, 63) : disabled ? Color.FromArgb(255, 189, 46) : ThemeEngine.Current.SubText;
 
         _installBtn.Visible   = !installed && !disabled;
@@ -432,6 +463,7 @@ internal sealed class ModsPanel : UserControl
         _upvoteBtn.ForeColor = _upvoted.Contains(mod.Id) ? Color.FromArgb(124, 58, 237) : ThemeEngine.Current.Text;
 
         _ghBtn.Text = mod.Source == ModSource.Thunderstore ? "Thunderstore ↗" : "GitHub ↗";
+        _changelogBtn.Visible = mod.Source == ModSource.Thunderstore && !string.IsNullOrEmpty(mod.RepoUrl);
         _installBtn.Text = mod.IsVerified ? "Install" : "Install (Unverified)";
     }
 
@@ -458,12 +490,12 @@ internal sealed class ModsPanel : UserControl
             if (install != DialogResult.Yes) return;
 
             _statusLabel.Text = $"Installing {loaderName}...";
-            var loaderProg = new Progress<(int percent, string status)>(p => _statusLabel.Text = $"[{p.percent}%] {p.status}");
+            var loaderProg = new Progress<(int percent, string status)>(p => { _statusLabel.Text = $"[{p.percent}%] {p.status}"; _progressStrip.Value = p.percent; });
             try { await AppState.InstallLoaderAsync(loaderKind, AppState.GameDir, loaderProg); }
-            catch (Exception ex) { _statusLabel.Text = $"{loaderName} install failed: " + ex.Message; return; }
+            catch (Exception ex) { _statusLabel.Text = $"{loaderName} install failed: " + ex.Message; _progressStrip.Value = 0; return; }
         }
 
-        var prog = new Progress<(int, string)>(r => _statusLabel.Text = $"[{r.Item1}%] {r.Item2}");
+        var prog = new Progress<(int, string)>(r => { _statusLabel.Text = $"[{r.Item1}%] {r.Item2}"; _progressStrip.Value = r.Item1; });
         try
         {
             if (_selected.Source == ModSource.Thunderstore)
@@ -478,9 +510,11 @@ internal sealed class ModsPanel : UserControl
                 if (url == null) { _statusLabel.Text = "This mod has no download available."; return; }
                 await ModInstaller.InstallAsync(url, _selected.DllName.Replace(".dll", ""), prog);
             }
+            if (_selected.Version is { Length: > 0 }) DataBridge.SetModVersion(ModKey(_selected), _selected.Version);
             ShowDetail(_selected);
         }
         catch (Exception ex) { _statusLabel.Text = "Install failed: " + ex.Message; }
+        finally { _progressStrip.Value = 0; }
     }
 
     private async Task InstallDependenciesAsync(SbMod mod, HashSet<string> visited)
@@ -500,8 +534,9 @@ internal sealed class ModsPanel : UserControl
             if (IsInstalled(depMod)) continue;
 
             _statusLabel.Text = $"Installing dependency {depMod.Name}...";
-            var prog = new Progress<(int percent, string status)>(r => _statusLabel.Text = $"[{r.percent}%] {depMod.Name}: {r.status}");
+            var prog = new Progress<(int percent, string status)>(r => { _statusLabel.Text = $"[{r.percent}%] {depMod.Name}: {r.status}"; _progressStrip.Value = r.percent; });
             await ModInstaller.InstallThunderstoreAsync(depMod.DownloadUrl, depMod.DllName, prog);
+            if (depMod.Version is { Length: > 0 }) DataBridge.SetModVersion(ModKey(depMod), depMod.Version);
 
             await InstallDependenciesAsync(depMod, visited);
         }
@@ -517,11 +552,63 @@ internal sealed class ModsPanel : UserControl
     private void DoUninstall()
     {
         if (_selected == null) return;
-        string modKey = _selected.Source == ModSource.Thunderstore
-            ? (AppState.DetectLoaderKind() == ModLoaderKind.MelonLoader ? ThunderstoreMelonDllName(_selected.DllName) : _selected.DllName)
-            : _selected.DllName.Replace(".dll", "");
-        ModInstaller.Uninstall(modKey);
+
+        var dependents = _thunderstoreCache
+            .Where(m => !m.DllName.Equals(_selected.DllName, StringComparison.OrdinalIgnoreCase))
+            .Where(m => m.Dependencies.Any(d => StripDepVersion(d).Equals(_selected.DllName, StringComparison.OrdinalIgnoreCase)))
+            .Where(IsInstalled)
+            .Select(m => m.Name)
+            .ToList();
+
+        if (dependents.Count > 0)
+        {
+            var proceed = MessageBox.Show(
+                $"{string.Join(", ", dependents)} depend{(dependents.Count == 1 ? "s" : "")} on this mod and may break without it. Uninstall anyway?",
+                "Other Mods Depend On This", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+            if (proceed != DialogResult.Yes) return;
+        }
+
+        ModInstaller.Uninstall(ModKey(_selected));
+        DataBridge.DeleteModVersion(ModKey(_selected));
         ShowDetail(_selected);
+    }
+
+    private static string StripDepVersion(string dep)
+    {
+        int lastDash = dep.LastIndexOf('-');
+        return lastDash >= 0 ? dep[..lastDash] : dep;
+    }
+
+    private static string ModKey(SbMod mod) =>
+        mod.Source == ModSource.Thunderstore
+            ? (AppState.DetectLoaderKind() == ModLoaderKind.MelonLoader ? ThunderstoreMelonDllName(mod.DllName) : mod.DllName)
+            : mod.DllName.Replace(".dll", "");
+
+    private ContextMenuStrip BuildModContextMenu()
+    {
+        var menu = new ContextMenuStrip { BackColor = Color.FromArgb(30, 30, 30), ForeColor = Color.White };
+        menu.Opening += (_, e) =>
+        {
+            if (_selected == null) { e.Cancel = true; return; }
+            menu.Items.Clear();
+
+            bool installed = IsInstalled(_selected);
+            bool disabled = !installed && IsDisabled(_selected);
+
+            var installItem = menu.Items.Add(installed || disabled ? "Uninstall" : "Install");
+            installItem.Click += async (_, __) => { if (installed || disabled) DoUninstall(); else await DoInstall(); };
+
+            if (!string.IsNullOrEmpty(_selected.RepoUrl))
+            {
+                menu.Items.Add(_selected.Source == ModSource.Thunderstore ? "Open Thunderstore Page" : "Open GitHub Page")
+                    .Click += (_, __) => OpenUrl(_selected.RepoUrl);
+                menu.Items.Add("Copy Link").Click += (_, __) =>
+                {
+                    try { Clipboard.SetText(_selected.RepoUrl); } catch { }
+                };
+            }
+        };
+        return menu;
     }
 
     private static string ThunderstoreMelonDllName(string fullName)
@@ -651,18 +738,52 @@ internal sealed class ModsPanel : UserControl
         var nameFont  = new Font("Segoe UI", 10f, FontStyle.Bold);
         var subFont   = new Font("Segoe UI", 8f);
 
+        var icon = GetModIcon(mod);
+        int textRight = e.Bounds.Right - 12;
+        if (icon != null)
+        {
+            const int iconSize = 40;
+            var iconRect = new Rectangle(e.Bounds.Right - iconSize - 12, e.Bounds.Top + (e.Bounds.Height - iconSize) / 2, iconSize, iconSize);
+            using var path = RoundedGraphics.RoundedRect(iconRect, 6);
+            var oldClip = e.Graphics.Clip;
+            e.Graphics.SetClip(path, System.Drawing.Drawing2D.CombineMode.Intersect);
+            e.Graphics.DrawImage(icon, iconRect);
+            e.Graphics.Clip = oldClip;
+            textRight = iconRect.Left - 8;
+        }
+
         int x = e.Bounds.Left + 12, y = e.Bounds.Top + 8;
+        int textWidth = Math.Max(0, textRight - x);
         e.Graphics.DrawString(badge, badgeFont, new SolidBrush(badgeColor), x, y);
-        e.Graphics.DrawString(mod.Name, nameFont, new SolidBrush(t.Text), x, y + 14);
+        using (var nameFormat = new StringFormat { Trimming = StringTrimming.EllipsisCharacter, FormatFlags = StringFormatFlags.NoWrap })
+            e.Graphics.DrawString(mod.Name, nameFont, new SolidBrush(t.Text), new RectangleF(x, y + 14, textWidth, 20), nameFormat);
         e.Graphics.DrawString($"@{mod.Author}  ·  ▲{mod.Upvotes}", subFont, new SolidBrush(t.SubText), x, y + 32);
 
         if (DataBridge.GetModVersion(mod.RepoUrl) is { Length: > 0 })
         {
             var dot = new SolidBrush(Color.FromArgb(255, 95, 86));
-            e.Graphics.FillEllipse(dot, e.Bounds.Right - 16, e.Bounds.Top + 8, 8, 8);
+            int dotX = icon != null ? e.Bounds.Right - 56 : e.Bounds.Right - 16;
+            e.Graphics.FillEllipse(dot, dotX, e.Bounds.Top + 8, 8, 8);
         }
 
         e.Graphics.DrawLine(new Pen(t.Border), e.Bounds.Left, e.Bounds.Bottom - 1, e.Bounds.Right, e.Bounds.Bottom - 1);
+    }
+
+    private Image? GetModIcon(SbMod mod)
+    {
+        if (string.IsNullOrEmpty(mod.IconUrl)) return null;
+        if (_iconCache.TryGetValue(mod.IconUrl, out var img)) return img;
+        if (_iconLoading.Add(mod.IconUrl)) _ = LoadIconAsync(mod.IconUrl);
+        return null;
+    }
+
+    private async Task LoadIconAsync(string url)
+    {
+        var bytes = await ThunderstoreApi.DownloadBytesAsync(url);
+        try { _iconCache[url] = bytes != null ? Image.FromStream(new MemoryStream(bytes)) : null; }
+        catch { _iconCache[url] = null; }
+        _iconLoading.Remove(url);
+        if (IsHandleCreated) _list.Invalidate();
     }
 
     private bool IsInstalled(SbMod mod)
@@ -711,6 +832,8 @@ internal sealed class ModsPanel : UserControl
         _detail.BorderColor = Color.Transparent;
         _statusLabel.ForeColor = t.SubText;
         _statusLabel.BackColor = t.SurfaceAlt;
+        _progressStrip.TrackColor = t.SurfaceAlt;
+        _progressStrip.FillColor = t.Accent;
         ThemeEngine.StyleRButton(_loadMoreBtn);
         ThemeEngine.StyleRButton(_loginBtn);
         ThemeEngine.StyleRButton(_installExternalBtn);
@@ -718,7 +841,7 @@ internal sealed class ModsPanel : UserControl
         _search.ForeColor = t.Text;
         ThemeEngine.ApplyLayoutCornerStyle(_search);
         ThemeEngine.StyleRButton(_installBtn, accent: true);
-        foreach (var b in new[] { _uninstallBtn, _upvoteBtn, _ghBtn })
+        foreach (var b in new[] { _uninstallBtn, _upvoteBtn, _ghBtn, _changelogBtn })
             ThemeEngine.StyleRButton(b);
         _detailName.BackColor   = t.SurfaceAlt;
         _detailName.ForeColor   = t.Text;
@@ -762,6 +885,13 @@ internal sealed class ModsPanel : UserControl
             AutoSize = true,
             Padding = new Padding(0, 4, 0, 4),
         };
+    }
+
+    protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+    {
+        if (keyData == (Keys.Control | Keys.F)) { _search.Inner.Focus(); return true; }
+        if (keyData == Keys.Delete && _selected != null && _uninstallBtn.Visible) { DoUninstall(); return true; }
+        return base.ProcessCmdKey(ref msg, keyData);
     }
 
     protected override void Dispose(bool disposing)

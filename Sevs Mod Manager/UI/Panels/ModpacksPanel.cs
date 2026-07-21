@@ -2,6 +2,7 @@ using SevsModManager.Core;
 using SevsModManager.UI.Controls;
 using System.Drawing.Drawing2D;
 using SevsModManager.Theme;
+using SevsModManager.UI;
 
 namespace SevsModManager.UI.Panels;
 
@@ -13,8 +14,10 @@ internal sealed class ModpacksPanel : UserControl
     private readonly ListBox _packList;
     private readonly ListBox _modList;
     private readonly RButton _saveBtn, _blankBtn, _applyBtn, _deleteBtn, _exportBtn, _importBtn, _refreshBtn, _openFolderBtn;
-    private readonly Label   _detailName, _detailMeta, _modsLbl;
+    private readonly Label   _detailName, _detailMeta, _modsLbl, _filesLbl;
+    private readonly TreeView _fileTree;
     private readonly Label   _statusLabel;
+    private readonly RProgressStrip _progressStrip;
     private readonly Panel   _toolbar;
     private readonly Panel   _bodyWrap;
     private readonly RPanel  _detailPanel;
@@ -74,6 +77,12 @@ internal sealed class ModpacksPanel : UserControl
         _packList = new ListBox { Dock = DockStyle.Fill, BorderStyle = BorderStyle.None, DrawMode = DrawMode.OwnerDrawFixed, ItemHeight = 52, IntegralHeight = false };
         _packList.DrawItem += DrawPackItem;
         _packList.SelectedIndexChanged += (_, __) => ShowDetail();
+        _packList.MouseDoubleClick += (_, e) =>
+        {
+            int idx = _packList.IndexFromPoint(e.Location);
+            if (idx < 0 || idx >= _packs.Count) return;
+            SwitchToPackGame(_packs[idx]);
+        };
 
         bool r2 = AppState.Settings.Layout == AppLayout.R2Modman;
 
@@ -88,17 +97,27 @@ internal sealed class ModpacksPanel : UserControl
         _detailMeta.Tag = "subtext";
         _modsLbl    = MakeLabel("Mods");
 
-        _modList = new ListBox { Dock = DockStyle.Fill, BorderStyle = BorderStyle.None, SelectionMode = SelectionMode.None };
+        _modList = new ListBox { Dock = DockStyle.Top, Height = 120, BorderStyle = BorderStyle.None, SelectionMode = SelectionMode.None };
 
-        var modsWrap = new Panel { Dock = DockStyle.Fill, Padding = new Padding(0, 6, 0, 0) };
+        var modsWrap = new Panel { Dock = DockStyle.Top, Height = 144, Padding = new Padding(0, 6, 0, 0) };
         modsWrap.Controls.Add(_modList);
         modsWrap.Controls.Add(_modsLbl);
 
+        _filesLbl = MakeLabel("Files");
+        _fileTree = new TreeView { Dock = DockStyle.Fill, BorderStyle = BorderStyle.None };
+        _fileTree.HandleCreated += (_, __) => ThemeEngine.ApplyScrollTheme(_fileTree);
+
+        var filesWrap = new Panel { Dock = DockStyle.Fill, Padding = new Padding(0, 6, 0, 0) };
+        filesWrap.Controls.Add(_fileTree);
+        filesWrap.Controls.Add(_filesLbl);
+
+        _detailPanel.Controls.Add(filesWrap);
         _detailPanel.Controls.Add(modsWrap);
         _detailPanel.Controls.Add(_detailMeta);
         _detailPanel.Controls.Add(_detailName);
 
         _statusLabel = new Label { Dock = DockStyle.Bottom, Height = 22, Padding = new Padding(8, 0, 0, 0), TextAlign = ContentAlignment.MiddleLeft };
+        _progressStrip = new RProgressStrip { Value = 0 };
 
         var splitter = new Splitter { Dock = r2 ? DockStyle.Right : DockStyle.Left, Width = 1 };
 
@@ -109,6 +128,7 @@ internal sealed class ModpacksPanel : UserControl
 
         Controls.Add(_bodyWrap);
         Controls.Add(_toolbar);
+        Controls.Add(_progressStrip);
         Controls.Add(_statusLabel);
 
         ThemeEngine.ThemeChanged += ApplyTheme;
@@ -141,6 +161,7 @@ internal sealed class ModpacksPanel : UserControl
         _exportBtn.Enabled = _selected != null;
 
         _modList.Items.Clear();
+        _fileTree.Nodes.Clear();
         if (_selected == null)
         {
             _detailPanel.Visible = false;
@@ -153,6 +174,94 @@ internal sealed class ModpacksPanel : UserControl
         _detailMeta.Text = $"by {(string.IsNullOrWhiteSpace(m.Author) ? "unknown" : m.Author)}  ·  {m.CreatedUtc.ToLocalTime():MMM d, yyyy}  ·  {m.GameSlug}";
         _modsLbl.Text = $"Mods ({m.Mods.Count})";
         foreach (var mod in m.Mods.OrderBy(x => x)) _modList.Items.Add(mod);
+
+        try
+        {
+            var entries = ModpackManager.GetPackEntries(_selected.FilePath);
+            _filesLbl.Text = $"Files ({entries.Count})";
+            PopulateFileTree(_fileTree, entries);
+        }
+        catch { _filesLbl.Text = "Files"; }
+    }
+
+    private static void PopulateFileTree(TreeView tree, List<string> entries)
+    {
+        var nodeMap = new Dictionary<string, TreeNode>();
+        foreach (var entry in entries)
+        {
+            var parts = entry.Split('/');
+            TreeNodeCollection parent = tree.Nodes;
+            string pathSoFar = "";
+            foreach (var part in parts)
+            {
+                pathSoFar = pathSoFar.Length == 0 ? part : pathSoFar + "/" + part;
+                if (!nodeMap.TryGetValue(pathSoFar, out var node))
+                {
+                    node = new TreeNode(part);
+                    parent.Add(node);
+                    nodeMap[pathSoFar] = node;
+                }
+                parent = node.Nodes;
+            }
+        }
+    }
+
+    private void SwitchToPackGame(ModpackInfo pack)
+    {
+        string slug = pack.Manifest.GameSlug;
+        if (string.IsNullOrEmpty(slug) || string.Equals(slug, AppState.CurrentGameSlug, StringComparison.OrdinalIgnoreCase))
+        {
+            ShowDetail(pack);
+            return;
+        }
+
+        var preset = AppState.Presets.FirstOrDefault(p => p.Name != "Custom" && p.Slug.Equals(slug, StringComparison.OrdinalIgnoreCase));
+        if (preset != null)
+        {
+            string? path = preset.DefaultPaths.FirstOrDefault(File.Exists);
+            if (path == null && AppState.Settings.KnownGamePaths.TryGetValue(preset.Name, out var known) && File.Exists(known)) path = known;
+            if (path == null && preset.SteamAppId is { } appId && preset.DefaultPaths.Length > 0)
+                path = SteamLocator.FindGamePath(appId, Path.GetFileName(preset.DefaultPaths[0]));
+
+            if (path != null) { SwitchGame(path, preset.Name); return; }
+        }
+        else
+        {
+            var customMatch = AppState.Settings.CustomGames.FirstOrDefault(kv => AppState.DeriveSlug(kv.Key).Equals(slug, StringComparison.OrdinalIgnoreCase));
+            if (customMatch.Key != null && File.Exists(customMatch.Value)) { SwitchGame(customMatch.Value, customMatch.Key); return; }
+        }
+
+        var prompt = MessageBox.Show(
+            $"This modpack is for \"{slug}\", which isn't set up yet. Select its game executable now?",
+            "Game Not Set Up", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+        if (prompt != DialogResult.Yes) return;
+
+        string? exePath = null;
+        using (var steamDlg = new SteamGameBrowserDialog())
+            if (steamDlg.ShowDialog() == DialogResult.OK) exePath = steamDlg.SelectedExePath;
+
+        if (exePath == null)
+        {
+            using var fileDlg = new OpenFileDialog { Title = "Select Game Executable", Filter = "Executable|*.exe" };
+            if (fileDlg.ShowDialog() != DialogResult.OK) return;
+            exePath = fileDlg.FileName;
+        }
+
+        string name = preset?.Name ?? Path.GetFileNameWithoutExtension(exePath);
+        if (preset == null) AppState.Settings.CustomGames[name] = exePath;
+
+        SwitchGame(exePath, name);
+    }
+
+    private void SwitchGame(string path, string name)
+    {
+        AppState.Settings.GamePath = path;
+        AppState.Settings.GameName = name;
+        AppState.Save();
+        AppState.EnsureSbFolder();
+        DataBridge.LoadSettings();
+        Refresh_();
+        _statusLabel.Text = $"Switched to {name}.";
     }
 
     private async Task DoSaveCurrent()
@@ -171,11 +280,8 @@ internal sealed class ModpacksPanel : UserControl
         string name = dlg.PackName;
         var included = dlg.IncludedPaths;
 
-        await RunBusy(() =>
-        {
-            var progress = new Progress<(int percent, string status)>(p => _statusLabel.Text = $"[{p.percent}%] {p.status}");
-            ModpackManager.SaveCurrentAsPackSelective(name, Environment.UserName, included, progress);
-        });
+        var progress = new Progress<(int percent, string status)>(p => { _statusLabel.Text = $"[{p.percent}%] {p.status}"; _progressStrip.Value = p.percent; });
+        await RunBusy(() => ModpackManager.SaveCurrentAsPackSelective(name, Environment.UserName, included, progress));
         Refresh_();
         _statusLabel.Text = $"\"{name}\" saved.";
     }
@@ -184,21 +290,18 @@ internal sealed class ModpacksPanel : UserControl
     {
         _toolbar.Enabled = false;
         try { await Task.Run(work); }
-        finally { _toolbar.Enabled = true; }
+        finally { _toolbar.Enabled = true; _progressStrip.Value = 0; }
     }
 
     private async Task RunBusyAsync(Func<Task> work)
     {
         _toolbar.Enabled = false;
         try { await work(); }
-        finally { _toolbar.Enabled = true; }
+        finally { _toolbar.Enabled = true; _progressStrip.Value = 0; }
     }
 
-    private void SaveCurrentAsPackWithProgress(string name, string author)
-    {
-        var progress = new Progress<(int percent, string status)>(p => _statusLabel.Text = $"[{p.percent}%] {p.status}");
+    private void SaveCurrentAsPackWithProgress(string name, string author, IProgress<(int percent, string status)> progress) =>
         ModpackManager.SaveCurrentAsPack(name, author, progress);
-    }
 
     private async Task<bool> ConfirmSaveCurrentFirst(string action = "Applying a modpack")
     {
@@ -211,7 +314,8 @@ internal sealed class ModpacksPanel : UserControl
         {
             string? name = PromptDialog.Show("Save Current Setup", "Modpack name:", $"My Setup {DateTime.Now:yyyy-MM-dd}");
             if (string.IsNullOrWhiteSpace(name)) return false;
-            await RunBusy(() => SaveCurrentAsPackWithProgress(name, Environment.UserName));
+            var progress = new Progress<(int percent, string status)>(p => { _statusLabel.Text = $"[{p.percent}%] {p.status}"; _progressStrip.Value = p.percent; });
+            await RunBusy(() => SaveCurrentAsPackWithProgress(name, Environment.UserName, progress));
         }
         return true;
     }
@@ -230,7 +334,7 @@ internal sealed class ModpacksPanel : UserControl
         _toolbar.Enabled = false;
         try
         {
-            var progress = new Progress<(int percent, string status)>(p => _statusLabel.Text = $"[{p.percent}%] {p.status}");
+            var progress = new Progress<(int percent, string status)>(p => { _statusLabel.Text = $"[{p.percent}%] {p.status}"; _progressStrip.Value = p.percent; });
             await ModpackManager.CreateBlankSetup(progress);
             Refresh_();
             _statusLabel.Text = "Blank pack created.";
@@ -253,7 +357,7 @@ internal sealed class ModpacksPanel : UserControl
             string displayName = _selected.DisplayName;
             await RunBusyAsync(() =>
             {
-                var progress = new Progress<(int percent, string status)>(p => _statusLabel.Text = $"[{p.percent}%] {p.status}");
+                var progress = new Progress<(int percent, string status)>(p => { _statusLabel.Text = $"[{p.percent}%] {p.status}"; _progressStrip.Value = p.percent; });
                 return ModpackManager.ApplyPack(packPath, progress);
             });
             Refresh_();
@@ -333,7 +437,7 @@ internal sealed class ModpacksPanel : UserControl
             string localPath = ModpackManager.ImportPack(path);
             await RunBusyAsync(() =>
             {
-                var progress = new Progress<(int percent, string status)>(p => _statusLabel.Text = $"[{p.percent}%] {p.status}");
+                var progress = new Progress<(int percent, string status)>(p => { _statusLabel.Text = $"[{p.percent}%] {p.status}"; _progressStrip.Value = p.percent; });
                 return ModpackManager.ApplyPack(localPath, progress);
             });
             Refresh_();
@@ -388,8 +492,14 @@ internal sealed class ModpacksPanel : UserControl
         _modsLbl.ForeColor = t.SubText;
         _modList.BackColor = t.SurfaceAlt;
         _modList.ForeColor = t.Text;
+        _filesLbl.BackColor = t.SurfaceAlt;
+        _filesLbl.ForeColor = t.SubText;
+        _fileTree.BackColor = t.SurfaceAlt;
+        _fileTree.ForeColor = t.Text;
         _statusLabel.BackColor = t.Background;
         _statusLabel.ForeColor = t.SubText;
+        _progressStrip.TrackColor = t.SurfaceAlt;
+        _progressStrip.FillColor = t.Accent;
         foreach (var b in new[] { _saveBtn, _blankBtn, _refreshBtn, _importBtn, _openFolderBtn })
             ThemeEngine.StyleGhostButton(b);
 

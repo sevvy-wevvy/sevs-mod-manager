@@ -50,6 +50,16 @@ internal static class ModpackManager
         return result.OrderBy(p => p.DisplayName).ToList();
     }
 
+    public static List<string> GetPackEntries(string packPath)
+    {
+        using var zip = ZipFile.OpenRead(packPath);
+        return zip.Entries
+            .Where(e => e.Name.Length > 0 && e.FullName != ManifestEntry)
+            .Select(e => e.FullName)
+            .OrderBy(n => n, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+    }
+
     public static ModpackManifest? TryReadManifest(string packPath)
     {
         try
@@ -66,10 +76,17 @@ internal static class ModpackManager
     public static List<string> GetCurrentModNames()
     {
         string? modsDir = AppState.ModsInstallDir;
-        return modsDir != null && Directory.Exists(modsDir)
-            ? Directory.GetFiles(modsDir, "*.dll", SearchOption.TopDirectoryOnly)
-                .Select(Path.GetFileNameWithoutExtension).Select(n => n!).ToList()
-            : new List<string>();
+        if (modsDir == null || !Directory.Exists(modsDir)) return new List<string>();
+
+        var names = Directory.GetFiles(modsDir, "*.dll", SearchOption.TopDirectoryOnly)
+            .Select(f => Path.GetFileNameWithoutExtension(f)!)
+            .ToList();
+
+        names.AddRange(Directory.GetDirectories(modsDir)
+            .Where(d => Directory.EnumerateFiles(d, "*.dll", SearchOption.AllDirectories).Any())
+            .Select(d => Path.GetFileName(d)!));
+
+        return names;
     }
 
     public static bool CurrentSetupMatchesSavedPack()
@@ -183,8 +200,10 @@ internal static class ModpackManager
             string dest = Path.Combine(root.AbsolutePath, rel.Replace('/', Path.DirectorySeparatorChar));
             Directory.CreateDirectory(Path.GetDirectoryName(dest)!);
             entry.ExtractToFile(dest, overwrite: true);
-            progress?.Report((40 + (entries.Count == 0 ? 60 : (i + 1) * 60 / entries.Count), $"Extracting {entry.Name}..."));
+            progress?.Report((40 + (i + 1) * 60 / entries.Count, $"Extracting {entry.Name}..."));
         }
+
+        progress?.Report((100, "Modpack applied."));
     }
 
     public static void DeletePack(string packPath)

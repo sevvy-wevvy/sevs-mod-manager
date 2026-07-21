@@ -9,7 +9,9 @@ internal sealed class SettingsPanel : UserControl
 {
     private readonly Label   _gamePathLbl, _loaderStatusLbl;
     private readonly RButton _changeGameBtn, _installLoaderBtn, _updateLoaderBtn, _openGameFolderBtn;
+    private readonly RButton _switchGameBtn;
     private readonly FlowLayoutPanel _customGamesHost;
+    private readonly RDropdown _displayModeDropdown;
     private readonly RadioButton _themeBlack, _themeWhite, _themeCustom, _themeSynced, _themeR2Modman;
     private readonly RadioButton _styleSmm, _styleR2Modman, _styleMmm;
     private readonly RButton _customBgBtn, _customAccentBtn, _customApplyBtn;
@@ -17,6 +19,7 @@ internal sealed class SettingsPanel : UserControl
     private readonly FlowLayoutPanel _customRow;
     private string _pendingCustomBg = "", _pendingCustomAccent = "";
     private readonly CheckBox _useThunderstoreCheck;
+    private readonly CheckBox _autoCheckUpdatesCheck;
     private readonly Label   _thunderstoreCommunityLbl;
     private readonly RButton _changeThunderstoreCommunityBtn;
     private bool _updatingThunderstoreUi;
@@ -83,7 +86,7 @@ internal sealed class SettingsPanel : UserControl
         _updateLoaderBtn   = MakeBtn("Update Mod Loader");
         _openGameFolderBtn = MakeBtn("Open Game Folder ↗");
 
-        _changeGameBtn.Click     += async (_, __) => await ChangeGame();
+        _changeGameBtn.Click     += (_, __) => ChangeGame();
         _installLoaderBtn.Click  += async (_, __) => await InstallLoader(AppState.DetectLoaderKind());
         _updateLoaderBtn.Click   += async (_, __) => await InstallLoader(AppState.DetectLoaderKind());
         _openGameFolderBtn.Click += (_, __) => { if (AppState.GameDir != null) System.Diagnostics.Process.Start("explorer.exe", AppState.GameDir); };
@@ -131,8 +134,24 @@ internal sealed class SettingsPanel : UserControl
         };
         RebuildCustomGamesList();
 
+        var displayModeLbl = MakeLabel("Game picker display:");
+        displayModeLbl.Margin = new Padding(0, 8, 0, 2);
+        _displayModeDropdown = new RDropdown { Width = 160, Height = 34, CornerRadius = 8, Margin = new Padding(0, 0, 0, 4) };
+        _displayModeDropdown.Items.Add("Icon + Text");
+        _displayModeDropdown.Items.Add("Text Only");
+        _displayModeDropdown.Items.Add("Icons Only");
+        _displayModeDropdown.SelectedIndex = (int)AppState.Settings.GamePickerDisplay;
+        _displayModeDropdown.SelectedIndexChanged += (_, __) =>
+        {
+            if (_displayModeDropdown.SelectedIndex < 0) return;
+            AppState.Settings.GamePickerDisplay = (GamePickerDisplay)_displayModeDropdown.SelectedIndex;
+            AppState.Save();
+        };
+
         manageGamesGroup.Controls.Add(customGamesLbl);
         manageGamesGroup.Controls.Add(_customGamesHost);
+        manageGamesGroup.Controls.Add(displayModeLbl);
+        manageGamesGroup.Controls.Add(_displayModeDropdown);
 
         var modSourceGroup = MakeGroup("Mod Source");
 
@@ -294,10 +313,36 @@ internal sealed class SettingsPanel : UserControl
         aboutGroup.Controls.Add(aboutLine);
         aboutGroup.Controls.Add(donateLink);
 
+        var updatesGroup = MakeGroup("Updates");
+        _autoCheckUpdatesCheck = new CheckBox
+        {
+            Text = "Check for Sev's Mod Manager updates on startup", AutoSize = true,
+            Font = new Font("Segoe UI", 9.5f), Cursor = Cursors.Hand,
+            Checked = AppState.Settings.AutoCheckUpdates,
+        };
+        _autoCheckUpdatesCheck.CheckedChanged += (_, __) =>
+        {
+            AppState.Settings.AutoCheckUpdates = _autoCheckUpdatesCheck.Checked;
+            AppState.Save();
+        };
+        WrapIfNarrow(_autoCheckUpdatesCheck, narrow);
+        updatesGroup.Controls.Add(_autoCheckUpdatesCheck);
+
+        var switchGameGroup = MakeGroup("Switch Game");
+        _switchGameBtn = MakeBtn("Switch Game...");
+        _switchGameBtn.Click += (_, __) =>
+        {
+            if (MessageBox.Show("This restarts Sev's Mod Manager and takes you back to the game picker. Continue?",
+                "Switch Game", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                Program.RestartApp(skipPicker: false);
+        };
+        WrapIfNarrow(_switchGameBtn, narrow);
+        switchGameGroup.Controls.Add(_switchGameBtn);
+
         if (AppState.Settings.Layout == AppLayout.MonkeModManager)
-            BuildMmmLayout(styleGroup, gameGroup, manageGamesGroup, modSourceGroup, themeGroup, aboutGroup);
+            BuildMmmLayout(switchGameGroup, updatesGroup, styleGroup, gameGroup, manageGamesGroup, modSourceGroup, themeGroup, aboutGroup);
         else
-            BuildStackedLayout(styleGroup, gameGroup, manageGamesGroup, modSourceGroup, themeGroup, aboutGroup);
+            BuildStackedLayout(switchGameGroup, updatesGroup, styleGroup, gameGroup, manageGamesGroup, modSourceGroup, themeGroup, aboutGroup);
 
         ThemeEngine.ThemeChanged += ApplyTheme;
         HandleCreated += (_, __) => ThemeEngine.ApplyScrollTheme(this);
@@ -305,21 +350,21 @@ internal sealed class SettingsPanel : UserControl
         Reload();
     }
 
-    private void BuildStackedLayout(Control styleGroup, Control gameGroup, Control manageGamesGroup, Control modSourceGroup, Control themeGroup, Control aboutGroup)
+    private void BuildStackedLayout(Control switchGameGroup, Control updatesGroup, Control styleGroup, Control gameGroup, Control manageGamesGroup, Control modSourceGroup, Control themeGroup, Control aboutGroup)
     {
         var scroll = new Panel { Dock = DockStyle.Fill, AutoScroll = true };
         _scrollHost = new Panel { Dock = DockStyle.Top, AutoSize = true, Padding = new Padding(20, 16, 20, 20) };
         scroll.Controls.Add(_scrollHost);
         Controls.Add(scroll);
 
-        foreach (var g in new[] { aboutGroup, themeGroup, modSourceGroup, manageGamesGroup, gameGroup, styleGroup })
+        foreach (var g in new[] { updatesGroup, themeGroup, modSourceGroup, manageGamesGroup, gameGroup, styleGroup, switchGameGroup, aboutGroup })
         {
             g.Margin = new Padding(0, 0, 0, 14);
             _scrollHost.Controls.Add(g);
         }
     }
 
-    private void BuildMmmLayout(Control styleGroup, Control gameGroup, Control manageGamesGroup, Control modSourceGroup, Control themeGroup, Control aboutGroup)
+    private void BuildMmmLayout(Control switchGameGroup, Control updatesGroup, Control styleGroup, Control gameGroup, Control manageGamesGroup, Control modSourceGroup, Control themeGroup, Control aboutGroup)
     {
         var scroll = new Panel { Dock = DockStyle.Fill, AutoScroll = true };
         Controls.Add(scroll);
@@ -328,6 +373,7 @@ internal sealed class SettingsPanel : UserControl
         var rightCol  = new Panel { Dock = DockStyle.Right, Width = 300, Padding = new Padding(16) };
         var centerCol = new Panel { Dock = DockStyle.Fill };
 
+        switchGameGroup.Margin = new Padding(0, 0, 0, 14);
         styleGroup.Margin = new Padding(0, 0, 0, 14);
         gameGroup.Margin  = new Padding(0, 0, 0, 14);
         manageGamesGroup.Margin = new Padding(0, 0, 0, 14);
@@ -336,11 +382,14 @@ internal sealed class SettingsPanel : UserControl
         leftCol.Controls.Add(manageGamesGroup);
         leftCol.Controls.Add(gameGroup);
         leftCol.Controls.Add(styleGroup);
+        leftCol.Controls.Add(switchGameGroup);
 
         themeGroup.Margin = new Padding(0, 0, 0, 14);
         aboutGroup.Margin = new Padding(0, 0, 0, 14);
-        rightCol.Controls.Add(aboutGroup);
+        updatesGroup.Margin = new Padding(0, 0, 0, 14);
+        rightCol.Controls.Add(updatesGroup);
         rightCol.Controls.Add(themeGroup);
+        rightCol.Controls.Add(aboutGroup);
 
         _mascotBox = new PictureBox { Image = AppIcons.Png, SizeMode = PictureBoxSizeMode.Zoom, Width = 160, Height = 160 };
         centerCol.Controls.Add(_mascotBox);
@@ -388,6 +437,8 @@ internal sealed class SettingsPanel : UserControl
         _styleSmm.Checked      = AppState.Settings.Layout == AppLayout.SevsModManager;
         _styleR2Modman.Checked = AppState.Settings.Layout == AppLayout.R2Modman;
         _styleMmm.Checked      = AppState.Settings.Layout == AppLayout.MonkeModManager;
+
+        _displayModeDropdown.SelectedIndex = (int)AppState.Settings.GamePickerDisplay;
 
         ReloadThunderstoreSection();
     }
@@ -444,7 +495,7 @@ internal sealed class SettingsPanel : UserControl
         }
     }
 
-    private async Task ChangeGame()
+    private void ChangeGame()
     {
         using var dlg = new OpenFileDialog
         {
@@ -471,18 +522,6 @@ internal sealed class SettingsPanel : UserControl
         DataBridge.LoadSettings();
         Reload();
         _statusLabel.Text = $"Game set to: {AppState.Settings.GameName}";
-
-        var loaderKind = AppState.DetectLoaderKind();
-        if (AppState.GameDir != null && !AppState.IsLoaderInstalled(loaderKind, AppState.GameDir))
-        {
-            string loaderName = AppState.LoaderName(loaderKind);
-            var result = MessageBox.Show(
-                $"This game doesn't have a mod loader installed. Sev's Mod Manager needs {loaderName} to install and manage mods. Install it now?",
-                $"{loaderName} Required", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
-
-            if (result == DialogResult.Yes) await InstallLoader(loaderKind);
-            else Application.Exit();
-        }
     }
 
     private async Task OnThunderstoreToggle()
@@ -598,6 +637,11 @@ internal sealed class SettingsPanel : UserControl
         BackColor = t.Background;
 
         ThemeEngine.Recolor(this);
+
+        _displayModeDropdown.FillColor = t.SurfaceAlt;
+        _displayModeDropdown.HoverFillColor = ThemeEngine.Current.Border;
+        _displayModeDropdown.BorderColor = Color.Transparent;
+        _displayModeDropdown.ForeColor = t.Text;
 
         if (AppState.GameDir != null)
             _loaderStatusLbl.ForeColor = AppState.IsLoaderInstalled(AppState.DetectLoaderKind(), AppState.GameDir)

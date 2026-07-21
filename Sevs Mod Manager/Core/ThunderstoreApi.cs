@@ -40,12 +40,20 @@ internal static class ThunderstoreApi
                     IsVerified   = !deprecated,
                     Source       = ModSource.Thunderstore,
                     DownloadUrl  = GetStr(latest, "download_url"),
+                    IconUrl      = GetStr(latest, "icon") is { Length: > 0 } icon ? icon : null,
+                    Version      = GetStr(latest, "version_number") is { Length: > 0 } ver ? ver : null,
                     Dependencies = dependencies,
                 });
             }
         }
         catch {  }
         return result;
+    }
+
+    public static async Task<byte[]?> DownloadBytesAsync(string url)
+    {
+        try { return await _http.GetByteArrayAsync(url); }
+        catch { return null; }
     }
 
     public static async Task<List<ThunderstoreCommunityInfo>> ListCommunitiesAsync()

@@ -16,6 +16,9 @@
     <Compile Update="UI\Controls\RPanel.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Update="UI\Controls\RProgressStrip.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Update="UI\Controls\RScrollBar.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -38,6 +41,9 @@
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Update="UI\Panels\LoadoutsPanel.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="UI\Panels\LogsPanel.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Update="UI\Panels\ModpacksPanel.cs">

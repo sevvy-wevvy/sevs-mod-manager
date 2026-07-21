@@ -85,10 +85,7 @@ internal sealed class ConfigPanel : UserControl
 
         _fileList.BeginUpdate();
         _fileList.Items.Clear();
-        if (_files.Count == 0)
-            _fileList.Items.Add("No configs found, maybe try installing some mods and starting your game!");
-        else
-            foreach (var f in _files) _fileList.Items.Add(f.DisplayName);
+        foreach (var f in _files) _fileList.Items.Add(f.DisplayName);
         _fileList.EndUpdate();
 
         _statusLabel.Text = $"{_files.Count} config files";
@@ -106,7 +103,23 @@ internal sealed class ConfigPanel : UserControl
         _saveBtn.Enabled = false;
 
         int idx = _fileList.SelectedIndex;
-        if (idx < 0 || idx >= _files.Count) { _titleLabel.Text = ""; return; }
+        if (idx < 0 || idx >= _files.Count)
+        {
+            _titleLabel.Text = "";
+            if (_files.Count == 0)
+            {
+                var theme = ThemeEngine.Current;
+                var msg = new Label
+                {
+                    Text = "No configs found, maybe try installing some mods and starting your game!",
+                    Dock = DockStyle.Top, AutoSize = false, Height = 60,
+                    Font = new Font("Segoe UI", 10f), Padding = new Padding(4, 8, 4, 0),
+                    ForeColor = theme.SubText, BackColor = theme.SurfaceAlt,
+                };
+                _contentHost.Controls.Add(msg);
+            }
+            return;
+        }
 
         var (displayName, filePath) = _files[idx];
         _titleLabel.Text = displayName;
@@ -183,6 +196,7 @@ internal sealed class ConfigPanel : UserControl
                 Dock = DockStyle.Top, Height = 26, AutoSize = false,
                 Text = entry.Value,
                 Checked = entry.Value.Equals("true", StringComparison.OrdinalIgnoreCase),
+                ForeColor = t.Text, BackColor = t.SurfaceAlt,
             };
             chk.CheckedChanged += (_, __) => chk.Text = chk.Checked ? "true" : "false";
             _liveWidgets.Add((entry, () => chk.Checked ? "true" : "false"));
@@ -196,8 +210,8 @@ internal sealed class ConfigPanel : UserControl
                          entry.SettingType.Equals("SByte", StringComparison.OrdinalIgnoreCase);
             var (min, max) = entry.Range.Value;
 
-            var wrap = new Panel { Dock = DockStyle.Top, Height = 30 };
-            var valueLbl = new Label { Dock = DockStyle.Right, Width = 60, TextAlign = ContentAlignment.MiddleRight };
+            var wrap = new Panel { Dock = DockStyle.Top, Height = 30, BackColor = t.SurfaceAlt };
+            var valueLbl = new Label { Dock = DockStyle.Right, Width = 60, TextAlign = ContentAlignment.MiddleRight, ForeColor = t.Text, BackColor = t.SurfaceAlt };
             var slider = new TrackBar
             {
                 Dock = DockStyle.Fill, TickStyle = TickStyle.None,
@@ -230,7 +244,12 @@ internal sealed class ConfigPanel : UserControl
 
         if (entry.AcceptableValues is { Count: > 0 })
         {
-            var dd = new RDropdown { Dock = DockStyle.Top, Height = 30, CornerRadius = 6 };
+            var dd = new RDropdown
+            {
+                Dock = DockStyle.Top, Height = 30, CornerRadius = 6,
+                ForeColor = t.Text, FillColor = t.Surface, HoverFillColor = t.Border, BorderColor = Color.Transparent,
+            };
+            ThemeEngine.ApplyLayoutCornerStyle(dd);
             foreach (var v in entry.AcceptableValues) dd.Items.Add(v);
             int sel = entry.AcceptableValues.FindIndex(v => v.Equals(entry.Value, StringComparison.OrdinalIgnoreCase));
             dd.SelectedIndex = sel >= 0 ? sel : 0;
@@ -238,7 +257,12 @@ internal sealed class ConfigPanel : UserControl
             return dd;
         }
 
-        var txt = new RTextBox { Dock = DockStyle.Top, Height = 30, CornerRadius = 6, Text = entry.Value };
+        var txt = new RTextBox
+        {
+            Dock = DockStyle.Top, Height = 30, CornerRadius = 6, Text = entry.Value,
+            ForeColor = t.Text, BackColor = t.Surface,
+        };
+        ThemeEngine.ApplyLayoutCornerStyle(txt);
         _liveWidgets.Add((entry, () => txt.Text));
         return txt;
     }

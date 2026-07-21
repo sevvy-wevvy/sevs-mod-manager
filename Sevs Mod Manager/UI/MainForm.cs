@@ -12,13 +12,20 @@ internal sealed class MainForm : Form
     private const int WindowRadius = 14;
     private const int TabRadius    = 8;
 
-    private static readonly string[] NavLabels = { "Mods", "Installed", "Loadouts", "Modpacks", "Config", "Settings" };
+    private static readonly string[] NavLabels = { "Mods", "Installed", "Logs", "Loadouts", "Modpacks", "Config", "Settings" };
 
     private readonly AppLayout _layout;
 
     private Panel?  _titleBar;
     private Label?  _titleLabel;
     private Label?  _gameLabel;
+    private Panel?  _titleGameIcon;
+    private Panel?  _gameBox;
+    private Panel?  _titleIconBox;
+    private RButton? _playBtn;
+    private System.Windows.Forms.Timer? _gameRunningTimer;
+    private bool _gameRunning;
+    private DateTime? _launchedAt;
 
     private Panel?      _tabStrip;
     private RButton[]?  _navButtons;
@@ -27,13 +34,13 @@ internal sealed class MainForm : Form
     private System.Windows.Forms.Timer? _underlineTimer;
 
     private Panel? _sidebar;
-    private Label? _sidebarGameLabel;
     private Label? _sidebarMascotLabel;
     private PictureBox? _sidebarMascotBox;
     private Panel? _sidebarBottomRow;
 
     private readonly ModsPanel      _modsPanel;
     private readonly InstalledPanel _installedPanel;
+    private readonly LogsPanel      _logsPanel;
     private readonly LoadoutsPanel  _loadoutsPanel;
     private readonly ModpacksPanel  _modpacksPanel;
     private readonly ConfigPanel    _configPanel;
@@ -66,16 +73,18 @@ internal sealed class MainForm : Form
 
         _modsPanel      = new ModsPanel     { Visible = true };
         _installedPanel = new InstalledPanel{ Visible = false };
+        _logsPanel      = new LogsPanel     { Visible = false };
         _loadoutsPanel  = new LoadoutsPanel { Visible = false };
         _modpacksPanel  = new ModpacksPanel { Visible = false };
         _configPanel    = new ConfigPanel   { Visible = false };
         _settingsPanel  = new SettingsPanel { Visible = false };
 
-        _navPanels = new Control[] { _modsPanel, _installedPanel, _loadoutsPanel, _modpacksPanel, _configPanel, _settingsPanel };
+        _navPanels = new Control[] { _modsPanel, _installedPanel, _logsPanel, _loadoutsPanel, _modpacksPanel, _configPanel, _settingsPanel };
         _navActivate = new Action?[]
         {
             () => _modsPanel.RefreshModSource(),
             () => _installedPanel.Refresh_(),
+            () => _logsPanel.Refresh_(),
             () => _loadoutsPanel.Refresh_(),
             () => _modpacksPanel.Refresh_(),
             () => _configPanel.Refresh_(),
@@ -97,12 +106,22 @@ internal sealed class MainForm : Form
         Controls.Add(content);
         Controls.Add(_statusBar);
 
+        AllowDrop = true;
+        DragEnter += MainForm_DragEnter;
+        DragDrop  += MainForm_DragDrop;
+
         switch (_layout)
         {
             case AppLayout.R2Modman:        BuildR2ModmanChrome(); break;
             case AppLayout.MonkeModManager:  BuildMmmChrome(); break;
             default:                        BuildSmmChrome(); break;
         }
+
+        _gameRunningTimer = new System.Windows.Forms.Timer { Interval = 1000 };
+        _gameRunningTimer.Tick += (_, __) => CheckGameRunning();
+        _gameRunningTimer.Start();
+
+        DiscordPresence.Start();
 
         ThemeEngine.ThemeChanged += ApplyTheme;
         ApplyTheme();
@@ -111,6 +130,7 @@ internal sealed class MainForm : Form
         {
             SetStatus("Starting...");
             UpdateGameLabel();
+            CheckGameRunning();
             if (_navButtons != null) HighlightNav(0, animate: false);
 
             SetStatus("Loading mod catalog...");
@@ -123,7 +143,35 @@ internal sealed class MainForm : Form
                 SwitchToIndex(3);
                 await _modpacksPanel.PromptInstallExternalPack(_pendingPackPath);
             }
+
+            CheckWhatsNew();
+            await CheckForUpdatesAsync();
         };
+    }
+
+    private static void CheckWhatsNew()
+    {
+        if (AppState.Settings.AppVersionSeen > 0 && AppState.Settings.AppVersionSeen < Program.CurrentVersion)
+            UpdateDialogs.ShowWhatsNew("Thanks for updating! Check the GitHub releases page for what's changed in this version.");
+
+        AppState.Settings.AppVersionSeen = Program.CurrentVersion;
+        AppState.Save();
+    }
+
+    private static async Task CheckForUpdatesAsync()
+    {
+        if (!AppState.Settings.AutoCheckUpdates) return;
+
+        int? latest = await UpdateChecker.GetLatestVersionAsync();
+        if (latest is not { } v || v <= Program.CurrentVersion) return;
+
+        bool getIt = UpdateDialogs.ShowUpdateAvailable(
+            $"A new version of Sev's Mod Manager is available (v{v}, you're on v{Program.CurrentVersion}).");
+        if (getIt)
+        {
+            try { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("https://github.com/sevvy-wevvy/sevs-mod-manager/releases/latest") { UseShellExecute = true }); }
+            catch { }
+        }
     }
 
     private void BuildSmmChrome()
@@ -169,17 +217,31 @@ internal sealed class MainForm : Form
         _titleLabel.MouseMove += TitleBar_MouseMove;
         _titleLabel.MouseUp   += (_, __) => _dragging = false;
 
+        _gameBox = new Panel { Dock = DockStyle.Right, Width = 200 };
+
+        const int titleIconSize = 20;
+        _titleIconBox = new Panel { Dock = DockStyle.Right, Width = 32 };
+        _titleGameIcon = MakeCircularIcon(titleIconSize);
+        _titleGameIcon.Location = new Point((32 - titleIconSize) / 2, (40 - titleIconSize) / 2);
+        _titleIconBox.Controls.Add(_titleGameIcon);
+
         _gameLabel = new Label
         {
             Text = "",
-            Dock = DockStyle.Right,
-            Width = 200,
+            Dock = DockStyle.Fill,
             TextAlign = ContentAlignment.MiddleRight,
             Font = new Font("Segoe UI", 8.5f),
-            Padding = new Padding(0, 0, 12, 0),
+            Padding = new Padding(0, 0, 8, 0),
+            Cursor = Cursors.Hand,
         };
+        _gameLabel.Click += (_, __) => ShowQuickSwitchMenu(_gameLabel);
+        _titleIconBox.Cursor = Cursors.Hand;
+        _titleIconBox.Click += (_, __) => ShowQuickSwitchMenu(_titleIconBox);
 
-        _titleBar.Controls.Add(_gameLabel);
+        _gameBox.Controls.Add(_gameLabel);
+        _gameBox.Controls.Add(_titleIconBox);
+
+        _titleBar.Controls.Add(_gameBox);
         _titleBar.Controls.Add(_titleLabel);
         _titleBar.Controls.Add(lights);
 
@@ -214,6 +276,14 @@ internal sealed class MainForm : Form
         foreach (var b in _navButtons) tabFlow.Controls.Add(b);
         _tabStrip.Controls.Add(tabFlow);
 
+        int tabHeight = _layout == AppLayout.MonkeModManager ? 38 : 32;
+        int vpad = (38 - tabHeight) / 2;
+        var playWrap = new Panel { Dock = DockStyle.Right, Width = 130, Padding = new Padding(8, vpad, 8, vpad) };
+        _playBtn = MakePlayBtn();
+        _playBtn.Dock = DockStyle.Fill;
+        playWrap.Controls.Add(_playBtn);
+        _tabStrip.Controls.Add(playWrap);
+
         _underlineTimer = new System.Windows.Forms.Timer { Interval = 12 };
         _underlineTimer.Tick += (_, __) => StepUnderlineAnim();
 
@@ -232,15 +302,6 @@ internal sealed class MainForm : Form
 
         _sidebar = new Panel { Dock = DockStyle.Left, Width = 200 };
 
-        _sidebarGameLabel = new Label
-        {
-            Text = AppState.Settings.GameName.ToUpperInvariant(),
-            Dock = DockStyle.Top, Height = 34,
-            Font = new Font("Segoe UI", 8f, FontStyle.Bold),
-            TextAlign = ContentAlignment.MiddleLeft,
-            Padding = new Padding(16, 0, 0, 0),
-        };
-
         _navButtons = NavLabels.Select(MakeSidebarBtn).ToArray();
         for (int i = 0; i < _navButtons.Length; i++)
         {
@@ -255,14 +316,26 @@ internal sealed class MainForm : Form
         {
             Image = AppIcons.TryExtractGameIcon(AppState.Settings.GamePath) ?? AppIcons.Png,
             SizeMode = PictureBoxSizeMode.Zoom, Width = 32, Height = 32, Location = new Point(12, 8),
+            Cursor = Cursors.Hand,
         };
-        _sidebarMascotLabel = new Label { Text = AppState.Settings.GameName, AutoSize = true, Font = new Font("Segoe UI", 8.5f), Location = new Point(52, 16) };
+        _sidebarMascotLabel = new Label
+        {
+            Text = AppState.Settings.GameName, AutoSize = true, Font = new Font("Segoe UI", 8.5f),
+            Location = new Point(52, 16), Cursor = Cursors.Hand,
+        };
         _sidebarBottomRow = new Panel { Dock = DockStyle.Bottom, Height = 48 };
+        _sidebarMascotBox.Click += (_, __) => ShowQuickSwitchMenu(_sidebarMascotBox);
+        _sidebarMascotLabel.Click += (_, __) => ShowQuickSwitchMenu(_sidebarMascotLabel);
         _sidebarBottomRow.Controls.Add(_sidebarMascotBox);
         _sidebarBottomRow.Controls.Add(_sidebarMascotLabel);
 
+        var playRow = new Panel { Dock = DockStyle.Bottom, Height = 44, Padding = new Padding(8, 4, 8, 4) };
+        _playBtn = MakePlayBtn();
+        _playBtn.Dock = DockStyle.Fill;
+        playRow.Controls.Add(_playBtn);
+
         _sidebar.Controls.Add(navHost);
-        _sidebar.Controls.Add(_sidebarGameLabel);
+        _sidebar.Controls.Add(playRow);
         _sidebar.Controls.Add(_sidebarBottomRow);
 
         Controls.Add(_sidebar);
@@ -426,6 +499,8 @@ internal sealed class MainForm : Form
         {
             _titleBar.BackColor = t.Surface;
             if (_titleLabel != null) { _titleLabel.BackColor = t.Surface; _titleLabel.ForeColor = t.Text; }
+            if (_gameBox != null) _gameBox.BackColor = t.Surface;
+            if (_titleIconBox != null) _titleIconBox.BackColor = t.Surface;
             if (_gameLabel != null) { _gameLabel.BackColor = t.Surface; _gameLabel.ForeColor = t.SubText; }
         }
 
@@ -448,11 +523,6 @@ internal sealed class MainForm : Form
         if (_sidebar != null)
         {
             _sidebar.BackColor = t.Surface;
-            if (_sidebarGameLabel != null)
-            {
-                _sidebarGameLabel.BackColor = t.Surface;
-                _sidebarGameLabel.ForeColor = t.SubText;
-            }
             if (_sidebarBottomRow != null) _sidebarBottomRow.BackColor = t.Surface;
             if (_sidebarMascotLabel != null)
             {
@@ -470,6 +540,8 @@ internal sealed class MainForm : Form
         foreach (Control c in Controls)
             if (c.Tag is "border_panel") c.BackColor = t.Border;
 
+        UpdatePlayButton();
+
         _tabStrip?.Invalidate();
         Invalidate();
     }
@@ -481,15 +553,198 @@ internal sealed class MainForm : Form
         if (_gameLabel != null)
         {
             _gameLabel.Text = AppState.Settings.GamePath.Length > 0
-                ? $"{AppState.Settings.GameName}  ·  {Path.GetFileName(AppState.Settings.GamePath)}"
+                ? AppState.Settings.GameName
                 : "No game selected";
         }
-        if (_sidebarGameLabel != null)
-            _sidebarGameLabel.Text = AppState.Settings.GameName.ToUpperInvariant();
+        if (_titleGameIcon != null)
+        {
+            bool hasGame = AppState.Settings.GamePath.Length > 0;
+            _titleGameIcon.Visible = hasGame;
+            _titleGameIcon.Tag = hasGame ? AppIcons.TryExtractGameIcon(AppState.Settings.GamePath) ?? AppIcons.Png : null;
+            _titleGameIcon.Invalidate();
+        }
         if (_sidebarMascotLabel != null)
             _sidebarMascotLabel.Text = AppState.Settings.GameName;
         if (_sidebarMascotBox != null)
             _sidebarMascotBox.Image = AppIcons.TryExtractGameIcon(AppState.Settings.GamePath) ?? AppIcons.Png;
+
+        if (AppState.Settings.GamePath.Length > 0)
+            DiscordPresence.Update(AppState.Settings.GameName, AppState.Settings.GamePath);
+    }
+
+    private RButton MakePlayBtn()
+    {
+        var btn = new RButton
+        {
+            Text = "▶ Play", CornerRadius = 8, Width = 74, Height = 28,
+            Font = new Font("Segoe UI", 9f, FontStyle.Bold),
+            Cursor = Cursors.Hand, Style = RButtonStyle.Solid,
+        };
+        btn.Click += (_, __) => OnPlayClick();
+        return btn;
+    }
+
+    private void MainForm_DragEnter(object? sender, DragEventArgs e)
+    {
+        bool hasDll = e.Data?.GetDataPresent(DataFormats.FileDrop) == true &&
+            ((string[])e.Data.GetData(DataFormats.FileDrop)!).Any(f => f.EndsWith(".dll", StringComparison.OrdinalIgnoreCase));
+        e.Effect = hasDll ? DragDropEffects.Copy : DragDropEffects.None;
+    }
+
+    private void MainForm_DragDrop(object? sender, DragEventArgs e)
+    {
+        if (e.Data?.GetData(DataFormats.FileDrop) is not string[] files) return;
+        if (AppState.GameDir == null) { SetStatus("No game selected, can't install."); return; }
+
+        int count = 0;
+        foreach (var f in files.Where(f => f.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)))
+        {
+            try { ModInstaller.InstallLocal(f); count++; }
+            catch { }
+        }
+
+        if (count == 0) return;
+        SetStatus($"Installed {count} dropped .dll file{(count == 1 ? "" : "s")}.");
+        _installedPanel.Refresh_();
+    }
+
+    private void ShowQuickSwitchMenu(Control anchor)
+    {
+        var menu = new ContextMenuStrip { BackColor = Color.FromArgb(30, 30, 30), ForeColor = Color.White };
+
+        foreach (var preset in AppState.Presets.Where(p => p.Name != "Custom"))
+        {
+            string? path = preset.DefaultPaths.FirstOrDefault(File.Exists);
+            if (path == null && AppState.Settings.KnownGamePaths.TryGetValue(preset.Name, out var known) && File.Exists(known)) path = known;
+            if (path == null) continue;
+
+            var resolved = path;
+            var item = menu.Items.Add(preset.Name);
+            item.Enabled = !preset.Name.Equals(AppState.Settings.GameName, StringComparison.OrdinalIgnoreCase);
+            item.Click += (_, __) => QuickSwitchGame(resolved, preset.Name);
+        }
+
+        foreach (var (name, path) in AppState.Settings.CustomGames)
+        {
+            if (!File.Exists(path)) continue;
+            var n = name; var pt = path;
+            var item = menu.Items.Add(n);
+            item.Enabled = !n.Equals(AppState.Settings.GameName, StringComparison.OrdinalIgnoreCase);
+            item.Click += (_, __) => QuickSwitchGame(pt, n);
+        }
+
+        if (menu.Items.Count == 0) menu.Items.Add("No other games set up yet").Enabled = false;
+        menu.Show(anchor, new Point(0, anchor.Height));
+    }
+
+    private void QuickSwitchGame(string path, string name)
+    {
+        AppState.Settings.GamePath = path;
+        AppState.Settings.GameName = name;
+        AppState.Save();
+        AppState.EnsureSbFolder();
+        DataBridge.LoadSettings();
+        UpdateGameLabel();
+        _navActivate[_activeNavIndex]?.Invoke();
+        SetStatus($"Switched to {name}.");
+    }
+
+    private void OnPlayClick()
+    {
+        if (_gameRunning) StopGame();
+        else LaunchGame();
+    }
+
+    private void LaunchGame()
+    {
+        string path = AppState.Settings.GamePath;
+        if (string.IsNullOrEmpty(path) || !File.Exists(path)) return;
+
+        int? appId = AppState.CurrentPreset.SteamAppId;
+        if (appId == null)
+        {
+            var match = AppState.Settings.SteamExePaths.FirstOrDefault(kv => string.Equals(kv.Value, path, StringComparison.OrdinalIgnoreCase));
+            if (match.Key != null && int.TryParse(match.Key, out int id)) appId = id;
+        }
+
+        try
+        {
+            if (appId is { } steamAppId)
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo($"steam://run/{steamAppId}") { UseShellExecute = true });
+            else
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(path) { UseShellExecute = true, WorkingDirectory = Path.GetDirectoryName(path) });
+            _launchedAt = DateTime.UtcNow;
+        }
+        catch { }
+    }
+
+    private static void StopGame()
+    {
+        string procName = Path.GetFileNameWithoutExtension(AppState.Settings.GamePath);
+        if (procName.Length == 0) return;
+        foreach (var p in System.Diagnostics.Process.GetProcessesByName(procName))
+            try { p.Kill(); } catch { }
+    }
+
+    private void CheckGameRunning()
+    {
+        bool running = IsGameProcessRunning();
+        if (running == _gameRunning) return;
+
+        if (!running && _gameRunning && _launchedAt is { } launched && DateTime.UtcNow - launched < TimeSpan.FromSeconds(10))
+        {
+            int logsIdx = Array.IndexOf(NavLabels, "Logs");
+            var check = MessageBox.Show(
+                $"{AppState.Settings.GameName} closed just a few seconds after launching. It may have crashed. Check the log?",
+                "Game Closed Quickly", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+            if (check == DialogResult.Yes && logsIdx >= 0) SwitchToIndex(logsIdx);
+        }
+        _launchedAt = null;
+
+        _gameRunning = running;
+        UpdatePlayButton();
+    }
+
+    private static bool IsGameProcessRunning()
+    {
+        string procName = Path.GetFileNameWithoutExtension(AppState.Settings.GamePath);
+        if (procName.Length == 0) return false;
+        try { return System.Diagnostics.Process.GetProcessesByName(procName).Length > 0; }
+        catch { return false; }
+    }
+
+    private void UpdatePlayButton()
+    {
+        if (_playBtn == null) return;
+        var t = ThemeEngine.Current;
+        bool mmm = _layout == AppLayout.MonkeModManager;
+        Color tint = _gameRunning ? Color.FromArgb(220, 60, 60) : Color.FromArgb(60, 190, 100);
+        _playBtn.Text = _gameRunning ? "■ Stop" : "▶ Play";
+        _playBtn.Style = mmm ? RButtonStyle.Outline : RButtonStyle.Solid;
+        _playBtn.FillColor = RoundedGraphics.Lerp(t.SurfaceAlt, tint, 0.3f);
+        _playBtn.HoverFillColor = RoundedGraphics.Lerp(t.SurfaceAlt, tint, 0.45f);
+        _playBtn.BorderColor = mmm ? RoundedGraphics.Lerp(t.Border, tint, 0.5f) : Color.Transparent;
+        _playBtn.HoverBorderColor = mmm ? tint : Color.Transparent;
+        _playBtn.BorderWidth = 2f;
+        _playBtn.ForeColor = t.Text;
+        ThemeEngine.ApplyLayoutCornerStyle(_playBtn);
+    }
+
+    private static Panel MakeCircularIcon(int size)
+    {
+        var p = new Panel { Width = size, Height = size, BackColor = Color.Transparent };
+        p.Paint += (s, e) =>
+        {
+            if (p.Tag is not Image img) return;
+            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+            using var path = new GraphicsPath();
+            path.AddEllipse(0, 0, size - 1, size - 1);
+            var oldClip = e.Graphics.Clip;
+            e.Graphics.SetClip(path, CombineMode.Intersect);
+            e.Graphics.DrawImage(img, 0, 0, size, size);
+            e.Graphics.Clip = oldClip;
+        };
+        return p;
     }
 
     private static Panel MakeLight(Color c)
@@ -565,7 +820,7 @@ internal sealed class MainForm : Form
 
     protected override void Dispose(bool disposing)
     {
-        if (disposing) ThemeEngine.ThemeChanged -= ApplyTheme;
+        if (disposing) { ThemeEngine.ThemeChanged -= ApplyTheme; _gameRunningTimer?.Dispose(); DiscordPresence.Stop(); }
         base.Dispose(disposing);
     }
 }

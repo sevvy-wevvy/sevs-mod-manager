@@ -14,29 +14,51 @@ internal static class ModInstaller
         string? modsDir = AppState.ModsInstallDir;
         if (modsDir == null || !Directory.Exists(modsDir)) return result;
 
-        foreach (var f in Directory.GetFiles(modsDir, "*.dll"))
-            result.Add(new InstalledMod { Name = Path.GetFileNameWithoutExtension(f), FilePath = f, Enabled = true });
+        ScanFlatDlls(modsDir, result);
+        ScanFolderMods(modsDir, result);
 
-        foreach (var f in Directory.GetFiles(modsDir, "*.dll.disabled"))
+        if (AppState.DetectLoaderKind() == ModLoaderKind.BepInEx && AppState.BepInExDir is { } bepDir)
         {
-            string name = Path.GetFileNameWithoutExtension(f);
-            if (name.EndsWith(".dll")) name = name[..^4];
-            result.Add(new InstalledMod { Name = name, FilePath = f, Enabled = false });
-        }
-
-        foreach (var dir in Directory.GetDirectories(modsDir))
-        {
-            int active   = Directory.EnumerateFiles(dir, "*.dll", SearchOption.AllDirectories).Count();
-            int disabled = Directory.EnumerateFiles(dir, "*.dll.disabled", SearchOption.AllDirectories).Count();
-            if (active + disabled == 0) continue;
-
-            result.Add(new InstalledMod { Name = Path.GetFileName(dir), FilePath = dir, Enabled = active > 0, IsFolder = true });
+            string patchersDir = Path.Combine(bepDir, "patchers");
+            if (Directory.Exists(patchersDir))
+            {
+                ScanFlatDlls(patchersDir, result);
+                ScanFolderMods(patchersDir, result);
+            }
         }
 
         foreach (var m in result)
             m.KnownVersion = DataBridge.GetModVersion(m.Name) is { Length: > 0 } v ? v : null;
 
         return result.OrderBy(m => m.Name).ToList();
+    }
+
+    private static void ScanFlatDlls(string dir, List<InstalledMod> result)
+    {
+        foreach (var f in Directory.GetFiles(dir, "*.dll"))
+            result.Add(new InstalledMod { Name = Path.GetFileNameWithoutExtension(f), FilePath = f, Enabled = true, SizeBytes = new FileInfo(f).Length });
+
+        foreach (var f in Directory.GetFiles(dir, "*.dll.disabled"))
+        {
+            string name = Path.GetFileNameWithoutExtension(f);
+            if (name.EndsWith(".dll")) name = name[..^4];
+            result.Add(new InstalledMod { Name = name, FilePath = f, Enabled = false, SizeBytes = new FileInfo(f).Length });
+        }
+    }
+
+    private static void ScanFolderMods(string dir, List<InstalledMod> result)
+    {
+        foreach (var sub in Directory.GetDirectories(dir))
+        {
+            if (sub.EndsWith(".delete", StringComparison.OrdinalIgnoreCase)) continue;
+
+            int active   = Directory.EnumerateFiles(sub, "*.dll", SearchOption.AllDirectories).Count();
+            int disabled = Directory.EnumerateFiles(sub, "*.dll.disabled", SearchOption.AllDirectories).Count();
+            if (active + disabled == 0) continue;
+
+            long size = Directory.EnumerateFiles(sub, "*", SearchOption.AllDirectories).Sum(f => new FileInfo(f).Length);
+            result.Add(new InstalledMod { Name = Path.GetFileName(sub), FilePath = sub, Enabled = active > 0, IsFolder = true, SizeBytes = size });
+        }
     }
 
     public static async Task InstallAsync(string downloadUrl, string dllName, IProgress<(int percent, string status)> progress)
@@ -106,9 +128,8 @@ internal static class ModInstaller
             }
         }
 
-        try
+        var extractTask = Task.Run(() =>
         {
-            progress.Report((95, $"Extracting {folderName}..."));
             Directory.CreateDirectory(staging);
             ZipFile.ExtractToDirectory(tempZip, staging, overwriteFiles: true);
 
@@ -123,16 +144,43 @@ internal static class ModInstaller
             {
                 string destDir = Path.Combine(modsDir, folderName);
                 if (Directory.Exists(destDir)) Directory.Delete(destDir, recursive: true);
-                Directory.Move(content, destDir);
+                MoveDirectory(content, destDir);
             }
-        }
-        finally
-        {
-            File.Delete(tempZip);
-            if (Directory.Exists(staging)) Directory.Delete(staging, recursive: true);
-        }
+        });
+
+        progress.Report((95, $"Extracting {folderName}..."));
+        var timeout = Task.Delay(TimeSpan.FromMinutes(3));
+        if (await Task.WhenAny(extractTask, timeout) == timeout)
+            throw new Exception($"Extracting {folderName} timed out. It may still finish in the background; check the plugins folder before retrying.");
+
+        await extractTask;
+
+        File.Delete(tempZip);
+        if (Directory.Exists(staging)) Directory.Delete(staging, recursive: true);
 
         progress.Report((100, $"{folderName} installed."));
+    }
+
+    private static void MoveDirectory(string source, string dest)
+    {
+        try
+        {
+            Directory.Move(source, dest);
+        }
+        catch (IOException)
+        {
+            CopyDirectory(source, dest);
+            Directory.Delete(source, recursive: true);
+        }
+    }
+
+    private static void CopyDirectory(string source, string dest)
+    {
+        Directory.CreateDirectory(dest);
+        foreach (var dir in Directory.GetDirectories(source))
+            CopyDirectory(dir, Path.Combine(dest, Path.GetFileName(dir)));
+        foreach (var file in Directory.GetFiles(source))
+            File.Copy(file, Path.Combine(dest, Path.GetFileName(file)), overwrite: true);
     }
 
     private static string UnwrapKnownRoot(string extractRoot)

@@ -6,6 +6,8 @@ namespace SevsModManager;
 
 internal static class Program
 {
+    internal const int CurrentVersion = 1;
+
     [STAThread]
     static void Main(string[] args)
     {

@@ -18,6 +18,8 @@ internal class SbMod
     public ModSource Source = ModSource.OurApi;
 
     public string? DownloadUrl;
+    public string? IconUrl;
+    public string? Version;
     public List<string> Dependencies = new();
 }
 
@@ -27,7 +29,10 @@ internal class InstalledMod
     public string FilePath = "";
     public bool Enabled;
     public string? KnownVersion;
+    public string? LatestVersion;
     public bool IsFolder;
+    public long SizeBytes;
+    public bool UpdateAvailable => KnownVersion is { Length: > 0 } && LatestVersion is { Length: > 0 } && KnownVersion != LatestVersion;
 }
 
 internal class ThunderstoreCommunityInfo
@@ -69,6 +74,8 @@ internal enum ThemeMode { Black, White, Custom, SyncedSB, R2Modman }
 
 internal enum AppLayout { SevsModManager, R2Modman, MonkeModManager }
 
+internal enum GamePickerDisplay { Both, Text, Icons }
+
 internal class AppSettings
 {
     public string GamePath = "";
@@ -77,7 +84,9 @@ internal class AppSettings
     public string CustomBackground = "#141414";
     public string CustomAccent = "#7C3AED";
     public bool AutoCheckUpdates = true;
+    public int AppVersionSeen;
     public AppLayout Layout = AppLayout.SevsModManager;
+    public GamePickerDisplay GamePickerDisplay = GamePickerDisplay.Both;
 
     public Dictionary<string, string> KnownGamePaths = new();
 

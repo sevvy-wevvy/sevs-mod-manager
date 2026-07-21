@@ -26,22 +26,22 @@ internal static class AppState
             @"C:\Program Files (x86)\Steam\steamapps\common\Gorilla Tag\Gorilla Tag.exe",
             @"C:\Program Files\Steam\steamapps\common\Gorilla Tag\Gorilla Tag.exe",
             @"C:\Program Files\Oculus\Software\Software\another-axiom-gorilla-tag\Gorilla Tag.exe",
-        ]),
+        ], SteamAppId: 1533390),
         new("ULTRAKILL", "ultrakill",
         [
             @"C:\Program Files (x86)\Steam\steamapps\common\ULTRAKILL\ULTRAKILL.exe",
             @"C:\Program Files\Steam\steamapps\common\ULTRAKILL\ULTRAKILL.exe",
-        ], DefaultThunderstoreCommunity: "ultrakill"),
+        ], DefaultThunderstoreCommunity: "ultrakill", SteamAppId: 1229490),
         new("REPO", "repo",
         [
             @"C:\Program Files (x86)\Steam\steamapps\common\REPO\REPO.exe",
             @"C:\Program Files\Steam\steamapps\common\REPO\REPO.exe",
-        ], DefaultThunderstoreCommunity: "repo"),
+        ], DefaultThunderstoreCommunity: "repo", SteamAppId: 3241660),
         new("White Knuckle", "whiteknuckle",
         [
             @"C:\Program Files (x86)\Steam\steamapps\common\White Knuckle\White Knuckle.exe",
             @"C:\Program Files\Steam\steamapps\common\White Knuckle\White Knuckle.exe",
-        ], DefaultThunderstoreCommunity: "white-knuckle"),
+        ], DefaultThunderstoreCommunity: "white-knuckle", SteamAppId: 3195790),
         new("BONELAB", "bonelab",
         [
             @"C:\Program Files (x86)\Steam\steamapps\common\BONELAB\BONELAB_Steam_Windows64.exe",
