@@ -32,19 +32,21 @@
 <p align="center">
 <b>Mods</b><br>
  Download and browse mods from thunderstore<br>
- Download, brose, and upvote mods from the officail SB api<br>
+ Download, browse, and upvote mods from the officail SB api<br>
  Unistall mods<br>
  Search Mods<br>
  Sort Mods<br> <br>
 <b>Installed</b><br>
  Browse, toggle, and delete installed mods<br> <br>
+<b>Logs</b><br>
+ Shows your games logs<br> <br>
 <b>Loadouts</b><br>
  Setup "loadouts" that will log what mods you have enabled and disabled to quickly switch between diffrent mod setups without needing to move files or download/delete anything<br> <br>
 <b>Modpacks</b><br>
  Create modpacks<br>
  Choose what items you want to be included in your modpack<br>
  Share modpacks for freinds to easly get your configs, mods, patches, and much more instantly working<br>
- Switch between mods that loudouts doesnt work properly for<br> <br>
+ Switch between mods that loudouts without having to reset your mods everytime<br> <br>
 <b>Config</b><br>
  Manage config for mods<br> <br>
 <b>Settings</b><br>
