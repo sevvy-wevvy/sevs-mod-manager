@@ -49,6 +49,7 @@ internal sealed class ModpackExportDialog : Form
             CheckBoxes = true, BackColor = t.Surface, ForeColor = t.Text, BorderStyle = BorderStyle.FixedSingle,
         };
         _tree.AfterCheck += Tree_AfterCheck;
+        _tree.HandleCreated += (_, __) => ThemeEngine.ApplyScrollTheme(_tree);
 
         var cancelBtn = new RButton { Text = "Cancel", Width = 100, Height = 32, Location = new Point(16, 472) };
         var saveBtn   = new RButton { Text = "Save",   Width = 100, Height = 32, Location = new Point(324, 472) };

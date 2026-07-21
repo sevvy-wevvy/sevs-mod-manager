@@ -8,10 +8,14 @@ namespace SevsModManager.UI.Panels;
 internal sealed class InstalledPanel : UserControl
 {
     private List<InstalledMod> _mods = new();
+    private List<InstalledMod> _filtered = new();
+    private Dictionary<string, SbMod> _latestByKey = new(StringComparer.OrdinalIgnoreCase);
+    private List<string> _conflicts = new();
 
     private readonly ListView  _list;
-    private readonly RButton   _refreshBtn;
+    private readonly RButton   _refreshBtn, _updateAllBtn, _conflictsBtn;
     private readonly RButton   _openFolderBtn, _enableAllBtn, _disableAllBtn, _uninstallAllBtn;
+    private readonly RTextBox  _search;
     private readonly Label     _statusLabel;
     private readonly Panel     _toolbar;
     private readonly Panel     _bodyWrap;
@@ -25,23 +29,37 @@ internal sealed class InstalledPanel : UserControl
         _toolbar = new Panel { Dock = DockStyle.Top, Height = 44, Padding = new Padding(8, 0, 8, 6) };
 
         _refreshBtn     = MakeBtn("↺ Refresh");
+        _updateAllBtn   = MakeBtn("Update All");
+        _conflictsBtn   = MakeBtn("⚠ Conflicts");
         _openFolderBtn  = MakeBtn("Open Plugins ↗");
         _enableAllBtn   = MakeBtn("Enable All Mods");
         _disableAllBtn  = MakeBtn("Disable All Mods");
         _uninstallAllBtn= MakeBtn("Uninstall All");
+        _updateAllBtn.Visible = false;
+        _conflictsBtn.Visible = false;
 
         _refreshBtn.Click     += (_, __) => Refresh_();
+        _updateAllBtn.Click   += async (_, __) => await DoUpdateAll();
+        _conflictsBtn.Click   += (_, __) => ShowConflicts();
         _openFolderBtn.Click  += (_, __) => OpenFolder();
         _enableAllBtn.Click   += (_, __) => DoEnableAll();
         _disableAllBtn.Click  += (_, __) => DoDisableAll();
         _uninstallAllBtn.Click+= (_, __) => DoUninstallAll();
+
+        _search = new RTextBox
+        {
+            PlaceholderText = "Search installed...",
+            Width = 180, Height = 38, CornerRadius = 8,
+            RoundedCorners = Corners.BottomLeft | Corners.BottomRight,
+        };
+        _search.TextChanged += (_, __) => PopulateList();
 
         var leftFlow = new FlowLayoutPanel
         {
             Dock = DockStyle.Left, AutoSize = true, FlowDirection = FlowDirection.LeftToRight,
             WrapContents = false, Padding = Padding.Empty,
         };
-        foreach (var b in new[] { _refreshBtn })
+        foreach (var b in new[] { _refreshBtn, _updateAllBtn, _conflictsBtn })
         {
             b.Margin = new Padding(0, 0, 6, 0);
             leftFlow.Controls.Add(b);
@@ -57,6 +75,8 @@ internal sealed class InstalledPanel : UserControl
             b.Margin = new Padding(6, 0, 0, 0);
             rightFlow.Controls.Add(b);
         }
+        _search.Margin = new Padding(6, 0, 0, 0);
+        rightFlow.Controls.Add(_search);
 
         _toolbar.Controls.Add(leftFlow);
         _toolbar.Controls.Add(rightFlow);
@@ -73,6 +93,7 @@ internal sealed class InstalledPanel : UserControl
         _list.Columns.Add("Name", 240);
         _list.Columns.Add("Status", 90);
         _list.Columns.Add("Version", 120);
+        _list.Columns.Add("Size", 70);
         _list.Columns.Add("", 32);
         _list.Columns.Add("", 32);
         _list.DrawColumnHeader += DrawHeader;
@@ -119,24 +140,132 @@ internal sealed class InstalledPanel : UserControl
     {
         DataBridge.LoadSettings();
         _mods = ModInstaller.GetInstalled();
+        ApplyLatestVersions();
+        FindConflicts();
         PopulateList();
-        _statusLabel.Text = $"{_mods.Count} mods  ·  {_mods.Count(m => m.Enabled)} enabled, {_mods.Count(m => !m.Enabled)} disabled";
+        UpdateStatusText();
 
         _openFolderBtn.Text = AppState.DetectLoaderKind() == ModLoaderKind.MelonLoader ? "Open Mods ↗" : "Open Plugins ↗";
+        _ = RefreshLatestVersionsAsync();
+    }
+
+    private void FindConflicts()
+    {
+        _conflicts.Clear();
+        var byFile = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var m in _mods)
+        {
+            var dlls = m.IsFolder
+                ? Directory.EnumerateFiles(m.FilePath, "*.dll", SearchOption.AllDirectories)
+                : new[] { m.FilePath };
+
+            foreach (var f in dlls)
+            {
+                string name = Path.GetFileName(f);
+                if (!byFile.TryGetValue(name, out var owners)) byFile[name] = owners = new List<string>();
+                if (!owners.Contains(m.Name)) owners.Add(m.Name);
+            }
+        }
+
+        foreach (var (file, owners) in byFile)
+            if (owners.Count > 1)
+                _conflicts.Add($"{file} is present in both {string.Join(" and ", owners)}");
+    }
+
+    private void ShowConflicts()
+    {
+        if (_conflicts.Count == 0) return;
+        MessageBox.Show(string.Join("\n", _conflicts), "Possible Mod Conflicts", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+    }
+
+    private void UpdateStatusText()
+    {
+        int updates = _mods.Count(m => m.UpdateAvailable);
+        long totalSize = _mods.Sum(m => m.SizeBytes);
+        _statusLabel.Text = $"{_mods.Count} mods  ·  {_mods.Count(m => m.Enabled)} enabled, {_mods.Count(m => !m.Enabled)} disabled  ·  {FormatSize(totalSize)} total" +
+            (updates > 0 ? $"  ·  {updates} update{(updates == 1 ? "" : "s")} available" : "");
+        _updateAllBtn.Visible = updates > 0;
+        _conflictsBtn.Visible = _conflicts.Count > 0;
+        _conflictsBtn.Text = _conflicts.Count == 1 ? "⚠ 1 Conflict" : $"⚠ {_conflicts.Count} Conflicts";
+    }
+
+    private async Task RefreshLatestVersionsAsync()
+    {
+        if (!AppState.Settings.ThunderstoreCommunities.TryGetValue(AppState.Settings.GameName, out var community)) return;
+
+        var latest = await ThunderstoreApi.ListPackagesAsync(community);
+        bool melon = AppState.DetectLoaderKind() == ModLoaderKind.MelonLoader;
+        _latestByKey = latest
+            .Where(m => m.Version is { Length: > 0 })
+            .GroupBy(m => melon ? MelonKey(m.DllName) : m.DllName, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+
+        ApplyLatestVersions();
+        PopulateList();
+        UpdateStatusText();
+    }
+
+    private static string MelonKey(string fullName)
+    {
+        int dash = fullName.IndexOf('-');
+        return dash >= 0 ? fullName[(dash + 1)..] : fullName;
+    }
+
+    private void ApplyLatestVersions()
+    {
+        foreach (var m in _mods)
+            m.LatestVersion = _latestByKey.TryGetValue(m.Name, out var latest) ? latest.Version : null;
+    }
+
+    private async Task DoUpdateAll()
+    {
+        var outdated = _mods.Where(m => m.UpdateAvailable && _latestByKey.ContainsKey(m.Name)).ToList();
+        if (outdated.Count == 0) return;
+
+        _updateAllBtn.Enabled = false;
+        foreach (var m in outdated)
+        {
+            var latest = _latestByKey[m.Name];
+            if (string.IsNullOrEmpty(latest.DownloadUrl)) continue;
+
+            _statusLabel.Text = $"Updating {m.Name}...";
+            try
+            {
+                await ModInstaller.InstallThunderstoreAsync(latest.DownloadUrl, latest.DllName, new Progress<(int, string)>(_ => { }));
+                DataBridge.SetModVersion(m.Name, latest.Version!);
+            }
+            catch { }
+        }
+        _updateAllBtn.Enabled = true;
+        Refresh_();
     }
 
     private void PopulateList()
     {
+        string filter = _search.Text.Trim();
+        _filtered = string.IsNullOrEmpty(filter)
+            ? _mods
+            : _mods.Where(m => m.Name.Contains(filter, StringComparison.OrdinalIgnoreCase)).ToList();
+
         _list.BeginUpdate();
         _list.Items.Clear();
-        foreach (var m in _mods)
+        foreach (var m in _filtered)
         {
             var item = new ListViewItem(m.Name) { Tag = m };
             item.SubItems.Add(m.Enabled ? "Enabled" : "Disabled");
-            item.SubItems.Add(m.KnownVersion ?? "-");
+            item.SubItems.Add(m.UpdateAvailable ? $"{m.KnownVersion} → {m.LatestVersion}" : m.KnownVersion ?? "-");
+            item.SubItems.Add(FormatSize(m.SizeBytes));
             _list.Items.Add(item);
         }
         _list.EndUpdate();
+    }
+
+    private static string FormatSize(long bytes)
+    {
+        if (bytes >= 1024 * 1024) return $"{bytes / (1024.0 * 1024.0):0.#} MB";
+        if (bytes >= 1024) return $"{bytes / 1024.0:0.#} KB";
+        return $"{bytes} B";
     }
 
     private void List_MouseDown(object? sender, MouseEventArgs e)
@@ -162,8 +291,27 @@ internal sealed class InstalledPanel : UserControl
 
     private void UninstallMod(InstalledMod m)
     {
-        if (MessageBox.Show($"Uninstall {m.Name}?", "Confirm", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes) return;
+        bool melon = AppState.DetectLoaderKind() == ModLoaderKind.MelonLoader;
+        var dependents = _latestByKey.Values
+            .Where(latest => !(melon ? MelonKey(latest.DllName) : latest.DllName).Equals(m.Name, StringComparison.OrdinalIgnoreCase))
+            .Where(latest => latest.Dependencies.Any(d => (melon ? MelonKey(StripDepVersion(d)) : StripDepVersion(d)).Equals(m.Name, StringComparison.OrdinalIgnoreCase)))
+            .Where(latest => _mods.Any(im => im.Name.Equals(melon ? MelonKey(latest.DllName) : latest.DllName, StringComparison.OrdinalIgnoreCase)))
+            .Select(latest => latest.Name)
+            .ToList();
+
+        string warning = dependents.Count > 0
+            ? $"\n\n{string.Join(", ", dependents)} depend{(dependents.Count == 1 ? "s" : "")} on this and may break without it."
+            : "";
+        if (MessageBox.Show($"Uninstall {m.Name}?{warning}", "Confirm", MessageBoxButtons.YesNo,
+            dependents.Count > 0 ? MessageBoxIcon.Warning : MessageBoxIcon.Question) != DialogResult.Yes) return;
+
         ModInstaller.Uninstall(m.Name); Refresh_();
+    }
+
+    private static string StripDepVersion(string dep)
+    {
+        int lastDash = dep.LastIndexOf('-');
+        return lastDash >= 0 ? dep[..lastDash] : dep;
     }
 
     private void DoEnableAll()
@@ -230,9 +378,9 @@ internal sealed class InstalledPanel : UserControl
         {
             int width = _list.Columns[col].Width;
             string text = item.SubItems[col].Text;
-            Color fg = col == 1
-                ? (text == "Enabled" ? Color.FromArgb(39, 201, 63) : Color.FromArgb(255, 95, 86))
-                : t.Text;
+            Color fg = col == 1 ? (text == "Enabled" ? Color.FromArgb(39, 201, 63) : Color.FromArgb(255, 95, 86))
+                     : col == 2 && item.Tag is InstalledMod { UpdateAvailable: true } ? Color.FromArgb(255, 189, 46)
+                     : t.Text;
             var cellRect = new Rectangle(x, e.Bounds.Top, width, e.Bounds.Height);
             e.Graphics.DrawString(text, font, new SolidBrush(fg), cellRect.Left + 6, cellRect.Top + (cellRect.Height - 14) / 2);
             x += width;
@@ -307,6 +455,12 @@ internal sealed class InstalledPanel : UserControl
         _statusLabel.ForeColor = t.SubText;
         foreach (var b in new[] { _refreshBtn, _openFolderBtn, _enableAllBtn, _disableAllBtn, _uninstallAllBtn })
             ThemeEngine.StyleGhostButton(b);
+        ThemeEngine.StyleRButton(_updateAllBtn, accent: true);
+        ThemeEngine.StyleGhostButton(_conflictsBtn);
+        _conflictsBtn.ForeColor = Color.FromArgb(255, 189, 46);
+        _search.BackColor = t.SurfaceAlt;
+        _search.ForeColor = t.Text;
+        ThemeEngine.ApplyLayoutCornerStyle(_search);
         _list.Invalidate();
         ThemeEngine.ApplyScrollTheme(this);
     }
@@ -319,6 +473,17 @@ internal sealed class InstalledPanel : UserControl
             RoundedCorners = Corners.BottomLeft | Corners.BottomRight,
             AutoSize = true, Padding = new Padding(8, 2, 8, 2), Height = 38,
         };
+    }
+
+    protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+    {
+        if (keyData == (Keys.Control | Keys.F)) { _search.Inner.Focus(); return true; }
+        if (keyData == Keys.Delete && _list.SelectedItems.Count > 0 && _list.SelectedItems[0].Tag is InstalledMod m)
+        {
+            UninstallMod(m);
+            return true;
+        }
+        return base.ProcessCmdKey(ref msg, keyData);
     }
 
     protected override void Dispose(bool disposing)

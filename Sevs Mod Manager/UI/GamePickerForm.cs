@@ -44,6 +44,9 @@ internal sealed class GamePickerForm : Form
             TextAlign = ContentAlignment.MiddleLeft,
         };
 
+        var headingDivider = new Panel { Dock = DockStyle.Top, Height = 1, Margin = new Padding(0), Tag = "border_panel" };
+        var headingSpacer = new Panel { Dock = DockStyle.Top, Height = 12 };
+
         const int rowHeight = 54;
         const int visibleRows = 6;
         const int listWidth = 380;
@@ -74,24 +77,66 @@ internal sealed class GamePickerForm : Form
 
         void HookWheel(Control c) => c.MouseWheel += (_, e) => scrollbar.Value -= e.Delta / 3;
 
+        var mode = AppState.Settings.GamePickerDisplay;
         var visiblePresets = AppState.Presets.Where(p => p.Name != "Custom" && !AppState.Settings.HiddenPresets.Contains(p.Name)).ToList();
-        foreach (var preset in visiblePresets)
-        {
-            var p = preset;
-            var btn = MakePresetBtn(p.Name);
-            btn.Click += (_, __) => PickPreset(p);
-            HookWheel(btn);
-            btnPanel.Controls.Add(btn);
-        }
 
-        foreach (var (name, path) in AppState.Settings.CustomGames)
+        if (mode == GamePickerDisplay.Icons)
         {
-            var n = name; var pt = path;
-            var btn = MakePresetBtn(n);
-            btn.Tag = "secondary";
-            btn.Click += (_, __) => Commit(pt, n);
-            HookWheel(btn);
-            btnPanel.Controls.Add(btn);
+            const int tilesPerRow = 3;
+            const int tileOuterWidth = 92 + 12;
+            int gridWidth = tilesPerRow * tileOuterWidth;
+
+            var grid = new FlowLayoutPanel
+            {
+                FlowDirection = FlowDirection.LeftToRight,
+                WrapContents = true,
+                AutoSize = true,
+                AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                MaximumSize = new Size(gridWidth, 0),
+                Margin = new Padding(Math.Max(0, (listWidth - gridWidth) / 2), 0, 0, 8),
+            };
+
+            foreach (var preset in visiblePresets)
+            {
+                var p = preset;
+                var tile = MakeGameTile(p.Name, ResolveIcon(ResolvePresetPath(p)), GameAccentColor(p.Name), () => PickPreset(p));
+                HookWheel(tile);
+                grid.Controls.Add(tile);
+            }
+
+            foreach (var (name, path) in AppState.Settings.CustomGames)
+            {
+                var n = name; var pt = path;
+                var tile = MakeGameTile(n, ResolveIcon(pt), GameAccentColor(n), () => Commit(pt, n));
+                HookWheel(tile);
+                grid.Controls.Add(tile);
+            }
+
+            btnPanel.Controls.Add(grid);
+        }
+        else
+        {
+            foreach (var preset in visiblePresets)
+            {
+                var p = preset;
+                var btn = MakePresetBtn(p.Name);
+                btn.Tag = new CustomGameTag(p.Name);
+                if (mode == GamePickerDisplay.Both) AttachIcon(btn, ResolveIcon(ResolvePresetPath(p)));
+                btn.Click += (_, __) => PickPreset(p);
+                HookWheel(btn);
+                btnPanel.Controls.Add(btn);
+            }
+
+            foreach (var (name, path) in AppState.Settings.CustomGames)
+            {
+                var n = name; var pt = path;
+                var btn = MakePresetBtn(n);
+                btn.Tag = new CustomGameTag(n);
+                if (mode == GamePickerDisplay.Both) AttachIcon(btn, ResolveIcon(pt));
+                btn.Click += (_, __) => Commit(pt, n);
+                HookWheel(btn);
+                btnPanel.Controls.Add(btn);
+            }
         }
 
         var customBtn = MakePresetBtn("Custom Game...");
@@ -113,6 +158,8 @@ internal sealed class GamePickerForm : Form
         UpdateScroll();
 
         _content.Controls.Add(viewport);
+        _content.Controls.Add(headingSpacer);
+        _content.Controls.Add(headingDivider);
         _content.Controls.Add(heading);
         Controls.Add(_content);
 
@@ -212,18 +259,17 @@ internal sealed class GamePickerForm : Form
         Invalidate(true);
     }
 
-    private void PickPreset(GamePreset preset)
+    private async void PickPreset(GamePreset preset)
     {
-
         string? found = preset.DefaultPaths.FirstOrDefault(File.Exists);
 
         if (found == null && preset.SteamAppId is { } appId && preset.DefaultPaths.Length > 0)
             found = SteamLocator.FindGamePath(appId, Path.GetFileName(preset.DefaultPaths[0]));
 
-        if (found != null) { Commit(found, preset.Name); return; }
+        if (found != null) { await CommitPreset(found, preset); return; }
 
         if (AppState.Settings.KnownGamePaths.TryGetValue(preset.Name, out var remembered) && File.Exists(remembered))
-        { Commit(remembered, preset.Name); return; }
+        { await CommitPreset(remembered, preset); return; }
 
         using var dlg = new OpenFileDialog
         {
@@ -233,7 +279,29 @@ internal sealed class GamePickerForm : Form
         };
         if (dlg.ShowDialog() != DialogResult.OK) return;
         AppState.Settings.KnownGamePaths[preset.Name] = dlg.FileName;
-        Commit(dlg.FileName, preset.Name);
+        await CommitPreset(dlg.FileName, preset);
+    }
+
+    private async Task CommitPreset(string path, GamePreset preset)
+    {
+        if (preset.Name == "Gorilla Tag") { Commit(path, preset.Name); return; }
+
+        Cursor = Cursors.WaitCursor;
+        try
+        {
+            if (preset.Name == "ULTRAKILL" && preset.DefaultThunderstoreCommunity != null)
+            {
+                if (!AppState.Settings.ThunderstoreCommunities.ContainsKey(preset.Name))
+                    AppState.Settings.ThunderstoreCommunities[preset.Name] = preset.DefaultThunderstoreCommunity;
+            }
+            else
+            {
+                await DetectModSourceAsync(preset.Name, preset.DefaultThunderstoreCommunity);
+            }
+        }
+        finally { Cursor = Cursors.Default; }
+
+        Commit(path, preset.Name);
     }
 
     private async Task PickCustom()
@@ -268,7 +336,7 @@ internal sealed class GamePickerForm : Form
         Commit(exePath, name);
     }
 
-    private async Task DetectModSourceAsync(string name)
+    private async Task DetectModSourceAsync(string name, string? fallbackCommunity = null)
     {
         if (AppState.Settings.ThunderstoreCommunities.ContainsKey(name) ||
             AppState.Settings.ManualOnlyGames.Contains(name))
@@ -279,7 +347,7 @@ internal sealed class GamePickerForm : Form
         bool hasSbMods = gameId > 0 && (await SbApi.ListModsAsync("all", 1, gameId)).Count > 0;
         if (hasSbMods) return;
 
-        string? guessed = await ThunderstoreApi.GuessCommunityAsync(name);
+        string? guessed = await ThunderstoreApi.GuessCommunityAsync(name) ?? fallbackCommunity;
         if (guessed != null)
         {
             AppState.Settings.ThunderstoreCommunities[name] = guessed;
@@ -338,10 +406,18 @@ internal sealed class GamePickerForm : Form
         {
             if (child is RButton rBtn)
             {
-                bool secondary = rBtn.Tag is "secondary";
+                bool secondary = rBtn.Tag is "secondary" or CustomGameTag;
                 rBtn.Style = RButtonStyle.Solid;
-                rBtn.FillColor = secondary ? Lighten(t.SurfaceAlt, 20) : t.Accent;
-                rBtn.HoverFillColor = secondary ? Lighten(t.SurfaceAlt, 34) : Lighten(t.Accent, 18);
+                Color fill = secondary ? Lighten(t.SurfaceAlt, 20) : t.Accent;
+                Color hoverFill = secondary ? Lighten(t.SurfaceAlt, 34) : Lighten(t.Accent, 18);
+                if (rBtn.Tag is CustomGameTag cgt)
+                {
+                    var unique = GameAccentColor(cgt.Name);
+                    fill = RoundedGraphics.Lerp(fill, unique, 0.35f);
+                    hoverFill = RoundedGraphics.Lerp(hoverFill, unique, 0.35f);
+                }
+                rBtn.FillColor = fill;
+                rBtn.HoverFillColor = hoverFill;
                 rBtn.BorderColor = Color.Transparent;
                 rBtn.HoverBorderColor = Color.Transparent;
                 rBtn.ForeColor = secondary ? t.Text : t.AccentText;
@@ -352,6 +428,9 @@ internal sealed class GamePickerForm : Form
                 scrollbar.ThumbColor = Lighten(t.SurfaceAlt, 40);
                 scrollbar.ThumbHoverColor = Lighten(t.SurfaceAlt, 60);
             }
+            else if (child.Tag is "overlay") { child.ForeColor = t.Text; }
+            else if (child.Tag is CustomGameTag) { }
+            else if (child.Tag is "border_panel") { child.BackColor = t.Border; }
             else if (child.Tag is "subtext") { child.BackColor = t.SurfaceAlt; child.ForeColor = t.SubText; }
             else { child.BackColor = t.SurfaceAlt; child.ForeColor = t.Text; }
 
@@ -373,6 +452,129 @@ internal sealed class GamePickerForm : Form
             Font      = new Font("Segoe UI", 10f),
             Margin    = new Padding(0, 0, 0, 8),
         };
+    }
+
+    private sealed record CustomGameTag(string Name);
+
+    private static string? ResolvePresetPath(GamePreset preset)
+    {
+        if (AppState.Settings.KnownGamePaths.TryGetValue(preset.Name, out var known) && File.Exists(known)) return known;
+        return preset.DefaultPaths.FirstOrDefault(File.Exists);
+    }
+
+    private static Image? ResolveIcon(string? path) =>
+        path is { Length: > 0 } p && File.Exists(p) ? AppIcons.TryExtractGameIcon(p) : null;
+
+    private static void AttachIcon(RButton btn, Image? img)
+    {
+        if (img == null) return;
+        const int size = 26, pad = 10;
+        btn.Padding = new Padding(16, btn.Padding.Top, size + pad, btn.Padding.Bottom);
+        btn.TextAlign = ContentAlignment.MiddleLeft;
+
+        var iconBox = new Panel
+        {
+            Width = size, Height = size, BackColor = Color.Transparent,
+            Location = new Point(btn.Width - size - pad / 2, (btn.Height - size) / 2),
+            Anchor = AnchorStyles.Top | AnchorStyles.Right,
+            Tag = "overlay",
+        };
+        iconBox.Paint += (_, e) => DrawCircularIcon(e.Graphics, img, size);
+        btn.Controls.Add(iconBox);
+    }
+
+    private static Control MakeGameTile(string name, Image? icon, Color accent, Action onClick)
+    {
+        const int size = 92, labelHeight = 20;
+
+        var wrapper = new Panel
+        {
+            Width = size, Height = size + labelHeight, Margin = new Padding(6),
+            BackColor = Color.Transparent, Tag = "overlay",
+        };
+
+        bool hovering = false;
+        var tile = new Panel
+        {
+            Size = new Size(size, size), Location = new Point(0, 0),
+            Cursor = Cursors.Hand, Tag = new CustomGameTag(name),
+        };
+        tile.Paint += (_, e) =>
+        {
+            int radius = AppState.Settings.Layout == AppLayout.SevsModManager ? 12 : 0;
+            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+            using var path = RoundedGraphics.RoundedRect(new Rectangle(0, 0, size - 1, size - 1), radius);
+            var oldClip = e.Graphics.Clip;
+            e.Graphics.SetClip(path, CombineMode.Intersect);
+
+            if (icon != null)
+            {
+                e.Graphics.DrawImage(icon, 0, 0, size, size);
+                if (hovering)
+                    using (var overlay = new SolidBrush(Color.FromArgb(50, 255, 255, 255)))
+                        e.Graphics.FillRectangle(overlay, 0, 0, size, size);
+            }
+            else
+            {
+                using var brush = new SolidBrush(hovering ? RoundedGraphics.Lighten(accent, 20) : accent);
+                e.Graphics.FillRectangle(brush, 0, 0, size, size);
+            }
+
+            e.Graphics.Clip = oldClip;
+        };
+        tile.Click += (_, __) => onClick();
+        tile.MouseEnter += (_, __) => { hovering = true; tile.Invalidate(); };
+        tile.MouseLeave += (_, __) => { hovering = false; tile.Invalidate(); };
+
+        var label = new Label
+        {
+            Text = name, AutoEllipsis = true, TextAlign = ContentAlignment.MiddleCenter,
+            Location = new Point(0, size + 2), Size = new Size(size, labelHeight - 2),
+            Font = new Font("Segoe UI", 7.5f), BackColor = Color.Transparent, Tag = "overlay",
+            Cursor = Cursors.Hand,
+        };
+        label.Click += (_, __) => onClick();
+
+        wrapper.Controls.Add(tile);
+        wrapper.Controls.Add(label);
+        return wrapper;
+    }
+
+    private static void DrawCircularIcon(Graphics g, Image? img, int size)
+    {
+        if (img == null) return;
+        g.SmoothingMode = SmoothingMode.AntiAlias;
+        using var path = new GraphicsPath();
+        path.AddEllipse(0, 0, size - 1, size - 1);
+        var oldClip = g.Clip;
+        g.SetClip(path, CombineMode.Intersect);
+        g.DrawImage(img, 0, 0, size, size);
+        g.Clip = oldClip;
+    }
+
+    private static Color GameAccentColor(string name)
+    {
+        int hash = 0;
+        foreach (char c in name) hash = hash * 31 + c;
+        float hue = Math.Abs(hash) % 360;
+        return FromHsl(hue, 0.55f, 0.55f);
+    }
+
+    private static Color FromHsl(float h, float s, float l)
+    {
+        float c = (1 - Math.Abs(2 * l - 1)) * s;
+        float x = c * (1 - Math.Abs(h / 60f % 2 - 1));
+        float m = l - c / 2;
+        var (r, g, b) = h switch
+        {
+            < 60  => (c, x, 0f),
+            < 120 => (x, c, 0f),
+            < 180 => (0f, c, x),
+            < 240 => (0f, x, c),
+            < 300 => (x, 0f, c),
+            _     => (c, 0f, x),
+        };
+        return Color.FromArgb((int)((r + m) * 255), (int)((g + m) * 255), (int)((b + m) * 255));
     }
 
     private static Panel MakeLight(Color c)
