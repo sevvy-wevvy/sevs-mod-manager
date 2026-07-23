@@ -11,6 +11,10 @@ internal sealed class InstalledPanel : UserControl
     private List<InstalledMod> _filtered = new();
     private Dictionary<string, SbMod> _latestByKey = new(StringComparer.OrdinalIgnoreCase);
     private List<string> _conflicts = new();
+    private InstalledMod? _tutorialMod;
+    internal Action? OnTutorialToggled;
+    internal Action? OnTutorialDeleted;
+    internal Control ListControl => _list;
 
     private readonly ListView  _list;
     private readonly RButton   _refreshBtn, _updateAllBtn, _conflictsBtn;
@@ -136,10 +140,28 @@ internal sealed class InstalledPanel : UserControl
         if (nameWidth > nameCol.Width) nameCol.Width = nameWidth;
     }
 
+    internal void ShowTutorialMod(bool enabled)
+    {
+        _tutorialMod = new InstalledMod { Name = "Example Mod", FilePath = "TutorialExampleMod.dll", Enabled = enabled, IsFolder = false, SizeBytes = 0 };
+        _mods.Insert(0, _tutorialMod);
+        PopulateList();
+        UpdateStatusText();
+    }
+
+    internal void EndTutorialMod()
+    {
+        if (_tutorialMod != null) { _mods.Remove(_tutorialMod); _tutorialMod = null; }
+        OnTutorialToggled = null;
+        OnTutorialDeleted = null;
+        PopulateList();
+        UpdateStatusText();
+    }
+
     public void Refresh_()
     {
         DataBridge.LoadSettings();
         _mods = ModInstaller.GetInstalled();
+        if (_tutorialMod != null) _mods.Insert(0, _tutorialMod);
         ApplyLatestVersions();
         FindConflicts();
         PopulateList();
@@ -232,7 +254,7 @@ internal sealed class InstalledPanel : UserControl
             _statusLabel.Text = $"Updating {m.Name}...";
             try
             {
-                await ModInstaller.InstallThunderstoreAsync(latest.DownloadUrl, latest.DllName, new Progress<(int, string)>(_ => { }));
+                await OperationQueue.RunAsync($"Update {m.Name}", p => ModInstaller.InstallThunderstoreAsync(latest.DownloadUrl, latest.DllName, p));
                 DataBridge.SetModVersion(m.Name, latest.Version!);
             }
             catch { }
@@ -280,8 +302,17 @@ internal sealed class InstalledPanel : UserControl
 
         if (e.X >= toggleLeft && e.X < toggleRight)
         {
-            if (m.Enabled) ModInstaller.Disable(m.Name); else ModInstaller.Enable(m.Name);
-            Refresh_();
+            if (m == _tutorialMod)
+            {
+                _tutorialMod.Enabled = !_tutorialMod.Enabled;
+                PopulateList();
+                OnTutorialToggled?.Invoke();
+            }
+            else
+            {
+                if (m.Enabled) ModInstaller.Disable(m.Name); else ModInstaller.Enable(m.Name);
+                Refresh_();
+            }
         }
         else if (e.X >= toggleRight && e.X < deleteRight)
         {
@@ -304,6 +335,16 @@ internal sealed class InstalledPanel : UserControl
             : "";
         if (MessageBox.Show($"Uninstall {m.Name}?{warning}", "Confirm", MessageBoxButtons.YesNo,
             dependents.Count > 0 ? MessageBoxIcon.Warning : MessageBoxIcon.Question) != DialogResult.Yes) return;
+
+        if (m == _tutorialMod)
+        {
+            _mods.Remove(_tutorialMod);
+            _tutorialMod = null;
+            PopulateList();
+            UpdateStatusText();
+            OnTutorialDeleted?.Invoke();
+            return;
+        }
 
         ModInstaller.Uninstall(m.Name); Refresh_();
     }

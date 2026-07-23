@@ -77,4 +77,16 @@ internal static class BepInExManager
 
     private static string PickDownloadUrl(string gameExePath) =>
         AppState.IsExeX64(gameExePath) ? UrlX64 : UrlX86;
+
+    public static void Uninstall(string gameDir)
+    {
+        string bepDir = Path.Combine(gameDir, "BepInEx");
+        if (Directory.Exists(bepDir)) Directory.Delete(bepDir, recursive: true);
+
+        foreach (var name in new[] { "winhttp.dll", "winhttp.dll.disabled", "doorstop_config.ini" })
+        {
+            string path = Path.Combine(gameDir, name);
+            if (File.Exists(path)) File.Delete(path);
+        }
+    }
 }

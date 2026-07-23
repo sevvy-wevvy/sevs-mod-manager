@@ -12,6 +12,9 @@ internal sealed class ModsPanel : UserControl
     private List<SbMod> _mods = new();
     private HashSet<int> _upvoted = new();
     private SbMod? _selected;
+    internal bool TutorialMode;
+    internal Action? OnTutorialInstalled;
+    internal Control InstallButtonControl => _installBtn;
     private string _currentTab = "all";
     private int _page = 1;
     private int _gameId;
@@ -467,9 +470,46 @@ internal sealed class ModsPanel : UserControl
         _installBtn.Text = mod.IsVerified ? "Install" : "Install (Unverified)";
     }
 
+    internal void ShowTutorialMod()
+    {
+        TutorialMode = true;
+        ShowDetail(new SbMod
+        {
+            Id = -1, Name = "Example Mod", DllName = "TutorialExampleMod",
+            Description = "A demo mod for the tutorial. Nothing real gets downloaded.",
+            Author = "Tutorial", Upvotes = 0, IsVerified = true, IsFeatured = false,
+            Source = ModSource.OurApi,
+        });
+    }
+
+    internal void EndTutorialMod()
+    {
+        TutorialMode = false;
+        OnTutorialInstalled = null;
+        ShowDetail(null);
+    }
+
+    private async Task RunTutorialInstall()
+    {
+        _installBtn.Enabled = false;
+        for (int p = 0; p <= 100; p += 20)
+        {
+            _progressStrip.Value = p;
+            _statusLabel.Text = $"[{p}%] Installing Example Mod...";
+            await Task.Delay(110);
+        }
+        _statusLabel.Text = "Example Mod installed.";
+        _progressStrip.Value = 0;
+        _installBtn.Enabled = true;
+        _installBtn.Visible = false;
+        _uninstallBtn.Visible = true;
+        OnTutorialInstalled?.Invoke();
+    }
+
     private async Task DoInstall()
     {
         if (_selected == null) return;
+        if (TutorialMode) { await RunTutorialInstall(); return; }
 
         if (!_selected.IsVerified)
         {
@@ -491,7 +531,7 @@ internal sealed class ModsPanel : UserControl
 
             _statusLabel.Text = $"Installing {loaderName}...";
             var loaderProg = new Progress<(int percent, string status)>(p => { _statusLabel.Text = $"[{p.percent}%] {p.status}"; _progressStrip.Value = p.percent; });
-            try { await AppState.InstallLoaderAsync(loaderKind, AppState.GameDir, loaderProg); }
+            try { await OperationQueue.RunAsync($"Install {loaderName}", p => AppState.InstallLoaderAsync(loaderKind, AppState.GameDir, p), loaderProg); }
             catch (Exception ex) { _statusLabel.Text = $"{loaderName} install failed: " + ex.Message; _progressStrip.Value = 0; return; }
         }
 
@@ -501,14 +541,14 @@ internal sealed class ModsPanel : UserControl
             if (_selected.Source == ModSource.Thunderstore)
             {
                 if (string.IsNullOrEmpty(_selected.DownloadUrl)) { _statusLabel.Text = "This package has no download available."; return; }
-                await ModInstaller.InstallThunderstoreAsync(_selected.DownloadUrl, _selected.DllName, prog);
+                await OperationQueue.RunAsync($"Install {_selected.Name}", p => ModInstaller.InstallThunderstoreAsync(_selected.DownloadUrl, _selected.DllName, p), prog);
                 await InstallDependenciesAsync(_selected, new HashSet<string>(StringComparer.OrdinalIgnoreCase) { _selected.DllName });
             }
             else
             {
                 var url = DllUrl(_selected);
                 if (url == null) { _statusLabel.Text = "This mod has no download available."; return; }
-                await ModInstaller.InstallAsync(url, _selected.DllName.Replace(".dll", ""), prog);
+                await OperationQueue.RunAsync($"Install {_selected.Name}", p => ModInstaller.InstallAsync(url, _selected.DllName.Replace(".dll", ""), p), prog);
             }
             if (_selected.Version is { Length: > 0 }) DataBridge.SetModVersion(ModKey(_selected), _selected.Version);
             ShowDetail(_selected);
@@ -535,7 +575,7 @@ internal sealed class ModsPanel : UserControl
 
             _statusLabel.Text = $"Installing dependency {depMod.Name}...";
             var prog = new Progress<(int percent, string status)>(r => { _statusLabel.Text = $"[{r.percent}%] {depMod.Name}: {r.status}"; _progressStrip.Value = r.percent; });
-            await ModInstaller.InstallThunderstoreAsync(depMod.DownloadUrl, depMod.DllName, prog);
+            await OperationQueue.RunAsync($"Install dependency {depMod.Name}", p => ModInstaller.InstallThunderstoreAsync(depMod.DownloadUrl, depMod.DllName, p), prog);
             if (depMod.Version is { Length: > 0 }) DataBridge.SetModVersion(ModKey(depMod), depMod.Version);
 
             await InstallDependenciesAsync(depMod, visited);

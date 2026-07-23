@@ -13,7 +13,7 @@ internal static class ModpackManager
 
     public static string PacksDir =>
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "SevsModManager", "Modpacks", AppState.CurrentPreset.Slug);
+            "SevsModManager", "Modpacks", AppState.CurrentGameSlug);
 
     public static List<PackRoot> GetPackRoots()
     {
@@ -142,9 +142,10 @@ internal static class ModpackManager
         {
             Name = name,
             Author = author,
-            GameSlug = AppState.CurrentPreset.Slug,
+            GameSlug = AppState.CurrentGameSlug,
             CreatedUtc = DateTime.UtcNow,
             Mods = GetCurrentModNames(),
+            LoaderKind = AppState.DetectLoaderKind(),
         };
 
         progress?.Report((0, "Scanning files..."));

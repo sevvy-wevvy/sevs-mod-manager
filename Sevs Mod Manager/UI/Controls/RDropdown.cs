@@ -69,7 +69,7 @@ internal sealed class RDropdown : Control
         popup.ItemChosen += idx => SelectedIndex = idx;
         popup.FormClosed += (_, __) => _popup = null;
         _popup = popup;
-        popup.Show();
+        popup.Show(FindForm());
     }
 
     protected override void OnPaint(PaintEventArgs e)
@@ -141,7 +141,7 @@ internal sealed class RDropdownPopup : Form
                 ForeColor = t.Text, BackColor = idx == current ? t.Highlight : t.SurfaceAlt,
                 Cursor = Cursors.Hand,
             };
-            row.Click += (_, __) => { ItemChosen?.Invoke(idx); Close(); };
+            row.Click += (_, __) => { Close(); ItemChosen?.Invoke(idx); };
             row.MouseEnter += (_, __) => row.BackColor = t.Highlight;
             row.MouseLeave += (_, __) => row.BackColor = idx == current ? t.Highlight : t.SurfaceAlt;
             _rows.Add(row);

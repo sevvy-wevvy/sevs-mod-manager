@@ -11,7 +11,7 @@ internal sealed class ConfigPanel : UserControl
     private readonly Panel   _contentHost;
     private readonly Panel   _bodyWrap;
     private readonly Panel   _toolbar;
-    private readonly RButton _saveBtn, _reloadBtn;
+    private readonly RButton _saveBtn, _reloadBtn, _resetAllBtn;
     private readonly Label   _statusLabel, _titleLabel;
 
     private List<(string DisplayName, string FilePath)> _files = new();
@@ -24,14 +24,16 @@ internal sealed class ConfigPanel : UserControl
         DoubleBuffered = true;
 
         _toolbar = new Panel { Dock = DockStyle.Top, Height = 44, Padding = new Padding(8, 0, 8, 6) };
-        _saveBtn   = MakeBtn("Save");
-        _reloadBtn = MakeBtn("↺ Reload");
+        _saveBtn     = MakeBtn("Save");
+        _reloadBtn   = MakeBtn("↺ Reload");
+        _resetAllBtn = MakeBtn("Reset All to Default");
         _saveBtn.Enabled = false;
-        _saveBtn.Click   += (_, __) => DoSave();
-        _reloadBtn.Click += (_, __) => Refresh_();
+        _saveBtn.Click     += (_, __) => DoSave();
+        _reloadBtn.Click   += (_, __) => Refresh_();
+        _resetAllBtn.Click += (_, __) => DoResetAllToDefault();
 
         var toolFlow = new FlowLayoutPanel { Dock = DockStyle.Left, AutoSize = true, FlowDirection = FlowDirection.LeftToRight, WrapContents = false };
-        foreach (var b in new[] { _saveBtn, _reloadBtn }) { b.Margin = new Padding(0, 0, 6, 0); toolFlow.Controls.Add(b); }
+        foreach (var b in new[] { _saveBtn, _reloadBtn, _resetAllBtn }) { b.Margin = new Padding(0, 0, 6, 0); toolFlow.Controls.Add(b); }
         _toolbar.Controls.Add(toolFlow);
 
         _fileList = new ListBox { Dock = DockStyle.Fill, BorderStyle = BorderStyle.None };
@@ -89,10 +91,42 @@ internal sealed class ConfigPanel : UserControl
         _fileList.EndUpdate();
 
         _statusLabel.Text = $"{_files.Count} config files";
+        _resetAllBtn.Enabled = _files.Count > 0 && AppState.DetectLoaderKind() != ModLoaderKind.MelonLoader;
 
         int idx = keepPath != null ? _files.FindIndex(f => f.FilePath == keepPath) : -1;
         _fileList.SelectedIndex = idx >= 0 ? idx : (_files.Count > 0 ? 0 : -1);
         if (_files.Count == 0) ShowSelectedFile();
+    }
+
+    private void DoResetAllToDefault()
+    {
+        if (AppState.DetectLoaderKind() == ModLoaderKind.MelonLoader)
+        {
+            MessageBox.Show("MelonLoader config files don't include default-value metadata, so there's nothing to reset to.", "Reset All to Default", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+        }
+        if (_files.Count == 0) return;
+
+        var confirm = MessageBox.Show(
+            $"This resets every setting across all {_files.Count} config files back to its default value. This cannot be undone.\n\nContinue?",
+            "Reset All to Default", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+        if (confirm != DialogResult.Yes) return;
+
+        int changed = 0;
+        foreach (var (_, filePath) in _files)
+        {
+            var file = BepInExConfig.Parse(filePath);
+            bool dirty = false;
+            foreach (var section in file.Sections)
+                foreach (var entry in section.Entries)
+                    if (entry.DefaultValue != null && !entry.Value.Equals(entry.DefaultValue, StringComparison.OrdinalIgnoreCase))
+                    { entry.Value = entry.DefaultValue; dirty = true; changed++; }
+
+            if (dirty) BepInExConfig.Save(file);
+        }
+
+        Refresh_();
+        _statusLabel.Text = $"Reset {changed} setting(s) to default across {_files.Count} config files.";
     }
 
     private void ShowSelectedFile()
@@ -180,7 +214,13 @@ internal sealed class ConfigPanel : UserControl
             Font = new Font("Segoe UI", 9.5f, FontStyle.Bold), ForeColor = t.Text, BackColor = t.SurfaceAlt,
         };
         string? desc = entry.Description.Count > 0 ? string.Join(" ", entry.Description) : null;
-        if (desc != null) new ToolTip().SetToolTip(label, desc);
+        bool changedFromDefault = entry.DefaultValue != null && !entry.Value.Equals(entry.DefaultValue, StringComparison.OrdinalIgnoreCase);
+        if (changedFromDefault) label.Text += "  (changed)";
+
+        string? tooltipText = desc;
+        if (entry.DefaultValue != null)
+            tooltipText = (tooltipText != null ? tooltipText + "\n\n" : "") + $"Default: {entry.DefaultValue}";
+        if (tooltipText != null) new ToolTip().SetToolTip(label, tooltipText);
 
         row.Controls.Add(BuildWidget(entry, t));
         row.Controls.Add(label);
@@ -301,6 +341,7 @@ internal sealed class ConfigPanel : UserControl
 
         ThemeEngine.StyleRButton(_saveBtn, accent: true);
         ThemeEngine.StyleGhostButton(_reloadBtn);
+        ThemeEngine.StyleGhostButton(_resetAllBtn);
         ThemeEngine.ApplyScrollTheme(this);
     }
 

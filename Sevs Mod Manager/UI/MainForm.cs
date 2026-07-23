@@ -25,7 +25,9 @@ internal sealed class MainForm : Form
     private RButton? _playBtn;
     private System.Windows.Forms.Timer? _gameRunningTimer;
     private bool _gameRunning;
+    private bool _starting;
     private DateTime? _launchedAt;
+    private const int StartingTimeoutSeconds = 30;
 
     private Panel?      _tabStrip;
     private RButton[]?  _navButtons;
@@ -133,8 +135,12 @@ internal sealed class MainForm : Form
             CheckGameRunning();
             if (_navButtons != null) HighlightNav(0, animate: false);
 
+            CheckWhatsNew();
+            CheckFirstRunTutorial();
+
             SetStatus("Loading mod catalog...");
-            await _modsPanel.InitAsync();
+            try { await _modsPanel.InitAsync(); }
+            catch { }
             SetStatus("Ready.");
 
             if (_pendingPackPath != null)
@@ -144,7 +150,6 @@ internal sealed class MainForm : Form
                 await _modpacksPanel.PromptInstallExternalPack(_pendingPackPath);
             }
 
-            CheckWhatsNew();
             await CheckForUpdatesAsync();
         };
     }
@@ -157,6 +162,17 @@ internal sealed class MainForm : Form
         AppState.Settings.AppVersionSeen = Program.CurrentVersion;
         AppState.Save();
     }
+
+    private void CheckFirstRunTutorial()
+    {
+        if (AppState.Settings.HasSeenTutorial) return;
+        new TutorialOverlay(this).Start();
+    }
+
+    internal RButton[]? NavButtons => _navButtons;
+    internal RButton? PlayButtonControl => _playBtn;
+    internal ModsPanel ModsPanelControl => _modsPanel;
+    internal InstalledPanel InstalledPanelControl => _installedPanel;
 
     private static async Task CheckForUpdatesAsync()
     {
@@ -651,6 +667,7 @@ internal sealed class MainForm : Form
 
     private void OnPlayClick()
     {
+        if (_starting) return;
         if (_gameRunning) StopGame();
         else LaunchGame();
     }
@@ -674,6 +691,12 @@ internal sealed class MainForm : Form
             else
                 System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(path) { UseShellExecute = true, WorkingDirectory = Path.GetDirectoryName(path) });
             _launchedAt = DateTime.UtcNow;
+
+            if (!AppState.Settings.DisableStartingIndicator.Contains(AppState.Settings.GameName))
+            {
+                _starting = true;
+                UpdatePlayButton();
+            }
         }
         catch { }
     }
@@ -689,6 +712,18 @@ internal sealed class MainForm : Form
     private void CheckGameRunning()
     {
         bool running = IsGameProcessRunning();
+
+        if (_starting)
+        {
+            if (running) _starting = false;
+            else if (_launchedAt is { } startedAt && DateTime.UtcNow - startedAt > TimeSpan.FromSeconds(StartingTimeoutSeconds))
+            {
+                _starting = false;
+                _launchedAt = null;
+                UpdatePlayButton();
+            }
+        }
+
         if (running == _gameRunning) return;
 
         if (!running && _gameRunning && _launchedAt is { } launched && DateTime.UtcNow - launched < TimeSpan.FromSeconds(10))
@@ -718,8 +753,10 @@ internal sealed class MainForm : Form
         if (_playBtn == null) return;
         var t = ThemeEngine.Current;
         bool mmm = _layout == AppLayout.MonkeModManager;
-        Color tint = _gameRunning ? Color.FromArgb(220, 60, 60) : Color.FromArgb(60, 190, 100);
-        _playBtn.Text = _gameRunning ? "■ Stop" : "▶ Play";
+        Color tint = _starting ? Color.FromArgb(52, 120, 246)
+                   : _gameRunning ? Color.FromArgb(220, 60, 60)
+                   : Color.FromArgb(60, 190, 100);
+        _playBtn.Text = _starting ? "Starting..." : _gameRunning ? "■ Stop" : "▶ Play";
         _playBtn.Style = mmm ? RButtonStyle.Outline : RButtonStyle.Solid;
         _playBtn.FillColor = RoundedGraphics.Lerp(t.SurfaceAlt, tint, 0.3f);
         _playBtn.HoverFillColor = RoundedGraphics.Lerp(t.SurfaceAlt, tint, 0.45f);

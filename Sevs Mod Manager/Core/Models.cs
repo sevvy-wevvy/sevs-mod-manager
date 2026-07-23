@@ -61,6 +61,7 @@ internal class ModpackManifest
     public string GameSlug { get; set; } = "";
     public DateTime CreatedUtc { get; set; }
     public List<string> Mods { get; set; } = new();
+    public ModLoaderKind? LoaderKind { get; set; }
 }
 
 internal class ModpackInfo
@@ -99,6 +100,14 @@ internal class AppSettings
     public HashSet<string> ManualOnlyGames = new();
 
     public Dictionary<string, string> SteamExePaths = new();
+
+    public Dictionary<string, ModLoaderKind> LoaderOverrides = new();
+
+    public HashSet<string> DisableStartingIndicator = new();
+
+    public bool HasSeenTutorial;
+
+    public bool DisableDiscordRpc;
 }
 
 internal record GamePreset(string Name, string Slug, string[] DefaultPaths, string? DefaultThunderstoreCommunity = null, int? SteamAppId = null);

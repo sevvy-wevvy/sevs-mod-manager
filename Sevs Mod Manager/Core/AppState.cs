@@ -54,7 +54,9 @@ internal static class AppState
         Presets.FirstOrDefault(p => p.Name == Settings.GameName) ?? Presets[^1];
 
     public static string CurrentGameSlug =>
-        CurrentPreset.Name != "Custom" ? CurrentPreset.Slug : DeriveSlug(Settings.GameName);
+        CurrentPreset.Name != "Custom" ? CurrentPreset.Slug
+        : Settings.GamePath.Length > 0 ? DeriveSlug(Path.GetFileNameWithoutExtension(Settings.GamePath))
+        : DeriveSlug(Settings.GameName);
 
     public static string DeriveSlug(string name) => new(name.ToLowerInvariant().Where(char.IsLetterOrDigit).ToArray());
 
@@ -92,6 +94,9 @@ internal static class AppState
     {
         if (GameDir is not { } dir) return ModLoaderKind.BepInEx;
 
+        if (Settings.LoaderOverrides.TryGetValue(Settings.GameName, out var forcedKind))
+            return forcedKind;
+
         if (BepInExManager.IsInstalled(dir)) return ModLoaderKind.BepInEx;
         if (MelonLoaderManager.IsInstalled(dir)) return ModLoaderKind.MelonLoader;
 
@@ -107,6 +112,12 @@ internal static class AppState
 
     public static Task InstallLoaderAsync(ModLoaderKind kind, string gameDir, IProgress<(int percent, string status)> progress) =>
         kind == ModLoaderKind.BepInEx ? BepInExManager.InstallAsync(gameDir, progress) : MelonLoaderManager.InstallAsync(gameDir, progress);
+
+    public static void UninstallLoader(ModLoaderKind kind, string gameDir)
+    {
+        if (kind == ModLoaderKind.BepInEx) BepInExManager.Uninstall(gameDir);
+        else MelonLoaderManager.Uninstall(gameDir);
+    }
 
     public static bool IsExeX64(string exePath)
     {
