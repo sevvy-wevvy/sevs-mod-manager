@@ -12,6 +12,7 @@ internal static class DiscordPresence
 
     public static void Start()
     {
+        if (AppState.Settings.DisableDiscordRpc) return;
         if (_client != null) return;
         try
         {

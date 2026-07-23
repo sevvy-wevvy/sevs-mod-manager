@@ -73,4 +73,19 @@ internal static class MelonLoaderManager
 
         progress.Report((100, "MelonLoader installed."));
     }
+
+    public static void Uninstall(string gameDir)
+    {
+        foreach (var name in new[] { "MelonLoader", "Mods", "Plugins", "UserData" })
+        {
+            string path = Path.Combine(gameDir, name);
+            if (Directory.Exists(path)) Directory.Delete(path, recursive: true);
+        }
+
+        foreach (var name in new[] { "version.dll", "version.dll.disabled" })
+        {
+            string path = Path.Combine(gameDir, name);
+            if (File.Exists(path)) File.Delete(path);
+        }
+    }
 }

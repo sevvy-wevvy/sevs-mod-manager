@@ -2,6 +2,7 @@ using SevsModManager.Core;
 using SevsModManager.Theme;
 using SevsModManager.UI.Controls;
 using SevsModManager;
+using SevsModManager.UI;
 
 namespace SevsModManager.UI.Panels;
 
@@ -9,7 +10,10 @@ internal sealed class SettingsPanel : UserControl
 {
     private readonly Label   _gamePathLbl, _loaderStatusLbl;
     private readonly RButton _changeGameBtn, _installLoaderBtn, _updateLoaderBtn, _openGameFolderBtn;
-    private readonly RButton _switchGameBtn;
+    private readonly RDropdown _loaderOverrideDropdown;
+    private bool _updatingLoaderOverrideUi;
+    private readonly CheckBox _startingIndicatorCheck;
+    private readonly RButton _switchGameBtn, _redoTutorialBtn;
     private readonly FlowLayoutPanel _customGamesHost;
     private readonly RDropdown _displayModeDropdown;
     private readonly RadioButton _themeBlack, _themeWhite, _themeCustom, _themeSynced, _themeR2Modman;
@@ -20,10 +24,14 @@ internal sealed class SettingsPanel : UserControl
     private string _pendingCustomBg = "", _pendingCustomAccent = "";
     private readonly CheckBox _useThunderstoreCheck;
     private readonly CheckBox _autoCheckUpdatesCheck;
+    private readonly CheckBox _discordRpcCheck;
     private readonly Label   _thunderstoreCommunityLbl;
     private readonly RButton _changeThunderstoreCommunityBtn;
     private bool _updatingThunderstoreUi;
     private readonly Label   _statusLabel;
+    private readonly Label   _activityToggle;
+    private readonly FlowLayoutPanel _activityBody;
+    private bool _activityDirty;
     private Panel?  _scrollHost;
     private PictureBox? _mascotBox;
 
@@ -100,9 +108,36 @@ internal sealed class SettingsPanel : UserControl
         foreach (var b in new[] { _changeGameBtn, _installLoaderBtn, _updateLoaderBtn, _openGameFolderBtn })
         { b.Margin = new Padding(0, 0, 8, 6); gameBtnRow.Controls.Add(b); }
 
+        var loaderOverrideLbl = MakeLabel("Force mod loader (for unusual games):");
+        loaderOverrideLbl.Tag = "subtext";
+        loaderOverrideLbl.Margin = new Padding(0, 6, 0, 2);
+
+        _loaderOverrideDropdown = new RDropdown { Width = 170, Height = 34, CornerRadius = 8, Margin = new Padding(0, 0, 0, 6) };
+        _loaderOverrideDropdown.Items.Add("Auto-detect (default)");
+        _loaderOverrideDropdown.Items.Add("BepInEx");
+        _loaderOverrideDropdown.Items.Add("MelonLoader");
+        _loaderOverrideDropdown.SelectedIndexChanged += async (_, __) => await OnLoaderOverrideChanged();
+
+        _startingIndicatorCheck = new CheckBox
+        {
+            Text = "Show \"Starting...\" on the Play button while a game launches", AutoSize = true,
+            Font = new Font("Segoe UI", 9.5f), Cursor = Cursors.Hand, Margin = new Padding(0, 8, 0, 0),
+        };
+        WrapIfNarrow(_startingIndicatorCheck, narrow);
+        _startingIndicatorCheck.CheckedChanged += (_, __) =>
+        {
+            string game = AppState.Settings.GameName;
+            if (_startingIndicatorCheck.Checked) AppState.Settings.DisableStartingIndicator.Remove(game);
+            else AppState.Settings.DisableStartingIndicator.Add(game);
+            AppState.Save();
+        };
+
         gameGroup.Controls.Add(_gamePathLbl);
         gameGroup.Controls.Add(_loaderStatusLbl);
+        gameGroup.Controls.Add(loaderOverrideLbl);
+        gameGroup.Controls.Add(_loaderOverrideDropdown);
         gameGroup.Controls.Add(gameBtnRow);
+        gameGroup.Controls.Add(_startingIndicatorCheck);
 
         var manageGamesGroup = MakeGroup("Manage Games");
 
@@ -313,6 +348,12 @@ internal sealed class SettingsPanel : UserControl
         aboutGroup.Controls.Add(aboutLine);
         aboutGroup.Controls.Add(donateLink);
 
+        _switchGameBtn = MakeBtn("Switch Game...");
+        _switchGameBtn.Click += (_, __) => Program.RestartApp(skipPicker: false);
+        _switchGameBtn.Margin = new Padding(0, 10, 0, 0);
+        WrapIfNarrow(_switchGameBtn, narrow);
+        aboutGroup.Controls.Add(_switchGameBtn);
+
         var updatesGroup = MakeGroup("Updates");
         _autoCheckUpdatesCheck = new CheckBox
         {
@@ -328,21 +369,67 @@ internal sealed class SettingsPanel : UserControl
         WrapIfNarrow(_autoCheckUpdatesCheck, narrow);
         updatesGroup.Controls.Add(_autoCheckUpdatesCheck);
 
-        var switchGameGroup = MakeGroup("Switch Game");
-        _switchGameBtn = MakeBtn("Switch Game...");
-        _switchGameBtn.Click += (_, __) =>
+        _discordRpcCheck = new CheckBox
         {
-            if (MessageBox.Show("This restarts Sev's Mod Manager and takes you back to the game picker. Continue?",
-                "Switch Game", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
-                Program.RestartApp(skipPicker: false);
+            Text = "Show Discord Rich Presence while modding", AutoSize = true,
+            Font = new Font("Segoe UI", 9.5f), Cursor = Cursors.Hand,
+            Checked = !AppState.Settings.DisableDiscordRpc,
+            Margin = new Padding(0, 6, 0, 0),
         };
-        WrapIfNarrow(_switchGameBtn, narrow);
-        switchGameGroup.Controls.Add(_switchGameBtn);
+        _discordRpcCheck.CheckedChanged += (_, __) =>
+        {
+            AppState.Settings.DisableDiscordRpc = !_discordRpcCheck.Checked;
+            AppState.Save();
+            if (_discordRpcCheck.Checked)
+            {
+                DiscordPresence.Start();
+                if (AppState.Settings.GamePath.Length > 0) DiscordPresence.Update(AppState.Settings.GameName, AppState.Settings.GamePath);
+            }
+            else
+            {
+                DiscordPresence.Stop();
+            }
+        };
+        WrapIfNarrow(_discordRpcCheck, narrow);
+        updatesGroup.Controls.Add(_discordRpcCheck);
+
+        var switchGameGroup = MakeGroup("Tutorial");
+        _redoTutorialBtn = MakeBtn("Redo Tutorial");
+        _redoTutorialBtn.Margin = new Padding(0, 6, 0, 0);
+        _redoTutorialBtn.Click += (_, __) =>
+        {
+            AppState.Settings.HasSeenTutorial = false;
+            AppState.Save();
+            Program.RestartApp(skipPicker: true);
+        };
+        WrapIfNarrow(_redoTutorialBtn, narrow);
+        switchGameGroup.Controls.Add(_redoTutorialBtn);
+
+        var activityGroup = MakeGroup("Activity");
+        _activityToggle = new Label
+        {
+            Text = "▸ Recent operations", AutoSize = true, Cursor = Cursors.Hand,
+            Font = new Font("Segoe UI", 9.5f), Margin = new Padding(0, 2, 0, 4),
+        };
+        _activityBody = new FlowLayoutPanel
+        {
+            AutoSize = true, FlowDirection = FlowDirection.TopDown, WrapContents = false, Visible = false,
+        };
+        _activityToggle.Click += (_, __) =>
+        {
+            _activityBody.Visible = !_activityBody.Visible;
+            _activityToggle.Text = (_activityBody.Visible ? "▾ " : "▸ ") + "Recent operations";
+            if (_activityBody.Visible && _activityDirty) RefreshActivitySection();
+        };
+        activityGroup.Controls.Add(_activityToggle);
+        activityGroup.Controls.Add(_activityBody);
+        OperationQueue.Changed += RefreshActivitySection;
+        RefreshActivitySection();
 
         if (AppState.Settings.Layout == AppLayout.MonkeModManager)
-            BuildMmmLayout(switchGameGroup, updatesGroup, styleGroup, gameGroup, manageGamesGroup, modSourceGroup, themeGroup, aboutGroup);
+            BuildMmmLayout(switchGameGroup, updatesGroup, styleGroup, gameGroup, manageGamesGroup, modSourceGroup, themeGroup, aboutGroup, activityGroup);
         else
-            BuildStackedLayout(switchGameGroup, updatesGroup, styleGroup, gameGroup, manageGamesGroup, modSourceGroup, themeGroup, aboutGroup);
+            BuildStackedLayout(switchGameGroup, updatesGroup, styleGroup, gameGroup, manageGamesGroup, modSourceGroup, themeGroup, aboutGroup, activityGroup);
 
         ThemeEngine.ThemeChanged += ApplyTheme;
         HandleCreated += (_, __) => ThemeEngine.ApplyScrollTheme(this);
@@ -350,21 +437,76 @@ internal sealed class SettingsPanel : UserControl
         Reload();
     }
 
-    private void BuildStackedLayout(Control switchGameGroup, Control updatesGroup, Control styleGroup, Control gameGroup, Control manageGamesGroup, Control modSourceGroup, Control themeGroup, Control aboutGroup)
+    private void RefreshActivitySection()
+    {
+        if (!_activityBody.Visible) { _activityDirty = true; return; }
+        _activityDirty = false;
+
+        _activityBody.SuspendLayout();
+        _activityBody.Controls.Clear();
+        var history = OperationQueue.History;
+        if (history.Count == 0)
+        {
+            var none = MakeLabel("No operations yet.");
+            none.Tag = "subtext";
+            _activityBody.Controls.Add(none);
+            _activityBody.ResumeLayout(true);
+            _activityBody.Invalidate(true);
+            return;
+        }
+
+        var t = ThemeEngine.Current;
+        foreach (var op in history)
+        {
+            string icon = op.Status switch
+            {
+                OperationStatus.Running   => "⏳",
+                OperationStatus.Completed => "✓",
+                OperationStatus.Failed    => "✕",
+                _                         => "…",
+            };
+            string text = op.Status switch
+            {
+                OperationStatus.Running   => $"{icon} {op.Name}: {op.Percent}% {op.StatusText}",
+                OperationStatus.Failed    => $"{icon} {op.Name} failed: {op.Error}",
+                OperationStatus.Completed => $"{icon} {op.Name}",
+                _                         => $"{icon} {op.Name} (waiting)",
+            };
+            Color color = op.Status switch
+            {
+                OperationStatus.Running   => Color.FromArgb(52, 120, 246),
+                OperationStatus.Completed => Color.FromArgb(39, 201, 63),
+                OperationStatus.Failed    => Color.FromArgb(255, 95, 86),
+                _                         => t.SubText,
+            };
+
+            _activityBody.Controls.Add(new Label
+            {
+                Text = text, AutoSize = true, Font = new Font("Segoe UI", 9f),
+                ForeColor = color, Margin = new Padding(0, 2, 0, 2),
+            });
+        }
+        _activityBody.ResumeLayout(true);
+        _activityBody.Invalidate(true);
+    }
+
+    private void BuildStackedLayout(Control switchGameGroup, Control updatesGroup, Control styleGroup, Control gameGroup, Control manageGamesGroup, Control modSourceGroup, Control themeGroup, Control aboutGroup, Control activityGroup)
     {
         var scroll = new Panel { Dock = DockStyle.Fill, AutoScroll = true };
         _scrollHost = new Panel { Dock = DockStyle.Top, AutoSize = true, Padding = new Padding(20, 16, 20, 20) };
         scroll.Controls.Add(_scrollHost);
         Controls.Add(scroll);
 
-        foreach (var g in new[] { updatesGroup, themeGroup, modSourceGroup, manageGamesGroup, gameGroup, styleGroup, switchGameGroup, aboutGroup })
+        _scrollHost.SuspendLayout();
+        foreach (var g in new[] { activityGroup, switchGameGroup, updatesGroup, modSourceGroup, manageGamesGroup, themeGroup, styleGroup, gameGroup, aboutGroup })
         {
             g.Margin = new Padding(0, 0, 0, 14);
             _scrollHost.Controls.Add(g);
         }
+        _scrollHost.ResumeLayout(true);
     }
 
-    private void BuildMmmLayout(Control switchGameGroup, Control updatesGroup, Control styleGroup, Control gameGroup, Control manageGamesGroup, Control modSourceGroup, Control themeGroup, Control aboutGroup)
+    private void BuildMmmLayout(Control switchGameGroup, Control updatesGroup, Control styleGroup, Control gameGroup, Control manageGamesGroup, Control modSourceGroup, Control themeGroup, Control aboutGroup, Control activityGroup)
     {
         var scroll = new Panel { Dock = DockStyle.Fill, AutoScroll = true };
         Controls.Add(scroll);
@@ -387,9 +529,11 @@ internal sealed class SettingsPanel : UserControl
         themeGroup.Margin = new Padding(0, 0, 0, 14);
         aboutGroup.Margin = new Padding(0, 0, 0, 14);
         updatesGroup.Margin = new Padding(0, 0, 0, 14);
+        activityGroup.Margin = new Padding(0, 0, 0, 14);
         rightCol.Controls.Add(updatesGroup);
         rightCol.Controls.Add(themeGroup);
         rightCol.Controls.Add(aboutGroup);
+        rightCol.Controls.Add(activityGroup);
 
         _mascotBox = new PictureBox { Image = AppIcons.Png, SizeMode = PictureBoxSizeMode.Zoom, Width = 160, Height = 160 };
         centerCol.Controls.Add(_mascotBox);
@@ -421,6 +565,11 @@ internal sealed class SettingsPanel : UserControl
         _installLoaderBtn.Enabled = AppState.GameDir != null && !loaderOk;
         _updateLoaderBtn.Enabled  = AppState.GameDir != null && loaderOk;
         _openGameFolderBtn.Enabled = AppState.GameDir != null;
+        _startingIndicatorCheck.Checked = !AppState.Settings.DisableStartingIndicator.Contains(AppState.Settings.GameName);
+
+        _updatingLoaderOverrideUi = true;
+        ReloadLoaderOverrideUi();
+        _updatingLoaderOverrideUi = false;
 
         _themeBlack.Checked    = AppState.Settings.Theme == ThemeMode.Black;
         _themeWhite.Checked    = AppState.Settings.Theme == ThemeMode.White;
@@ -592,6 +741,82 @@ internal sealed class SettingsPanel : UserControl
         return true;
     }
 
+    private void ReloadLoaderOverrideUi()
+    {
+        bool active = AppState.Settings.LoaderOverrides.TryGetValue(AppState.Settings.GameName, out var forcedKind);
+        _loaderOverrideDropdown.SelectedIndex = !active ? 0 : forcedKind == ModLoaderKind.BepInEx ? 1 : 2;
+    }
+
+    private async Task OnLoaderOverrideChanged()
+    {
+        if (_updatingLoaderOverrideUi) return;
+        if (AppState.GameDir is not { } gameDir) return;
+
+        string game = AppState.Settings.GameName;
+        int idx = _loaderOverrideDropdown.SelectedIndex;
+
+        if (idx <= 0)
+        {
+            AppState.Settings.LoaderOverrides.Remove(game);
+            AppState.Save();
+            _statusLabel.Text = "Loader override cleared, back to auto-detect.";
+            Reload();
+            return;
+        }
+
+        var newKind   = idx == 1 ? ModLoaderKind.BepInEx : ModLoaderKind.MelonLoader;
+        var otherKind = newKind == ModLoaderKind.BepInEx ? ModLoaderKind.MelonLoader : ModLoaderKind.BepInEx;
+
+        if (AppState.IsLoaderInstalled(otherKind, gameDir))
+        {
+            string otherName = AppState.LoaderName(otherKind);
+            string newName   = AppState.LoaderName(newKind);
+            var result = MessageBox.Show(
+                $"{game} currently has {otherName} installed. Switching to force {newName} will delete {otherName} entirely, including its mods folder, since a game can only use one loader at a time.\n\nThis cannot be undone. Continue?",
+                "Switch Mod Loader", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+
+            if (result != DialogResult.Yes) { CancelLoaderSwitch(); return; }
+
+            var backup = MessageBox.Show(
+                $"Save the current {otherName} setup as a modpack before it's deleted?",
+                "Back Up First?", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
+
+            if (backup == DialogResult.Cancel) { CancelLoaderSwitch(); return; }
+            if (backup == DialogResult.Yes && !await SaveOldLoaderAsPack(otherName)) { CancelLoaderSwitch(); return; }
+
+            AppState.UninstallLoader(otherKind, gameDir);
+            _statusLabel.Text = $"{otherName} removed. {game} is now forced to {newName}. Click Install {newName} to set it up.";
+        }
+        else
+        {
+            _statusLabel.Text = $"{game} is now forced to use {AppState.LoaderName(newKind)}.";
+        }
+
+        AppState.Settings.LoaderOverrides[game] = newKind;
+        AppState.Save();
+        Reload();
+    }
+
+    private void CancelLoaderSwitch()
+    {
+        _updatingLoaderOverrideUi = true;
+        ReloadLoaderOverrideUi();
+        _updatingLoaderOverrideUi = false;
+        _statusLabel.Text = "Loader switch cancelled.";
+    }
+
+    private async Task<bool> SaveOldLoaderAsPack(string loaderName)
+    {
+        using var dlg = new ModpackExportDialog(ModpackManager.GetPackRoots(), $"{loaderName} Backup {DateTime.Now:yyyy-MM-dd}");
+        if (dlg.ShowDialog() != DialogResult.OK) return false;
+
+        string name = dlg.PackName;
+        var included = dlg.IncludedPaths;
+        var prog = new Progress<(int pct, string msg)>(r => _statusLabel.Text = $"[{r.pct}%] {r.msg}");
+        await Task.Run(() => ModpackManager.SaveCurrentAsPackSelective(name, Environment.UserName, included, prog));
+        return true;
+    }
+
     private async Task InstallLoader(ModLoaderKind kind)
     {
         if (AppState.GameDir == null) return;
@@ -602,7 +827,8 @@ internal sealed class SettingsPanel : UserControl
         var prog = new Progress<(int pct, string msg)>(r => _statusLabel.Text = $"[{r.pct}%] {r.msg}");
         try
         {
-            await AppState.InstallLoaderAsync(kind, AppState.GameDir, prog);
+            await OperationQueue.RunAsync($"{(wasInstalled ? "Update" : "Install")} {loaderName}",
+                p => AppState.InstallLoaderAsync(kind, AppState.GameDir, p), prog);
             _statusLabel.Text = wasInstalled ? $"{loaderName} updated." : $"{loaderName} installed.";
         }
         catch (Exception ex)
@@ -643,9 +869,17 @@ internal sealed class SettingsPanel : UserControl
         _displayModeDropdown.BorderColor = Color.Transparent;
         _displayModeDropdown.ForeColor = t.Text;
 
+        _loaderOverrideDropdown.FillColor = t.SurfaceAlt;
+        _loaderOverrideDropdown.HoverFillColor = t.Border;
+        _loaderOverrideDropdown.BorderColor = Color.Transparent;
+        _loaderOverrideDropdown.ForeColor = t.Text;
+        ThemeEngine.ApplyLayoutCornerStyle(_loaderOverrideDropdown);
+
         if (AppState.GameDir != null)
             _loaderStatusLbl.ForeColor = AppState.IsLoaderInstalled(AppState.DetectLoaderKind(), AppState.GameDir)
                 ? Color.FromArgb(39, 201, 63) : Color.FromArgb(255, 95, 86);
+
+        RefreshActivitySection();
     }
 
     private static RFlowPanel MakeGroup(string title)
@@ -708,7 +942,11 @@ internal sealed class SettingsPanel : UserControl
 
     protected override void Dispose(bool disposing)
     {
-        if (disposing) ThemeEngine.ThemeChanged -= ApplyTheme;
+        if (disposing)
+        {
+            ThemeEngine.ThemeChanged -= ApplyTheme;
+            OperationQueue.Changed -= RefreshActivitySection;
+        }
         base.Dispose(disposing);
     }
 }

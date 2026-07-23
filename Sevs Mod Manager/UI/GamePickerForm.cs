@@ -544,8 +544,8 @@ internal sealed class GamePickerForm : Form
     {
         if (img == null) return;
         g.SmoothingMode = SmoothingMode.AntiAlias;
-        using var path = new GraphicsPath();
-        path.AddEllipse(0, 0, size - 1, size - 1);
+        int radius = AppState.Settings.Layout == AppLayout.SevsModManager ? size / 2 : 0;
+        using var path = RoundedGraphics.RoundedRect(new Rectangle(0, 0, size - 1, size - 1), radius);
         var oldClip = g.Clip;
         g.SetClip(path, CombineMode.Intersect);
         g.DrawImage(img, 0, 0, size, size);

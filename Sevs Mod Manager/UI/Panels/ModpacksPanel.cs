@@ -171,7 +171,8 @@ internal sealed class ModpacksPanel : UserControl
 
         var m = _selected.Manifest;
         _detailName.Text = _selected.DisplayName;
-        _detailMeta.Text = $"by {(string.IsNullOrWhiteSpace(m.Author) ? "unknown" : m.Author)}  ·  {m.CreatedUtc.ToLocalTime():MMM d, yyyy}  ·  {m.GameSlug}";
+        string loaderTag = m.LoaderKind is { } lk ? AppState.LoaderName(lk) : "any loader";
+        _detailMeta.Text = $"by {(string.IsNullOrWhiteSpace(m.Author) ? "unknown" : m.Author)}  ·  {m.CreatedUtc.ToLocalTime():MMM d, yyyy}  ·  {m.GameSlug}  ·  {loaderTag}";
         _modsLbl.Text = $"Mods ({m.Mods.Count})";
         foreach (var mod in m.Mods.OrderBy(x => x)) _modList.Items.Add(mod);
 
@@ -215,6 +216,19 @@ internal sealed class ModpacksPanel : UserControl
             return;
         }
 
+        if (ResolveGameForSlug(slug) is not { } resolved) return;
+        RegisterIfCustom(resolved);
+        SwitchGame(resolved.Path, resolved.Name);
+    }
+
+    private static void RegisterIfCustom((string Path, string Name) resolved)
+    {
+        bool isPreset = AppState.Presets.Any(p => p.Name == resolved.Name && p.Name != "Custom");
+        if (!isPreset) AppState.Settings.CustomGames[resolved.Name] = resolved.Path;
+    }
+
+    private static (string Path, string Name)? ResolveGameForSlug(string slug)
+    {
         var preset = AppState.Presets.FirstOrDefault(p => p.Name != "Custom" && p.Slug.Equals(slug, StringComparison.OrdinalIgnoreCase));
         if (preset != null)
         {
@@ -222,35 +236,37 @@ internal sealed class ModpacksPanel : UserControl
             if (path == null && AppState.Settings.KnownGamePaths.TryGetValue(preset.Name, out var known) && File.Exists(known)) path = known;
             if (path == null && preset.SteamAppId is { } appId && preset.DefaultPaths.Length > 0)
                 path = SteamLocator.FindGamePath(appId, Path.GetFileName(preset.DefaultPaths[0]));
-
-            if (path != null) { SwitchGame(path, preset.Name); return; }
-        }
-        else
-        {
-            var customMatch = AppState.Settings.CustomGames.FirstOrDefault(kv => AppState.DeriveSlug(kv.Key).Equals(slug, StringComparison.OrdinalIgnoreCase));
-            if (customMatch.Key != null && File.Exists(customMatch.Value)) { SwitchGame(customMatch.Value, customMatch.Key); return; }
+            if (path != null) return (path, preset.Name);
         }
 
-        var prompt = MessageBox.Show(
-            $"This modpack is for \"{slug}\", which isn't set up yet. Select its game executable now?",
-            "Game Not Set Up", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-        if (prompt != DialogResult.Yes) return;
+        var customMatch = AppState.Settings.CustomGames.FirstOrDefault(kv =>
+            File.Exists(kv.Value) && AppState.DeriveSlug(Path.GetFileNameWithoutExtension(kv.Value)).Equals(slug, StringComparison.OrdinalIgnoreCase));
+        if (customMatch.Key != null) return (customMatch.Value, customMatch.Key);
 
-        string? exePath = null;
-        using (var steamDlg = new SteamGameBrowserDialog())
-            if (steamDlg.ShowDialog() == DialogResult.OK) exePath = steamDlg.SelectedExePath;
+        foreach (var (appId, steamName) in SteamLocator.ListInstalledGames())
+            foreach (var exe in SteamLocator.FindExeCandidates(appId))
+                if (AppState.DeriveSlug(Path.GetFileNameWithoutExtension(exe)).Equals(slug, StringComparison.OrdinalIgnoreCase))
+                    return (exe, preset?.Name ?? steamName);
 
-        if (exePath == null)
+        MessageBox.Show(
+            $"Couldn't automatically find the game this modpack is for (\"{slug}\"). Pick its executable on the next screen.",
+            "Locate Game", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+        while (true)
         {
             using var fileDlg = new OpenFileDialog { Title = "Select Game Executable", Filter = "Executable|*.exe" };
-            if (fileDlg.ShowDialog() != DialogResult.OK) return;
-            exePath = fileDlg.FileName;
+            if (fileDlg.ShowDialog() != DialogResult.OK) return null;
+
+            string picked = fileDlg.FileName;
+            string pickedSlug = AppState.DeriveSlug(Path.GetFileNameWithoutExtension(picked));
+            string name = preset?.Name ?? Path.GetFileNameWithoutExtension(picked);
+            if (pickedSlug.Equals(slug, StringComparison.OrdinalIgnoreCase)) return (picked, name);
+
+            var proceed = MessageBox.Show(
+                $"\"{Path.GetFileName(picked)}\" doesn't look like the right game for this modpack. Continue with it anyway?",
+                "Not Sure This Is Right", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+            if (proceed == DialogResult.Yes) return (picked, name);
         }
-
-        string name = preset?.Name ?? Path.GetFileNameWithoutExtension(exePath);
-        if (preset == null) AppState.Settings.CustomGames[name] = exePath;
-
-        SwitchGame(exePath, name);
     }
 
     private void SwitchGame(string path, string name)
@@ -281,22 +297,14 @@ internal sealed class ModpacksPanel : UserControl
         var included = dlg.IncludedPaths;
 
         var progress = new Progress<(int percent, string status)>(p => { _statusLabel.Text = $"[{p.percent}%] {p.status}"; _progressStrip.Value = p.percent; });
-        await RunBusy(() => ModpackManager.SaveCurrentAsPackSelective(name, Environment.UserName, included, progress));
-        Refresh_();
-        _statusLabel.Text = $"\"{name}\" saved.";
-    }
-
-    private async Task RunBusy(Action work)
-    {
         _toolbar.Enabled = false;
-        try { await Task.Run(work); }
-        finally { _toolbar.Enabled = true; _progressStrip.Value = 0; }
-    }
-
-    private async Task RunBusyAsync(Func<Task> work)
-    {
-        _toolbar.Enabled = false;
-        try { await work(); }
+        try
+        {
+            await OperationQueue.RunAsync($"Save modpack \"{name}\"",
+                p => { ModpackManager.SaveCurrentAsPackSelective(name, Environment.UserName, included, p); return Task.CompletedTask; }, progress);
+            Refresh_();
+            _statusLabel.Text = $"\"{name}\" saved.";
+        }
         finally { _toolbar.Enabled = true; _progressStrip.Value = 0; }
     }
 
@@ -315,7 +323,13 @@ internal sealed class ModpacksPanel : UserControl
             string? name = PromptDialog.Show("Save Current Setup", "Modpack name:", $"My Setup {DateTime.Now:yyyy-MM-dd}");
             if (string.IsNullOrWhiteSpace(name)) return false;
             var progress = new Progress<(int percent, string status)>(p => { _statusLabel.Text = $"[{p.percent}%] {p.status}"; _progressStrip.Value = p.percent; });
-            await RunBusy(() => SaveCurrentAsPackWithProgress(name, Environment.UserName, progress));
+            _toolbar.Enabled = false;
+            try
+            {
+                await OperationQueue.RunAsync($"Save modpack \"{name}\"",
+                    p => { SaveCurrentAsPackWithProgress(name, Environment.UserName, p); return Task.CompletedTask; }, progress);
+            }
+            finally { _toolbar.Enabled = true; _progressStrip.Value = 0; }
         }
         return true;
     }
@@ -331,16 +345,16 @@ internal sealed class ModpacksPanel : UserControl
         if (!ModpackManager.CurrentSetupMatchesSavedPack())
             if (!await ConfirmSaveCurrentFirst("Creating a blank pack")) return;
 
+        var progress = new Progress<(int percent, string status)>(p => { _statusLabel.Text = $"[{p.percent}%] {p.status}"; _progressStrip.Value = p.percent; });
         _toolbar.Enabled = false;
         try
         {
-            var progress = new Progress<(int percent, string status)>(p => { _statusLabel.Text = $"[{p.percent}%] {p.status}"; _progressStrip.Value = p.percent; });
-            await ModpackManager.CreateBlankSetup(progress);
+            await OperationQueue.RunAsync("Create blank pack", p => ModpackManager.CreateBlankSetup(p), progress);
             Refresh_();
             _statusLabel.Text = "Blank pack created.";
         }
         catch (Exception ex) { _statusLabel.Text = "Failed: " + ex.Message; }
-        finally { _toolbar.Enabled = true; }
+        finally { _toolbar.Enabled = true; _progressStrip.Value = 0; }
     }
 
     private async Task DoApply()
@@ -348,22 +362,50 @@ internal sealed class ModpacksPanel : UserControl
         if (_selected == null) return;
         if (AppState.GameDir == null) { MessageBox.Show("No game path set.", "Error"); return; }
 
+        if (!ConfirmLoaderSwitch(_selected.Manifest)) return;
         if (MessageBox.Show($"Apply \"{_selected.DisplayName}\"? This replaces your current BepInEx folder.", "Confirm", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes) return;
         if (!await ConfirmSaveCurrentFirst()) return;
 
+        string packPath = _selected.FilePath;
+        string displayName = _selected.DisplayName;
+        var manifest = _selected.Manifest;
+        var progress = new Progress<(int percent, string status)>(p => { _statusLabel.Text = $"[{p.percent}%] {p.status}"; _progressStrip.Value = p.percent; });
+        _toolbar.Enabled = false;
         try
         {
-            string packPath = _selected.FilePath;
-            string displayName = _selected.DisplayName;
-            await RunBusyAsync(() =>
-            {
-                var progress = new Progress<(int percent, string status)>(p => { _statusLabel.Text = $"[{p.percent}%] {p.status}"; _progressStrip.Value = p.percent; });
-                return ModpackManager.ApplyPack(packPath, progress);
-            });
+            await OperationQueue.RunAsync($"Apply \"{displayName}\"",
+                p => { SwitchLoaderForPack(manifest, p); return ModpackManager.ApplyPack(packPath, p); }, progress);
             Refresh_();
             _statusLabel.Text = $"{displayName} applied.";
         }
         catch (Exception ex) { _statusLabel.Text = "Apply failed: " + ex.Message; }
+        finally { _toolbar.Enabled = true; _progressStrip.Value = 0; }
+    }
+
+    private bool ConfirmLoaderSwitch(ModpackManifest manifest)
+    {
+        if (AppState.GameDir == null || manifest.LoaderKind is not { } packLoader) return true;
+        var current = AppState.DetectLoaderKind();
+        if (packLoader == current) return true;
+
+        string currentName = AppState.LoaderName(current);
+        string packName = AppState.LoaderName(packLoader);
+        var proceed = MessageBox.Show(
+            $"This modpack was made for {packName}, but this game currently has {currentName} installed. Installing it will delete {currentName} and its mods, then set up {packName} instead.\n\nContinue?",
+            "Different Mod Loader", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+        return proceed == DialogResult.Yes;
+    }
+
+    private void SwitchLoaderForPack(ModpackManifest manifest, IProgress<(int percent, string status)>? progress = null)
+    {
+        if (AppState.GameDir == null || manifest.LoaderKind is not { } targetLoader) return;
+        var current = AppState.DetectLoaderKind();
+        if (current == targetLoader) return;
+
+        progress?.Report((0, $"Removing {AppState.LoaderName(current)}..."));
+        AppState.UninstallLoader(current, AppState.GameDir);
+        AppState.Settings.LoaderOverrides[AppState.Settings.GameName] = targetLoader;
+        AppState.Save();
     }
 
     private void DoDelete()
@@ -417,13 +459,21 @@ internal sealed class ModpacksPanel : UserControl
             return;
         }
 
-        if (!string.Equals(manifest.GameSlug, AppState.CurrentPreset.Slug, StringComparison.OrdinalIgnoreCase))
+        if (!string.IsNullOrEmpty(manifest.GameSlug) && !string.Equals(manifest.GameSlug, AppState.CurrentGameSlug, StringComparison.OrdinalIgnoreCase))
         {
-            var proceedAnyway = MessageBox.Show(
-                $"This modpack was made for \"{manifest.GameSlug}\", but you currently have \"{AppState.CurrentPreset.Slug}\" selected. Install anyway?",
+            var switchFirst = MessageBox.Show(
+                $"This modpack was made for \"{manifest.GameSlug}\", but you currently have \"{AppState.Settings.GameName}\" selected. Switch to the right game first?",
                 "Different Game", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
-            if (proceedAnyway != DialogResult.Yes) return;
+
+            if (switchFirst == DialogResult.Yes)
+            {
+                if (ResolveGameForSlug(manifest.GameSlug) is not { } resolved) return;
+                RegisterIfCustom(resolved);
+                SwitchGame(resolved.Path, resolved.Name);
+            }
         }
+
+        if (!ConfirmLoaderSwitch(manifest)) return;
 
         var install = MessageBox.Show(
             $"Install modpack \"{manifest.Name}\" by {manifest.Author} ({manifest.Mods.Count} mods)? This replaces your current BepInEx setup.",
@@ -432,18 +482,18 @@ internal sealed class ModpacksPanel : UserControl
 
         if (!await ConfirmSaveCurrentFirst()) return;
 
+        var progress = new Progress<(int percent, string status)>(p => { _statusLabel.Text = $"[{p.percent}%] {p.status}"; _progressStrip.Value = p.percent; });
+        _toolbar.Enabled = false;
         try
         {
             string localPath = ModpackManager.ImportPack(path);
-            await RunBusyAsync(() =>
-            {
-                var progress = new Progress<(int percent, string status)>(p => { _statusLabel.Text = $"[{p.percent}%] {p.status}"; _progressStrip.Value = p.percent; });
-                return ModpackManager.ApplyPack(localPath, progress);
-            });
+            await OperationQueue.RunAsync($"Install \"{manifest.Name}\"",
+                p => { SwitchLoaderForPack(manifest, p); return ModpackManager.ApplyPack(localPath, p); }, progress);
             Refresh_();
             _statusLabel.Text = $"{manifest.Name} installed.";
         }
         catch (Exception ex) { _statusLabel.Text = "Install failed: " + ex.Message; }
+        finally { _toolbar.Enabled = true; _progressStrip.Value = 0; }
     }
 
     private void OpenFolder()
@@ -468,8 +518,9 @@ internal sealed class ModpacksPanel : UserControl
         using (var brush = new SolidBrush(sel ? t.Highlight : t.Surface))
             e.Graphics.FillPath(brush, path);
 
+        string loaderSuffix = p.Manifest.LoaderKind is { } lk ? $" · {AppState.LoaderName(lk)}" : "";
         e.Graphics.DrawString(p.DisplayName, new Font("Segoe UI", 10f, FontStyle.Bold), new SolidBrush(t.Text), card.Left + 10, card.Top + 6);
-        e.Graphics.DrawString($"{p.Manifest.Mods.Count} mods · {p.Manifest.CreatedUtc.ToLocalTime():MMM d}", new Font("Segoe UI", 8f), new SolidBrush(t.SubText), card.Left + 10, card.Top + 26);
+        e.Graphics.DrawString($"{p.Manifest.Mods.Count} mods · {p.Manifest.CreatedUtc.ToLocalTime():MMM d}{loaderSuffix}", new Font("Segoe UI", 8f), new SolidBrush(t.SubText), card.Left + 10, card.Top + 26);
     }
 
     private void ApplyTheme()
