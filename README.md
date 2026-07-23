@@ -1,7 +1,8 @@
  <h1 align="center">Sevs Mod Manager</h1>
 
 <p align="center">
-<b>A mod manager that works for nearly all unity games.</b>
+<b>A mod manager that works for nearly all unity games.</b><br>
+Add your own mods to the SB/SMM library at [sevvy-wevvy.com/mods/sb/dashboard](https://sevvy-wevvy.com/mods/sb/dashboard/)!
 </p>
 
 <div align="center">
