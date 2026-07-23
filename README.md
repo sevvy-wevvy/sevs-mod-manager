@@ -2,7 +2,7 @@
 
 <p align="center">
 <b>A mod manager that works for nearly all unity games.</b><br>
-Add your own mods to the SB/SMM library at [sevvy-wevvy.com/mods/sb/dashboard](https://sevvy-wevvy.com/mods/sb/dashboard/)!
+Add your own mods to the SB/SMM library at <a href=https://sevvy-wevvy.com/mods/sb/dashboard/>sevvy-wevvy.com/mods/sb/dashboard</a>!
 </p>
 
 <div align="center">
