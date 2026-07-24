@@ -30,7 +30,6 @@ Add your own mods to the SB/SMM library at <a href=https://sevvy-wevvy.com/mods/
 <details>
 <summary align="center"><b>📃 Features 📃</b></summary>
 
-<p align="center">
 <b>Mods</b><br>
 Browse and download mods from Thunderstore<br>
 Browse, download, and upvote mods from the official SB API<br>
