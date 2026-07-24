@@ -32,29 +32,73 @@ Add your own mods to the SB/SMM library at <a href=https://sevvy-wevvy.com/mods/
 
 <p align="center">
 <b>Mods</b><br>
- Download and browse mods from thunderstore<br>
- Download, browse, and upvote mods from the officail SB api<br>
- Unistall mods<br>
- Search Mods<br>
- Sort Mods<br> <br>
+Browse and download mods from Thunderstore<br>
+Browse, download, and upvote mods from the official SB API<br>
+Switch a game between Thunderstore and the SB API as its mod source<br>
+Search and filter mods (All / Featured / Verified / Unverified tabs)<br>
+Warns before installing unverified mods<br>
+Auto-installs a mod's dependencies for you<br>
+Auto-installs the right mod loader if you install a mod before one's set up<br>
+Install external/local mod DLLs manually<br>
+Uninstall mods, with a warning if other mods depend on them<br>
+Login system to upvote mods and track your account<br>
+Quick links to a mod's GitHub/Thunderstore page and changelog<br><br>
+
 <b>Installed</b><br>
- Browse, toggle, and delete installed mods<br> <br>
+Browse, enable/disable, and delete installed mods<br>
+Update All & batch-updates every outdated mod in one click<br>
+Conflict detection & flags when two mods ship the same file<br>
+Enable All / Disable All / Uninstall All<br>
+Search installed mods<br>
+Drag-and-drop a DLL onto the app to install it<br>
+Open your plugins/mods folder directly<br><br>
+
 <b>Logs</b><br>
- Shows your games logs<br> <br>
+Live-tails your game's log while it's running<br>
+Browse your last 10 log sessions<br>
+Search logs and filter by severity (errors/warnings)<br>
+Best-effort "possible culprit" banner to guess which mod caused a crash<br>
+Warns if the game closes suspiciously fast after launching<br>
+Export a full bug report (log + system info + mod list) as a zip<br><br>
+
 <b>Loadouts</b><br>
- Setup "loadouts" that will log what mods you have enabled and disabled to quickly switch between diffrent mod setups without needing to move files or download/delete anything<br> <br>
+Save up to 20 "loadouts" of exactly which mods are enabled/disabled<br>
+Apply a loadout instantly, no re-downloading or moving files<br>
+Also snapshots and restores each loadout's mod configs<br>
+Rename, delete, and re-apply loadouts anytime<br><br>
+
 <b>Modpacks</b><br>
- Create modpacks<br>
- Choose what items you want to be included in your modpack<br>
- Share modpacks for freinds to easly get your configs, mods, patches, and much more instantly working<br>
- Switch between mods that loudouts without having to reset your mods everytime<br> <br>
+Create modpacks from your current setup<br>
+Choose exactly which files/folders get included<br>
+Share modpacks so friends get your mods, configs, and patches instantly working<br>
+Export/import modpacks as portable files<br>
+Double-click a modpack file to install it directly (with file association)<br>
+Auto-detects and switches to the right game for a modpack, even across different mod loaders<br>
+Preview a pack's mod list and full file tree before applying<br>
+Prompts to back up your current setup before overwriting it<br><br>
+
 <b>Config</b><br>
- Manage config for mods<br> <br>
+Auto-detects every mod's config file<br>
+Live editable settings with checkboxes, sliders, dropdowns, and text fields depending on the setting<br>
+Shows each setting's description and default value, and flags ones you've changed<br>
+Reset a single file or everything back to default<br><br>
+
 <b>Settings</b><br>
- Choose diffrent styles, between teh clasic look, r2modman look, or monkie mod manager look!<br>
- Change theme<br>
- Update modloader<br>
- And much more<br>
+Choose between the classic look, r2modman look, or MonkeModManager look<br>
+Pick a theme, including a fully custom background/accent color<br>
+Install or update your mod loader<br>
+Force a specific mod loader for unusual games, with a safe switch-over and backup prompt<br>
+Show/hide preset games and manage your own custom games<br>
+Change your Thunderstore community or mod source per game<br>
+Toggle Discord Rich Presence, auto-update checks, and more<br>
+Replay the tutorial anytime<br>
+Activity log of recent installs/updates<br><br>
+
+<b>Everywhere Else</b><br>
+One-click Play/Stop that launches your game and tracks whether it's running<br>
+Discord Rich Presence with your game's cover art<br>
+Auto-checks for Sev's Mod Manager updates on startup<br>
+Interactive tutorial<br>
 </p>
 </details>
 
