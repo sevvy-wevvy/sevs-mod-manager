@@ -116,7 +116,7 @@ As long as it works, and doesn't vary off too far from the main idea it's very l
 
 <p align="center">
   <small>
-    <b>Several Bees</b> is released under the  
+    <b>Sevs Mod Manager</b> is released under the  
     <a href="https://www.gnu.org/licenses/gpl-3.0.html" target="_blank">GPL-3.0 License</a>.  
     This means you’re free to use, modify, and share the code. As long as you:
   </small>
