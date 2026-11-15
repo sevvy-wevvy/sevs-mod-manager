@@ -1,7 +1,8 @@
 name: build
 on:
   push:
-    branches: [dev, beta, main]
+    branches: [main]
+    tags: ['[0-9]*']
   workflow_dispatch:
 jobs:
   build:
@@ -39,7 +40,7 @@ jobs:
           path: smm-${{ matrix.name }}*
   publish:
     needs: build
-    if: github.ref == 'refs/heads/dev'
+    if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -53,7 +54,5 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          git tag -f dev-latest
-          git push -f origin dev-latest
-          gh release view dev-latest >/dev/null 2>&1 || gh release create dev-latest --prerelease --target dev --title "dev build" --notes "newest build from the dev branch"
-          gh release upload dev-latest dist/* --clobber
+          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 || gh release create "$GITHUB_REF_NAME" --verify-tag --latest --title "Sevs Mod Manager $GITHUB_REF_NAME" --notes "Sevs Mod Manager $GITHUB_REF_NAME"
+          gh release upload "$GITHUB_REF_NAME" dist/* --clobber

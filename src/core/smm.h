@@ -8,8 +8,8 @@
 extern "C" {
 #endif
 
-#define SMM_VERSION 2
-#define SMM_VERSION_TEXT "2.0"
+#define SMM_VERSION 3
+#define SMM_VERSION_TEXT "3.0"
 #define SMM_PATH 1024
 #define SMM_USER_AGENT "SevsModManager/1.0"
 #define SMM_MAX_LOADOUTS 20

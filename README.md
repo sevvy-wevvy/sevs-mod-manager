@@ -7,7 +7,7 @@ Do you like this project? If so, please let me know! <a href="https://sevvy-wevv
 </p>
 
 <div align="center">
- <img src="https://github.com/sevvy-wevvy/sevs-mod-manager/blob/dev/prev.png?raw=true" width=70% height=auto</img>
+ <img src="https://github.com/sevvy-wevvy/sevs-mod-manager/blob/main/prev.png?raw=true" width=70% height=auto</img>
 </div><br>
 
 <p align="center">
@@ -17,7 +17,7 @@ Do you like this project? If so, please let me know! <a href="https://sevvy-wevv
   <a href="https://sevvy-wevvy.com/discord">
     <img src="https://img.shields.io/discord/1398944180079689728?label=Discord&style=for-the-badge" alt="Discord">
   </a>
-  <a href="https://github.com/goome-ui"><img src="https://img.shields.io/badge/made%20with-goome-6fdc5f?style=for-the-badge" alt="made with goome"></a>
+  <a href="https://github.com/goome-ui"><img src="https://img.shields.io/badge/made%20with-goome-6fdc5f?style=for-the-badge" alt="made with goome"></a><br>
   <a href="https://sevvy-wevvy.com/donate" target="_blank">
     <img src="https://img.shields.io/badge/Support%20-Me-5B5BFF?style=for-the-badge&logo=gift&logoColor=white" alt="Support Me" width="100">
   </a>
@@ -29,13 +29,13 @@ Do you like this project? If so, please let me know! <a href="https://sevvy-wevv
 <h3 align="center">🐧 Linux &nbsp;·&nbsp; 🍎 Mac</h3>
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/sevvy-wevvy/sevs-mod-manager/dev/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/sevvy-wevvy/sevs-mod-manager/main/install.sh | sh
 ```
 
 <h3 align="center">🪟 Windows (PowerShell, not cmd)</h3>
 
 ```powershell
-irm https://raw.githubusercontent.com/sevvy-wevvy/sevs-mod-manager/dev/install.ps1 | iex
+irm https://raw.githubusercontent.com/sevvy-wevvy/sevs-mod-manager/main/install.ps1 | iex
 ```
 
 <h3 align="center">🏹 Arch Linux</h3>
@@ -43,7 +43,7 @@ irm https://raw.githubusercontent.com/sevvy-wevvy/sevs-mod-manager/dev/install.p
 <p align="center">The Linux line works on Arch too. If you want pacman to own it, build the package from source:</p>
 
 ```sh
-mkdir smm && cd smm && curl -fsSLO https://raw.githubusercontent.com/sevvy-wevvy/sevs-mod-manager/dev/packaging/PKGBUILD && makepkg -si
+mkdir smm && cd smm && curl -fsSLO https://raw.githubusercontent.com/sevvy-wevvy/sevs-mod-manager/main/packaging/PKGBUILD && makepkg -si
 ```
 
 <p align="center">
@@ -59,12 +59,12 @@ Windows might show a SmartScreen warning because the exe isnt signed, click More
 <summary align="center"><b>📸 Screenshots 📸</b></summary>
 
 <p align="center">
-<img src="https://github.com/sevvy-wevvy/sevs-mod-manager/blob/dev/docs/installed.png?raw=true" width=48%>
-<img src="https://github.com/sevvy-wevvy/sevs-mod-manager/blob/dev/docs/logs.png?raw=true" width=48%><br>
-<img src="https://github.com/sevvy-wevvy/sevs-mod-manager/blob/dev/docs/r2modman.png?raw=true" width=48%>
-<img src="https://github.com/sevvy-wevvy/sevs-mod-manager/blob/dev/docs/monke.png?raw=true" width=48%><br>
-<img src="https://github.com/sevvy-wevvy/sevs-mod-manager/blob/dev/docs/picker.png?raw=true" width=48%>
-<img src="https://github.com/sevvy-wevvy/sevs-mod-manager/blob/dev/docs/loadouts.png?raw=true" width=48%>
+<img src="https://github.com/sevvy-wevvy/sevs-mod-manager/blob/main/docs/installed.png?raw=true" width=48%>
+<img src="https://github.com/sevvy-wevvy/sevs-mod-manager/blob/main/docs/logs.png?raw=true" width=48%><br>
+<img src="https://github.com/sevvy-wevvy/sevs-mod-manager/blob/main/docs/r2modman.png?raw=true" width=48%>
+<img src="https://github.com/sevvy-wevvy/sevs-mod-manager/blob/main/docs/monke.png?raw=true" width=48%><br>
+<img src="https://github.com/sevvy-wevvy/sevs-mod-manager/blob/main/docs/picker.png?raw=true" width=48%>
+<img src="https://github.com/sevvy-wevvy/sevs-mod-manager/blob/main/docs/loadouts.png?raw=true" width=48%>
 </p>
 
 <p align="center">Installed, Logs, the r2modman and MonkeModManager layouts, the game picker and Loadouts. You can switch layout and theme in Settings and it changes instantly.</p>
@@ -110,7 +110,7 @@ Three layouts (Sev's Mod Manager, r2modman and MonkeModManager style) and five t
 <p align="center">You only need a C compiler. The whole thing is C99 on <a href="https://github.com/goome-ui/c-goome">goome</a>, no other libraries.</p>
 
 ```sh
-git clone -b dev https://github.com/sevvy-wevvy/sevs-mod-manager
+git clone https://github.com/sevvy-wevvy/sevs-mod-manager
 cd sevs-mod-manager
 ./build.sh
 ./build/smm

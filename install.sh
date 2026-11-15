@@ -1,7 +1,6 @@
 #!/bin/sh
 set -eu
 repo=sevvy-wevvy/sevs-mod-manager
-tag="${SMM_TAG:-dev-latest}"
 bin="${SMM_BIN:-$HOME/.local/bin}"
 case "$(uname -s)-$(uname -m)" in
   Linux-x86_64) name=linux-x64 ;;
@@ -13,7 +12,8 @@ esac
 command -v curl >/dev/null || { echo "install curl first, the app uses it too" >&2; exit 1; }
 mkdir -p "$bin"
 echo "downloading smm-$name"
-curl -fsSL "https://github.com/$repo/releases/download/$tag/smm-$name" -o "$bin/smm.part"
+if [ -n "${SMM_TAG:-}" ]; then base="https://github.com/$repo/releases/download/$SMM_TAG"; else base="https://github.com/$repo/releases/latest/download"; fi
+curl -fsSL "$base/smm-$name" -o "$bin/smm.part"
 chmod +x "$bin/smm.part"
 mv "$bin/smm.part" "$bin/smm"
 [ "$(uname -s)" = Darwin ] && xattr -d com.apple.quarantine "$bin/smm" 2>/dev/null || true

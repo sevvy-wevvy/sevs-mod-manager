@@ -9,7 +9,7 @@ depends=('curl' 'glibc')
 optdepends=('zenity: file pickers' 'steam: find your games')
 makedepends=('git' 'gcc')
 provides=('sevs-mod-manager')
-source=("git+$url.git#branch=dev")
+source=("git+$url.git#branch=main")
 sha256sums=('SKIP')
 
 pkgver() {
