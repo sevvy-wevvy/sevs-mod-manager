@@ -17,7 +17,7 @@ Do you like this project? If so, please let me know! <a href="https://sevvy-wevv
   <a href="https://sevvy-wevvy.com/discord">
     <img src="https://img.shields.io/discord/1398944180079689728?label=Discord&style=for-the-badge" alt="Discord">
   </a>
-  <a href="https://github.com/goome-ui"><img src="https://img.shields.io/badge/made%20with-goome-6fdc5f?style=for-the-badge" alt="made with goome"></a><br>
+  <a href="https://github.com/goome-ui"><img src="https://goome-ui.github.io/docs/assets/badges/made-with-goome-for-the-badge.svg" alt="made with goome"></a><br>
   <a href="https://sevvy-wevvy.com/donate" target="_blank">
     <img src="https://img.shields.io/badge/Support%20-Me-5B5BFF?style=for-the-badge&logo=gift&logoColor=white" alt="Support Me" width="100">
   </a>
