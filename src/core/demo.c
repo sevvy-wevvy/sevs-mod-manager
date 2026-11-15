@@ -110,6 +110,11 @@ int smm_demo_http(const char *url, const char *post, SmmBuf *out, int *handled)
         *handled = 0;
         return -1;
     }
+    const char *real = smm_os_getenv("SMM_DEMO_REAL");
+    if (real && *real && strstr(url, "steamstatic.com")) {
+        *handled = 0;
+        return -1;
+    }
     *handled = 1;
     char act[64], tab[64];
     if (strstr(url, "thunderstore.io/c/") && strstr(url, "/api/v1/package/")) return serve_file("thunderstore_packages.json", out);
@@ -135,7 +140,7 @@ int smm_demo_http(const char *url, const char *post, SmmBuf *out, int *handled)
             if (page[0] && atoi(page) > 1) return serve_text("{\"success\":true,\"mods\":[]}", out);
             query_value(url, "tab", tab, sizeof tab);
             char fn[96];
-            smm_fmt(fn, sizeof fn, "sb_mods_%s.json", tab[0] ? tab : "all");
+            smm_fmt(fn, sizeof fn, real && *real ? "sb_real_%s.json" : "sb_mods_%s.json", tab[0] ? tab : "all");
             return serve_file(fn, out);
         }
         return serve_text("{}", out);
