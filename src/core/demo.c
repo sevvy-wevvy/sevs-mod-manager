@@ -100,7 +100,7 @@ int smm_demo_http(const char *url, const char *post, SmmBuf *out, int *handled)
     if (strstr(url, "sevvy-wevvy.com/mods/sb/api.php")) {
         const char *src = post ? post : url;
         query_value(src, "action", act, sizeof act);
-        if (!strcmp(act, "register_game")) return serve_text("{\"id\":1}", out);
+        if (!strcmp(act, "register_game")) return serve_text("{\"ok\":true,\"data\":{\"id\":1}}", out);
         if (!strcmp(act, "validate_token")) return serve_text("{\"valid\":true,\"username\":\"sevvy\"}", out);
         if (!strcmp(act, "get_user_upvote")) return serve_text("{\"upvoted\":false}", out);
         if (!strcmp(act, "toggle_upvote")) return serve_text("{\"upvoted\":true}", out);

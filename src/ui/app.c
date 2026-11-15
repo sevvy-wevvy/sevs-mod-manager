@@ -207,16 +207,69 @@ void theme_refresh(void)
     P.accent_text = smm_rgb_pack(t.accent_text) | 0xFF000000u;
 }
 
+#define ART_SIDE 96
+
+typedef struct {
+    int appid;
+    goome_bitmap bm;
+} ArtEntry;
+
+static ArtEntry art[16];
+static int n_art;
+
+static int art_square(int appid, const goome_bitmap **out)
+{
+    for (int i = 0; i < n_art; i++)
+        if (art[i].appid == appid) {
+            *out = &art[i].bm;
+            return 1;
+        }
+    if (n_art >= 16) return 0;
+    char url[200];
+    snprintf(url, sizeof(url), "https://cdn.akamai.steamstatic.com/steam/apps/%d/library_600x900.jpg", appid);
+    const goome_bitmap *src = NULL;
+    if (!icon_cache_get(url, &src)) return 0;
+    int side = src->w < src->h ? src->w : src->h;
+    int ox = (src->w - side) / 2, oy = (src->h - side) / 4;
+    uint32_t *px = malloc(sizeof(uint32_t) * ART_SIDE * ART_SIDE);
+    if (!px) return 0;
+    for (int y = 0; y < ART_SIDE; y++) {
+        int y0 = oy + y * side / ART_SIDE, y1 = oy + (y + 1) * side / ART_SIDE;
+        if (y1 <= y0) y1 = y0 + 1;
+        for (int x = 0; x < ART_SIDE; x++) {
+            int x0 = ox + x * side / ART_SIDE, x1 = ox + (x + 1) * side / ART_SIDE;
+            if (x1 <= x0) x1 = x0 + 1;
+            unsigned long sum[4] = {0, 0, 0, 0};
+            int cnt = 0;
+            for (int yy = y0; yy < y1; yy++)
+                for (int xx = x0; xx < x1; xx++) {
+                    uint32_t c = src->px[yy * (src->stride > 0 ? src->stride : src->w) + xx];
+                    sum[0] += c >> 24;
+                    sum[1] += (c >> 16) & 255;
+                    sum[2] += (c >> 8) & 255;
+                    sum[3] += c & 255;
+                    cnt++;
+                }
+            px[y * ART_SIDE + x] = ((uint32_t)(sum[0] / cnt) << 24) | ((uint32_t)(sum[1] / cnt) << 16) | ((uint32_t)(sum[2] / cnt) << 8) | (uint32_t)(sum[3] / cnt);
+        }
+    }
+    ArtEntry *e = &art[n_art++];
+    e->appid = appid;
+    e->bm.px = px;
+    e->bm.w = e->bm.h = ART_SIDE;
+    e->bm.stride = ART_SIDE;
+    e->bm.owned = 1;
+    *out = &e->bm;
+    return 1;
+}
+
 static int draw_steam_art(R r, const char *name)
 {
     const SmmPreset *p = name ? smm_preset_find(name) : NULL;
     if (!p || p->steam_app_id <= 0) return 0;
-    char url[200];
-    snprintf(url, sizeof(url), "https://cdn.akamai.steamstatic.com/steam/apps/%d/library_600x900.jpg", p->steam_app_id);
     const goome_bitmap *bm = NULL;
-    if (!icon_cache_get(url, &bm)) return 0;
-    int side = bm->w < bm->h ? bm->w : bm->h;
-    goome_draw_bitmap_part(K.c, bm, (bm->w - side) / 2, (bm->h - side) / 5, side, side, r.x, r.y, r.w, r.h, 0xFFFFFFFF);
+    if (!art_square(p->steam_app_id, &bm)) return 0;
+    goome_draw_bitmap(K.c, bm, r.x, r.y, r.w, r.h, goome_radius(r.w * 0.24), 0xFFFFFFFF);
     return 1;
 }
 

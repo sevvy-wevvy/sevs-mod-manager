@@ -154,6 +154,20 @@ static void rebuild_view(void)
     sel = found;
 }
 
+typedef struct {
+    SmmMod *mod;
+    int *pending;
+    int ok;
+} ExistJob;
+
+static void exist_check(void *p)
+{
+    ExistJob *j = p;
+    char url[512];
+    j->ok = smm_mod_download_url(j->mod, url, sizeof(url)) >= 0 && smm_http_url_exists(url) > 0;
+    __sync_fetch_and_sub(j->pending, 1);
+}
+
 static void load_worker(void *p)
 {
     LoadReq *r = p;
@@ -179,11 +193,19 @@ static void load_worker(void *p)
         if (smm_sb_list_mods(r->tab, r->page, r->game_id, &got) < 0) r->ok = 0;
         r->more = got.n >= 15;
         if (!smm_demo_enabled()) {
+            ExistJob *jobs = calloc((size_t)(got.n ? got.n : 1), sizeof(*jobs));
+            int pending = got.n;
             for (int i = 0; i < got.n; i++) {
-                char url[512];
-                if (smm_mod_download_url(&got.v[i], url, sizeof(url)) >= 0 && smm_http_url_exists(url) > 0) smm_mods_add(&r->out, &got.v[i]);
+                jobs[i].mod = &got.v[i];
+                jobs[i].pending = &pending;
+                if (smm_thread_start(exist_check, &jobs[i]) < 0) exist_check(&jobs[i]);
+            }
+            while (__sync_fetch_and_add(&pending, 0) > 0) smm_sleep_ms(20);
+            for (int i = 0; i < got.n; i++) {
+                if (jobs[i].ok) smm_mods_add(&r->out, &got.v[i]);
                 else smm_strs_free(&got.v[i].deps);
             }
+            free(jobs);
             free(got.v);
         } else {
             r->out = got;

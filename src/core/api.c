@@ -45,6 +45,12 @@ static int api_post(const char *action, SmmMap *fields, SmmBuf *out)
     return code >= 200 && code < 300 ? 0 : -1;
 }
 
+static const SmmJson *sb_data(const SmmJson *j)
+{
+    const SmmJson *d = j && j->type == SMM_J_OBJ ? smm_json_get(j, "data") : NULL;
+    return d && (d->type == SMM_J_OBJ || d->type == SMM_J_ARR) ? d : j;
+}
+
 int smm_sb_register_game(const char *slug)
 {
     const char *kv[] = {"slug", slug};
@@ -52,7 +58,7 @@ int smm_sb_register_game(const char *slug)
     int id = 0;
     if (api_get("register_game", kv, 1, &b) == 0) {
         SmmJson *j = smm_json_parse(b.p, b.n);
-        id = (int)smm_json_num(j, "id", 0);
+        id = (int)smm_json_num(sb_data(j), "id", 0);
         smm_json_free(j);
     }
     smm_buf_free(&b);
@@ -72,7 +78,8 @@ int smm_sb_list_mods(const char *tab, int page, int game_id, SmmMods *out)
     }
     SmmJson *j = smm_json_parse(b.p, b.n);
     smm_buf_free(&b);
-    const SmmJson *arr = j && j->type == SMM_J_ARR ? j : smm_json_get(j, "mods");
+    const SmmJson *root = sb_data(j);
+    const SmmJson *arr = root && root->type == SMM_J_ARR ? root : smm_json_get(root, "mods");
     if (arr && arr->type == SMM_J_ARR) {
         for (int i = 0; i < arr->n; i++) {
             const SmmJson *o = &arr->kids[i];
@@ -106,7 +113,7 @@ int smm_sb_user_upvoted(int mod_id)
     int up = 0;
     if (api_get("get_user_upvote", kv, 1, &b) == 0) {
         SmmJson *j = smm_json_parse(b.p, b.n);
-        up = smm_json_bool(j, "upvoted", 0);
+        up = smm_json_bool(sb_data(j), "upvoted", 0);
         smm_json_free(j);
     }
     smm_buf_free(&b);
@@ -123,7 +130,7 @@ int smm_sb_toggle_upvote(int mod_id, int *upvoted)
     int rc = api_post("toggle_upvote", &f, &b);
     if (rc == 0) {
         SmmJson *j = smm_json_parse(b.p, b.n);
-        if (upvoted) *upvoted = smm_json_bool(j, "upvoted", 0);
+        if (upvoted) *upvoted = smm_json_bool(sb_data(j), "upvoted", 0);
         smm_json_free(j);
     }
     smm_buf_free(&b);
@@ -139,8 +146,8 @@ int smm_sb_validate_token(const char *token, char *username, size_t n)
     int ok = 0;
     if (api_post("validate_token", &f, &b) == 0) {
         SmmJson *j = smm_json_parse(b.p, b.n);
-        if (smm_json_bool(j, "valid", 0)) {
-            smm_copy(username, n, smm_json_str(j, "username", ""));
+        if (smm_json_bool(sb_data(j), "valid", 0)) {
+            smm_copy(username, n, smm_json_str(sb_data(j), "username", ""));
             ok = 1;
         }
         smm_json_free(j);
@@ -159,7 +166,7 @@ static int link_get(const char *query, const char *field, char *out, size_t n)
     int ok = 0;
     if (code >= 200 && code < 300) {
         SmmJson *j = smm_json_parse(b.p, b.n);
-        const char *v = smm_json_str(j, field, NULL);
+        const char *v = smm_json_str(sb_data(j), field, NULL);
         if (v && *v) {
             smm_copy(out, n, v);
             ok = 1;

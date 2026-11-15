@@ -1,72 +1,75 @@
 {
- "success": true,
- "page": 1,
- "mods": [
-  {
-   "id": 102,
-   "name": "ComputerInterface",
-   "dll_name": "ComputerInterface.dll",
-   "repo_url": "https://github.com/ToniMacaroni/ComputerInterface",
-   "description": "Adds a usable computer to the wrist. Lets other mods add their own screens.",
-   "author_username": "ToniMacaroni",
-   "upvotes": 153,
-   "is_verified": 0,
-   "is_featured": 1
-  },
-  {
-   "id": 105,
-   "name": "GorillaInfoWatch",
-   "dll_name": "GorillaInfoWatch.dll",
-   "repo_url": "https://github.com/developer9998/GorillaInfoWatch",
-   "description": "A watch for your wrist with room info, friends and a clock.",
-   "author_username": "developer9998",
-   "upvotes": 59,
-   "is_verified": 0,
-   "is_featured": 0
-  },
-  {
-   "id": 108,
-   "name": "FPSCounter",
-   "dll_name": "FPSCounter.dll",
-   "repo_url": "https://github.com/kingofnetflix/FPSCounter",
-   "description": "Small fps counter on your wrist. Nothing fancy.",
-   "author_username": "kingofnetflix",
-   "upvotes": 32,
-   "is_verified": 0,
-   "is_featured": 0
-  },
-  {
-   "id": 111,
-   "name": "MonkeBackgroundTweaks",
-   "dll_name": "MonkeBackgroundTweaks.dll",
-   "repo_url": "https://github.com/Cyclone/MonkeBackgroundTweaks",
-   "description": "Change sky, fog and lighting in custom maps.",
-   "author_username": "Cyclone",
-   "upvotes": 9,
-   "is_verified": 0,
-   "is_featured": 0
-  },
-  {
-   "id": 114,
-   "name": "HandTrackingTweaks",
-   "dll_name": "HandTrackingTweaks.dll",
-   "repo_url": "https://github.com/Marcus/HandTrackingTweaks",
-   "description": "Tune finger tracking and thresholds for hand tracking users.",
-   "author_username": "Marcus",
-   "upvotes": 12,
-   "is_verified": 0,
-   "is_featured": 0
-  },
-  {
-   "id": 117,
-   "name": "BananaCounter",
-   "dll_name": "BananaCounter.dll",
-   "repo_url": "https://github.com/Zivi/BananaCounter",
-   "description": "Counts bananas you pick up in modded maps.",
-   "author_username": "Zivi",
-   "upvotes": 5,
-   "is_verified": 0,
-   "is_featured": 0
-  }
- ]
+ "ok": true,
+ "data": {
+  "success": true,
+  "page": 1,
+  "mods": [
+   {
+    "id": 102,
+    "name": "ComputerInterface",
+    "dll_name": "ComputerInterface.dll",
+    "repo_url": "https://github.com/ToniMacaroni/ComputerInterface",
+    "description": "Adds a usable computer to the wrist. Lets other mods add their own screens.",
+    "author_username": "ToniMacaroni",
+    "upvotes": 153,
+    "is_verified": 0,
+    "is_featured": 1
+   },
+   {
+    "id": 105,
+    "name": "GorillaInfoWatch",
+    "dll_name": "GorillaInfoWatch.dll",
+    "repo_url": "https://github.com/developer9998/GorillaInfoWatch",
+    "description": "A watch for your wrist with room info, friends and a clock.",
+    "author_username": "developer9998",
+    "upvotes": 59,
+    "is_verified": 0,
+    "is_featured": 0
+   },
+   {
+    "id": 108,
+    "name": "FPSCounter",
+    "dll_name": "FPSCounter.dll",
+    "repo_url": "https://github.com/kingofnetflix/FPSCounter",
+    "description": "Small fps counter on your wrist. Nothing fancy.",
+    "author_username": "kingofnetflix",
+    "upvotes": 32,
+    "is_verified": 0,
+    "is_featured": 0
+   },
+   {
+    "id": 111,
+    "name": "MonkeBackgroundTweaks",
+    "dll_name": "MonkeBackgroundTweaks.dll",
+    "repo_url": "https://github.com/Cyclone/MonkeBackgroundTweaks",
+    "description": "Change sky, fog and lighting in custom maps.",
+    "author_username": "Cyclone",
+    "upvotes": 9,
+    "is_verified": 0,
+    "is_featured": 0
+   },
+   {
+    "id": 114,
+    "name": "HandTrackingTweaks",
+    "dll_name": "HandTrackingTweaks.dll",
+    "repo_url": "https://github.com/Marcus/HandTrackingTweaks",
+    "description": "Tune finger tracking and thresholds for hand tracking users.",
+    "author_username": "Marcus",
+    "upvotes": 12,
+    "is_verified": 0,
+    "is_featured": 0
+   },
+   {
+    "id": 117,
+    "name": "BananaCounter",
+    "dll_name": "BananaCounter.dll",
+    "repo_url": "https://github.com/Zivi/BananaCounter",
+    "description": "Counts bananas you pick up in modded maps.",
+    "author_username": "Zivi",
+    "upvotes": 5,
+    "is_verified": 0,
+    "is_featured": 0
+   }
+  ]
+ }
 }
