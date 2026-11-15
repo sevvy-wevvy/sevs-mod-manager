@@ -12,17 +12,19 @@ jobs:
           - {os: ubuntu-latest, name: linux-x64}
           - {os: ubuntu-24.04-arm, name: linux-arm64}
           - {os: macos-latest, name: mac-arm64}
-          - {os: macos-13, name: mac-x64}
+          - {os: macos-latest, name: mac-x64, cc: clang -arch x86_64}
           - {os: windows-latest, name: windows-x64}
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - name: tests
-        if: runner.os != 'Windows'
+        if: runner.os != 'Windows' && matrix.name != 'mac-x64'
         shell: bash
         run: sh tests/run.sh
       - name: build
         shell: bash
+        env:
+          CC: ${{ matrix.cc || 'cc' }}
         run: |
           if [ "$RUNNER_OS" = Windows ]; then
             CC=gcc ./build.sh win

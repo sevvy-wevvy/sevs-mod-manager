@@ -22,7 +22,7 @@ win)
 esac
 mkdir -p "$out"
 srcs=(src/main.c src/goome_impl.c src/ui/*.c src/core/*.c)
-"$cc" -std=c99 -O2 -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -Wno-format-truncation \
+$cc -std=c99 -O2 -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -Wno-format-truncation \
   -o "$out/smm$ext" "${srcs[@]}" "${libs[@]}"
 echo "built $out/smm$ext"
 case "$what" in
