@@ -1,0 +1,251 @@
+{
+ "guid": "com.tonimacaroni.computerinterface",
+ "name": "Computer Interface",
+ "description": "Computer Interface is a Gorilla Tag library to interface with the Gorilla OS.\r\n\r\nFor more information, [see the README](https://github.com/DecalFree/ComputerInterface#table-of-contents).",
+ "category": "Utilities",
+ "source_url": "https://github.com/DecalFree/ComputerInterface",
+ "logo": "/media/6cf2f79d0b81c3303bb0af6a6b849dc5.webp",
+ "screenshots": [],
+ "capabilities": {
+  "internet": false,
+  "auto_update": false,
+  "extensions": true
+ },
+ "current_version": "2.1.5",
+ "created_at": "2026-10-08T13:24:03.446724+00:00",
+ "updated_at": "2026-11-14T20:20:06.526815+00:00",
+ "downloads": 285,
+ "demo": 0,
+ "status": "approved",
+ "visibility": "public",
+ "banner": null,
+ "choice_category": "Utilities",
+ "custom_slug": "computerinterface",
+ "links": [
+  {
+   "label": "Website",
+   "url": "https://decalfree.com"
+  }
+ ],
+ "author": {
+  "id": "724377090018902117",
+  "name": "DecalFree",
+  "discord_username": "decalfree",
+  "is_admin": true,
+  "is_verified": true,
+  "avatar": "/media/8d87072cd9049930ada0e2d01a917289.webp",
+  "profile_url": "/profile/decalfree"
+ },
+ "badges": [
+  "Top 10 Downloads",
+  "Modder\u2019s Choice \u00b7 Utilities"
+ ],
+ "id": "computerinterface",
+ "url": "https://monkeforge.org/view/computerinterface",
+ "loaders": [
+  "bepinex5",
+  "melonloader"
+ ],
+ "channel": {
+  "guid": "com.tonimacaroni.computerinterface",
+  "name": "stable",
+  "notes": "",
+  "public": true,
+  "enabled": true,
+  "current_version": "2.1.5"
+ },
+ "channels": [
+  {
+   "guid": "com.tonimacaroni.computerinterface",
+   "name": "stable",
+   "notes": "",
+   "public": true,
+   "enabled": true,
+   "current_version": "2.1.5"
+  }
+ ],
+ "releases": [
+  {
+   "id": 62,
+   "guid": "com.tonimacaroni.computerinterface",
+   "version": "2.1.5",
+   "released_at": "2026-11-14T20:20:06.526815+00:00",
+   "notes": "Fixed for new game update.\r\nAdded new Mute All voice option.",
+   "channel": "stable",
+   "downloads": [
+    {
+     "id": "4688226202c648200be145689ab4965f",
+     "filename": "ComputerInterface-BepInEx.zip",
+     "size": 326700,
+     "sha256": "b0257bd45b9aa8e47eaeba1d76ea442873e0aa1f604bcd177c19a64d879f2897",
+     "kind": "zip",
+     "loader": "bepinex5",
+     "url": "https://monkeforge.org/api/v1/downloads/4688226202c648200be145689ab4965f"
+    },
+    {
+     "id": "f2bba5e3fb541f4a43bac0e1c642a076",
+     "filename": "ComputerInterface-MelonLoader.zip",
+     "size": 324390,
+     "sha256": "8e826c081553e0fa8d4d37d2785a2e0d4c36aeb81d56ba19e93f54d4fa54bf9b",
+     "kind": "zip",
+     "loader": "melonloader",
+     "url": "https://monkeforge.org/api/v1/downloads/f2bba5e3fb541f4a43bac0e1c642a076"
+    }
+   ],
+   "loaders": [
+    "bepinex5",
+    "melonloader"
+   ],
+   "downloads_by_loader": {
+    "bepinex5": [
+     {
+      "id": "4688226202c648200be145689ab4965f",
+      "filename": "ComputerInterface-BepInEx.zip",
+      "size": 326700,
+      "sha256": "b0257bd45b9aa8e47eaeba1d76ea442873e0aa1f604bcd177c19a64d879f2897",
+      "kind": "zip",
+      "loader": "bepinex5",
+      "url": "https://monkeforge.org/api/v1/downloads/4688226202c648200be145689ab4965f"
+     }
+    ],
+    "melonloader": [
+     {
+      "id": "f2bba5e3fb541f4a43bac0e1c642a076",
+      "filename": "ComputerInterface-MelonLoader.zip",
+      "size": 324390,
+      "sha256": "8e826c081553e0fa8d4d37d2785a2e0d4c36aeb81d56ba19e93f54d4fa54bf9b",
+      "kind": "zip",
+      "loader": "melonloader",
+      "url": "https://monkeforge.org/api/v1/downloads/f2bba5e3fb541f4a43bac0e1c642a076"
+     }
+    ]
+   }
+  },
+  {
+   "id": 51,
+   "guid": "com.tonimacaroni.computerinterface",
+   "version": "2.1.4",
+   "released_at": "2026-10-31T00:42:04.395053+00:00",
+   "notes": "Add MonkeForge to SafetyWarning.\r\nAdd a check if a warning can be ignored.\r\nGeneral changes.",
+   "channel": "stable",
+   "downloads": [
+    {
+     "id": "67e4bbf67a89a00c7b3f1d36c0ee8c16",
+     "filename": "ComputerInterface-BepInEx.zip",
+     "size": 326793,
+     "sha256": "5dff29f06a079af46b870ba36457d2a240ebf34ff6e8554bab97be9c7d5d6d02",
+     "kind": "zip",
+     "loader": "bepinex5",
+     "url": "https://monkeforge.org/api/v1/downloads/67e4bbf67a89a00c7b3f1d36c0ee8c16"
+    },
+    {
+     "id": "f8349965a9ba4bd37e1ffcfb2c93549d",
+     "filename": "ComputerInterface-MelonLoader.zip",
+     "size": 324529,
+     "sha256": "e017eb8f7b21383e98dff6176359a77d25e52161207c932656aed3c0abc37da6",
+     "kind": "zip",
+     "loader": "melonloader",
+     "url": "https://monkeforge.org/api/v1/downloads/f8349965a9ba4bd37e1ffcfb2c93549d"
+    }
+   ],
+   "loaders": [
+    "bepinex5",
+    "melonloader"
+   ],
+   "downloads_by_loader": {
+    "bepinex5": [
+     {
+      "id": "67e4bbf67a89a00c7b3f1d36c0ee8c16",
+      "filename": "ComputerInterface-BepInEx.zip",
+      "size": 326793,
+      "sha256": "5dff29f06a079af46b870ba36457d2a240ebf34ff6e8554bab97be9c7d5d6d02",
+      "kind": "zip",
+      "loader": "bepinex5",
+      "url": "https://monkeforge.org/api/v1/downloads/67e4bbf67a89a00c7b3f1d36c0ee8c16"
+     }
+    ],
+    "melonloader": [
+     {
+      "id": "f8349965a9ba4bd37e1ffcfb2c93549d",
+      "filename": "ComputerInterface-MelonLoader.zip",
+      "size": 324529,
+      "sha256": "e017eb8f7b21383e98dff6176359a77d25e52161207c932656aed3c0abc37da6",
+      "kind": "zip",
+      "loader": "melonloader",
+      "url": "https://monkeforge.org/api/v1/downloads/f8349965a9ba4bd37e1ffcfb2c93549d"
+     }
+    ]
+   }
+  },
+  {
+   "id": 29,
+   "guid": "com.tonimacaroni.computerinterface",
+   "version": "2.1.3",
+   "released_at": "2026-10-16T17:19:40.020516+00:00",
+   "notes": "Fixed PushToMute option breaking pttType PlayerPref.\r\nFixed spaces being allowed in Rooms, Names, and Troops.\r\nChanged version check flow - you'll also be shown text saying if the update is Optional, Recommended, or Needed.\r\nGeneral, non important, changes.",
+   "channel": "stable",
+   "downloads": [
+    {
+     "id": "9edbe6c0b9fb5d1ee81c2c57c3aea455",
+     "filename": "ComputerInterface-BepInEx.zip",
+     "size": 326589,
+     "sha256": "8d7a1759d6a33bd78d85f588fdb0d23c4ef10432b3063904240021ec123f5175",
+     "kind": "zip",
+     "loader": "bepinex5",
+     "url": "https://monkeforge.org/api/v1/downloads/9edbe6c0b9fb5d1ee81c2c57c3aea455"
+    }
+   ],
+   "loaders": [
+    "bepinex5"
+   ],
+   "downloads_by_loader": {
+    "bepinex5": [
+     {
+      "id": "9edbe6c0b9fb5d1ee81c2c57c3aea455",
+      "filename": "ComputerInterface-BepInEx.zip",
+      "size": 326589,
+      "sha256": "8d7a1759d6a33bd78d85f588fdb0d23c4ef10432b3063904240021ec123f5175",
+      "kind": "zip",
+      "loader": "bepinex5",
+      "url": "https://monkeforge.org/api/v1/downloads/9edbe6c0b9fb5d1ee81c2c57c3aea455"
+     }
+    ]
+   }
+  },
+  {
+   "id": 12,
+   "guid": "com.tonimacaroni.computerinterface",
+   "version": "2.1.2",
+   "released_at": "2026-10-08T13:24:03.446724+00:00",
+   "notes": "Add proper set Competitive Queue check.\r\nSet proper MaxIndex for QueueView.\r\nFix some text on keys saying the wrong thing.\r\nUpdate to newer AutoMute PlayerPref.",
+   "channel": "stable",
+   "downloads": [
+    {
+     "id": "86175228b8483fbee1c3ead5b8dcf956",
+     "filename": "ComputerInterface-BepInEx.zip",
+     "size": 325272,
+     "sha256": "6f1837fc21fcfa0982a8edf16f93ec01d709d6429bd0743a80a25e030b2da510",
+     "kind": "zip",
+     "loader": "bepinex5",
+     "url": "https://monkeforge.org/api/v1/downloads/86175228b8483fbee1c3ead5b8dcf956"
+    }
+   ],
+   "loaders": [
+    "bepinex5"
+   ],
+   "downloads_by_loader": {
+    "bepinex5": [
+     {
+      "id": "86175228b8483fbee1c3ead5b8dcf956",
+      "filename": "ComputerInterface-BepInEx.zip",
+      "size": 325272,
+      "sha256": "6f1837fc21fcfa0982a8edf16f93ec01d709d6429bd0743a80a25e030b2da510",
+      "kind": "zip",
+      "loader": "bepinex5",
+      "url": "https://monkeforge.org/api/v1/downloads/86175228b8483fbee1c3ead5b8dcf956"
+     }
+    ]
+   }
+  }
+ ]
+}

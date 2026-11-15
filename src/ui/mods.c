@@ -10,6 +10,8 @@ typedef struct {
     int game_id;
     char community[96];
     int use_ts;
+    int use_mf;
+    int local;
     int manual;
     SmmMods out;
     int more;
@@ -65,9 +67,19 @@ static void drop_view(void)
     sel = -1;
 }
 
+static int use_mf(void)
+{
+    return smm_mf_active();
+}
+
 static int use_ts(void)
 {
-    return smm_map_get(&smm_settings.thunderstore_communities, smm_settings.game_name) != NULL;
+    return !use_mf() && smm_map_get(&smm_settings.thunderstore_communities, smm_settings.game_name) != NULL;
+}
+
+static int local_list(void)
+{
+    return use_ts() || use_mf();
 }
 
 static const char *community(void)
@@ -123,7 +135,7 @@ static void rebuild_view(void)
     memset(&view, 0, sizeof(view));
     SmmMods tmp;
     memset(&tmp, 0, sizeof(tmp));
-    if (use_ts()) smm_filter_mods(&cache, TABS[tab_idx], &tmp);
+    if (local_list()) smm_filter_mods(&cache, TABS[tab_idx], &tmp);
     else for (int i = 0; i < cache.n; i++) smm_mods_add(&tmp, &cache.v[i]);
     smm_sort_mods(&tmp);
     char q[160];
@@ -173,7 +185,7 @@ static void load_worker(void *p)
     LoadReq *r = p;
     r->ok = 1;
     if (r->manual) return;
-    if (r->mode == LM_INIT && !r->use_ts) {
+    if (r->mode == LM_INIT && !r->local) {
         if (smm_token_load(token, sizeof(token)) > 0 && token[0]) {
             smm_sb_set_token(token);
             if (smm_sb_validate_token(token, r->user, sizeof(r->user)) > 0) r->token_ok = 1;
@@ -185,7 +197,9 @@ static void load_worker(void *p)
         r->new_game_id = id > 0 ? id : 0;
         r->game_id = r->new_game_id;
     }
-    if (r->use_ts) {
+    if (r->use_mf) {
+        if (smm_mf_list(&r->out) < 0) r->ok = 0;
+    } else if (r->use_ts) {
         if (smm_ts_list_packages(r->community, &r->out) < 0) r->ok = 0;
     } else {
         SmmMods got;
@@ -236,12 +250,14 @@ static void start_load(int mode)
     req->page = page;
     req->game_id = game_id;
     req->use_ts = use_ts();
+    req->use_mf = use_mf();
+    req->local = req->use_ts || req->use_mf;
     snprintf(req->community, sizeof(req->community), "%s", community() ? community() : "");
     if (req->use_ts && !req->community[0]) {
         mods_set_status("No Thunderstore community configured.");
         return;
     }
-    if (req->use_ts && cache.n > 0 && mode != LM_INIT) {
+    if (req->local && cache.n > 0 && mode != LM_INIT) {
         rebuild_view();
         char t[64];
         snprintf(t, sizeof(t), "%d mods", view.n);
@@ -261,12 +277,12 @@ void mods_poll(void)
             snprintf(t, sizeof(t), "Load failed: %s", req->err);
             mods_set_status(t);
         } else {
-            if (req->mode == LM_INIT && !req->use_ts) {
+            if (req->mode == LM_INIT && !req->local) {
                 game_id = req->new_game_id;
                 snprintf(username, sizeof(username), "%s", req->user);
                 if (!req->token_ok) token[0] = 0;
             }
-            if (req->use_ts) {
+            if (req->local) {
                 drop_view();
     smm_mods_free(&cache);
                 cache = req->out;
@@ -335,7 +351,7 @@ static void switch_tab(int i)
 {
     tab_idx = i;
     page = 1;
-    if (use_ts()) rebuild_view();
+    if (local_list()) rebuild_view();
     else {
         drop_view();
     smm_mods_free(&cache);
@@ -348,6 +364,23 @@ static void switch_tab(int i)
 static void toggle_source(void)
 {
     const char *game = smm_settings.game_name;
+    if (use_mf()) {
+        smm_mf_set_active(0);
+        smm_state_save();
+        char t[200];
+        snprintf(t, sizeof(t), "%s now uses Sev's Mod Manager's own mod list.", game);
+        mods_set_status(t);
+        mods_activate();
+        return;
+    }
+    if (use_ts() && smm_mf_supported()) {
+        smm_map_del(&smm_settings.thunderstore_communities, game);
+        smm_mf_set_active(1);
+        smm_state_save();
+        mods_set_status("Using MonkeForge.");
+        mods_activate();
+        return;
+    }
     if (use_ts()) {
         smm_map_del(&smm_settings.thunderstore_communities, game);
         smm_state_save();
@@ -581,7 +614,7 @@ static R install_r;
 
 const SmmMods *mods_latest(void)
 {
-    return use_ts() ? &cache : NULL;
+    return local_list() ? &cache : NULL;
 }
 
 R mods_install_rect(void)
@@ -614,9 +647,14 @@ static void draw_row(R row, const SmmMod *m, int selected_row, int hov)
     double sw = tx_w(sub, 10.7, 0);
     tx(x, y + 31, sub, 10.7, P.sub, 0);
     char up[24];
-    snprintf(up, sizeof(up), "%d", m->upvotes);
-    ic_up_tri(rect(x + sw, y + 35, 7, 7), P.sub);
-    tx(x + sw + 8, y + 31, up, 10.7, P.sub, 0);
+    if (m->source == SMM_SRC_MONKEFORGE) {
+        snprintf(up, sizeof(up), "%d downloads", m->upvotes);
+        tx(x + sw, y + 31, up, 10.7, P.sub, 0);
+    } else {
+        snprintf(up, sizeof(up), "%d", m->upvotes);
+        ic_up_tri(rect(x + sw, y + 35, 7, 7), P.sub);
+        tx(x + sw + 8, y + 31, up, 10.7, P.sub, 0);
+    }
     char key[200];
     mod_key(m, key, sizeof(key));
     char ver[48];
@@ -678,7 +716,7 @@ static void draw_ctx_menu(void)
     int n = 0;
     items[n++] = inst || dis ? "Uninstall" : "Install";
     if (m->repo_url[0]) {
-        items[n++] = m->source == SMM_SRC_THUNDERSTORE ? "Open Thunderstore Page" : "Open GitHub Page";
+        items[n++] = m->source == SMM_SRC_MONKEFORGE ? "Open MonkeForge Page" : m->source == SMM_SRC_THUNDERSTORE ? "Open Thunderstore Page" : "Open GitHub Page";
         items[n++] = "Copy Link";
     }
     double w = 200, ih = 30, h = n * ih + 8;
@@ -725,10 +763,15 @@ static void draw_detail(R dp)
     snprintf(a, sizeof(a), "by @%s  \xc2\xb7  ", m->author);
     double aw = tx_w(a, 13, 0);
     tx(c.x, c.y + 32, a, 13, P.sub, 0);
-    char up[24];
-    snprintf(up, sizeof(up), "%d", m->upvotes);
-    ic_up_tri(rect(c.x + aw, c.y + 37, 9, 9), P.sub);
-    tx(c.x + aw + 12, c.y + 32, up, 13, P.sub, 0);
+    char up[96];
+    if (m->source == SMM_SRC_MONKEFORGE) {
+        snprintf(up, sizeof(up), "%d downloads  \xc2\xb7  v%s", m->upvotes, m->version);
+        tx(c.x + aw, c.y + 32, up, 13, P.sub, 0);
+    } else {
+        snprintf(up, sizeof(up), "%d", m->upvotes);
+        ic_up_tri(rect(c.x + aw, c.y + 37, 9, 9), P.sub);
+        tx(c.x + aw + 12, c.y + 32, up, 13, P.sub, 0);
+    }
     R bottom = rect(c.x, c.y + c.h - 60, c.w, 60);
     R desc = rect(c.x, c.y + 64, c.w, c.h - 64 - 60);
     tx_wrap(desc, m->description[0] ? m->description : "(no description)", 13, P.sub, 0, NULL);
@@ -778,7 +821,7 @@ static void draw_detail(R dp)
         }
         x += br.w + 6;
     }
-    const char *gh = m->source == SMM_SRC_THUNDERSTORE ? "Thunderstore" : "GitHub";
+    const char *gh = m->source == SMM_SRC_MONKEFORGE ? "MonkeForge" : m->source == SMM_SRC_THUNDERSTORE ? "Thunderstore" : "GitHub";
     R gr = rect(x, by, btn_w(gh) + 16, 30);
     if (w_button(gr, "", BTN_SOLID, 1) && !tutorial_on && m->repo_url[0]) smm_open_url(m->repo_url);
     tx_in(rect(gr.x, gr.y, gr.w - 16, gr.h), gh, 13, P.text, 0, AL_CENTER);
@@ -828,11 +871,12 @@ void panel_mods(R r)
     cut_left(&row, 6);
     char src[200];
     if (manual_only()) snprintf(src, sizeof(src), "Source: None (manual)");
+    else if (use_mf()) snprintf(src, sizeof(src), "Source: MonkeForge");
     else if (use_ts()) snprintf(src, sizeof(src), "Source: Thunderstore (%s)", community());
     else snprintf(src, sizeof(src), "Source: Sev's Mod Manager");
     R sb = rect(row.x, row.y, btn_w(src) + 6, 38);
     if (w_button_rd(sb, src, BTN_GHOST, 1, bot)) toggle_source();
-    int login_vis = !manual_only() && !use_ts();
+    int login_vis = !manual_only() && !local_list();
     R right = row;
     R lg = rect(0, 0, 0, 0);
     if (login_vis) lg = cut_right(&right, 70);

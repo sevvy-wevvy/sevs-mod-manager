@@ -1,0 +1,991 @@
+{
+ "items": [
+  {
+   "guid": "com.tonimacaroni.computerinterface",
+   "name": "Computer Interface",
+   "description": "Computer Interface is a Gorilla Tag library to interface with the Gorilla OS.\r\n\r\nFor more information, [see the README](https://github.com/DecalFree/ComputerInterface#table-of-contents).",
+   "category": "Utilities",
+   "source_url": "https://github.com/DecalFree/ComputerInterface",
+   "logo": "/media/6cf2f79d0b81c3303bb0af6a6b849dc5.webp",
+   "screenshots": [],
+   "capabilities": {
+    "internet": false,
+    "auto_update": false,
+    "extensions": true
+   },
+   "current_version": "2.1.5",
+   "created_at": "2026-10-08T13:24:03.446724+00:00",
+   "updated_at": "2026-11-14T20:20:06.526815+00:00",
+   "downloads": 285,
+   "demo": 0,
+   "status": "approved",
+   "visibility": "public",
+   "banner": null,
+   "choice_category": "Utilities",
+   "custom_slug": "computerinterface",
+   "links": [
+    {
+     "label": "Website",
+     "url": "https://decalfree.com"
+    }
+   ],
+   "author": {
+    "id": "724377090018902117",
+    "name": "DecalFree",
+    "discord_username": "decalfree",
+    "is_admin": true,
+    "is_verified": true,
+    "avatar": "/media/8d87072cd9049930ada0e2d01a917289.webp",
+    "profile_url": "/profile/decalfree"
+   },
+   "badges": [
+    "Top 10 Downloads",
+    "Modder\u2019s Choice \u00b7 Utilities"
+   ],
+   "id": "computerinterface",
+   "url": "https://monkeforge.org/view/computerinterface",
+   "loaders": [
+    "bepinex5",
+    "melonloader"
+   ]
+  },
+  {
+   "guid": "com.kx.shopindex",
+   "name": "ShopIndex",
+   "description": "## **Shop Index**\r\n\r\n\r\nA mod that lets you view the current available cosmetics in Gorilla Tag.\r\n\r\n**How to use it**\r\n\r\nPress **F8** to open the UI. You can change the key in the About tab.\r\n\r\n**Special Thanks**\r\n\r\nThis was inspired by GorillaShop made by the graze.",
+   "category": "Cosmetic",
+   "source_url": "https://github.com/kx5qz/ShopIndex",
+   "logo": null,
+   "screenshots": [
+    "/media/8ec3b4b7187c9fc9286455ce2677e005.webp",
+    "/media/8191f63fdd818bd4f39f5f91e819d6b8.webp",
+    "/media/67a73811c9ed0bef16a8b3bbb4a04ab8.webp"
+   ],
+   "capabilities": {
+    "internet": false,
+    "auto_update": false,
+    "extensions": false
+   },
+   "current_version": "4.0.0",
+   "created_at": "2026-11-12T18:30:15.339980+00:00",
+   "updated_at": "2026-11-12T18:30:15.339980+00:00",
+   "downloads": 2,
+   "demo": 0,
+   "status": "approved",
+   "visibility": "public",
+   "banner": null,
+   "choice_category": null,
+   "custom_slug": null,
+   "links": [],
+   "author": {
+    "id": "1522064395188834309",
+    "name": "kx",
+    "discord_username": "kx5qz",
+    "is_admin": false,
+    "is_verified": false,
+    "avatar": null,
+    "profile_url": "/profile/1522064395188834309"
+   },
+   "badges": [],
+   "id": "com.kx.shopindex",
+   "url": "https://monkeforge.org/view/com.kx.shopindex",
+   "loaders": [
+    "bepinex5"
+   ]
+  },
+  {
+   "guid": "com.goldfish.hatredforstickdrift",
+   "name": "HatredForStickDrift",
+   "description": "HatredForStickDrift\r\n\r\n\r\nTurn with buttons instead of your joystick, so stick drift can\u2019t spin you around any more.\r\n\r\n\r\n\r\n\r\nIf your thumbstick drifts, you know the pain: you\u2019re standing still and your gorilla slowly rotates on its own. HatredForStickDrift turns off joystick turning and lets you turn with the buttons you choose.\r\n\r\n\r\n\r\n\r\nFeatures\r\n\r\n\r\n\r\n\r\nTurn with any buttons: pick one button to turn left and one to turn right. They can be on the same controller or on different ones.\r\n\r\nRebind in game: click a binding, press the button you want, done.\r\n\r\nSmooth or snap turning: smooth turning with adjustable speed (30\u2013360\u00b0/s), or snap turning with an adjustable angle (15\u201390\u00b0).\r\n\r\nJoystick turning off: the game\u2019s own joystick turning is blocked while the mod is on, so drift can\u2019t rotate you.\r\n\r\nFloating glass menu: a clean, modern frosted-glass settings panel that floats in front of you and turns with you. Point a controller at it and pull the trigger to use it. Settings are saved between sessions.\r\n\r\nBuilt for any VR controller: Quest, Rift / Rift S, Index, Vive and WMR controllers should all work.\r\n\r\nControls\r\n\r\nAction How\r\n\r\nOpen / close menu Hold a joystick click and pull a trigger\r\n\r\nBackup way to open it Hold B + Y for one second\r\n\r\nUse the menu Point at it and pull the trigger\r\n\r\nDefault turning X turns left, A turns right Installation\r\n\r\nInstall BepInEx 5 (x64) for Gorilla Tag (MonkeModManager can do this for you).\r\n\r\nDrop HatredForStickDrift.dll into Gorilla Tag\\BepInEx\\plugins.\r\n\r\nLaunch the game.\r\n\r\nPC VR (Steam) only.\r\n\r\n\r\n\r\n\r\nNotes If the joystick still turns you after a game update, set Turn to NONE on the in-game computer. Button turning keeps working. Please use mods responsibly. Only use mods in modded lobbies or private rooms where everyone is okay with it. Using mods in public lobbies can get you banned.\r\n\r\nThis mod is not affiliated with or endorsed by Another Axiom.",
+   "category": "Gameplay",
+   "source_url": "https://github.com/actualgoldfish/HatredForStickDrift",
+   "logo": "/media/c0b427f21e937682ef4faeccf2875ad1.webp",
+   "screenshots": [],
+   "capabilities": {
+    "internet": false,
+    "auto_update": false,
+    "extensions": false
+   },
+   "current_version": "1.1.0",
+   "created_at": "2026-11-11T16:27:53.369322+00:00",
+   "updated_at": "2026-11-11T16:27:53.369322+00:00",
+   "downloads": 2,
+   "demo": 0,
+   "status": "approved",
+   "visibility": "public",
+   "banner": "/media/6839bce32a5035973b49f4e98ead7d5d.webp",
+   "choice_category": null,
+   "custom_slug": null,
+   "links": [],
+   "author": {
+    "id": "1405182893579305121",
+    "name": "goldfish",
+    "discord_username": "actualgoldfish",
+    "is_admin": false,
+    "is_verified": false,
+    "avatar": null,
+    "profile_url": "/profile/1405182893579305121"
+   },
+   "badges": [],
+   "id": "com.goldfish.hatredforstickdrift",
+   "url": "https://monkeforge.org/view/com.goldfish.hatredforstickdrift",
+   "loaders": [
+    "bepinex5"
+   ]
+  },
+  {
+   "guid": "com.bubbster.whatsthetime",
+   "name": "What's the Time?",
+   "description": "What's the Time is a mod where if you press X on your controller, the time will appear above your hand.",
+   "category": "Utilities",
+   "source_url": null,
+   "logo": null,
+   "screenshots": [
+    "/media/9977e58fcf46fa28d8fe32320042d332.webp"
+   ],
+   "capabilities": {
+    "internet": false,
+    "auto_update": false,
+    "extensions": false
+   },
+   "current_version": "1.0.0",
+   "created_at": "2026-11-08T01:48:23.988190+00:00",
+   "updated_at": "2026-11-08T01:48:23.988190+00:00",
+   "downloads": 7,
+   "demo": 0,
+   "status": "approved",
+   "visibility": "public",
+   "banner": null,
+   "choice_category": null,
+   "custom_slug": null,
+   "links": [],
+   "author": {
+    "id": "1369450249676132474",
+    "name": "BubbsterVR",
+    "discord_username": "bubbster_vr_96866",
+    "is_admin": false,
+    "is_verified": false,
+    "avatar": null,
+    "profile_url": "/profile/1369450249676132474"
+   },
+   "badges": [],
+   "id": "com.bubbster.whatsthetime",
+   "url": "https://monkeforge.org/view/com.bubbster.whatsthetime",
+   "loaders": [
+    "bepinex5"
+   ]
+  },
+  {
+   "guid": "org.legoandmars.gorillatag.utilla",
+   "name": "Utilla",
+   "description": "## Notice\nVersion 1.7.3 is the last version of Utilla we will officially support. From now on, build mods and gamemodes for [GorillaLibrary](https://github.com/GorillaTagModdingHub/GorillaLibrary). If you have a legacy mod that relies on Utilla and cannot be migrated, you may leave Utilla installed as GorillaLibrary will manage translating gamemode logic.\n\nGorillaLibrary is avaliable from the following:\n- MonkeForge (recommended): https://monkeforge.org/view/gorillalibrary\n- GitHub: https://github.com/GorillaTagModdingHub/GorillaLibrary/releases/latest\n\nGorillaLibrary is avaliable from the following:\n\n- MonkeForge (recommended): https://monkeforge.org/view/gorillalibrary\n- GitHub: https://github.com/GorillaTagModdingHub/GorillaLibrary/releases/latest\n\n## Utila\nIt's Utilla!",
+   "category": "Gameplay",
+   "source_url": "https://github.com/sirkingbinx/Utilla",
+   "logo": null,
+   "screenshots": [],
+   "capabilities": {
+    "internet": true,
+    "auto_update": false,
+    "extensions": false
+   },
+   "current_version": "1.7.3",
+   "created_at": "2026-11-04T23:23:12.552340+00:00",
+   "updated_at": "2026-11-04T23:24:16.513712+00:00",
+   "downloads": 369,
+   "demo": 0,
+   "status": "approved",
+   "visibility": "public",
+   "banner": null,
+   "choice_category": null,
+   "custom_slug": "utilla",
+   "links": [],
+   "author": {
+    "id": "group-b496207389fe185f7652c910",
+    "name": "monkemod",
+    "discord_username": "group-b496207389fe185f7652c910",
+    "is_admin": false,
+    "is_verified": true,
+    "avatar": "/media/3f675dee83ebc1df51c4376b9498ebdd.webp",
+    "profile_url": "/profile/monkemod"
+   },
+   "badges": [
+    "Top 10 Downloads"
+   ],
+   "id": "utilla",
+   "url": "https://monkeforge.org/view/utilla",
+   "loaders": [
+    "bepinex5"
+   ]
+  },
+  {
+   "guid": "com.ngbatz.monkecosmetics",
+   "name": "Monke Cosmetics",
+   "description": "## How to add Materials?\r\nPutting The `.MCcosmetic` file in the plugins folder will load all materials that are in the `.MCcosmetic` file.\r\nSupport for old mcmats, Computer++, GorillaCosmetics, and CustomCosmetics materials. (Warning: They may be buggy)",
+   "category": "Cosmetic",
+   "source_url": "https://github.com/NgbatzYT/MonkeCosmetics",
+   "logo": null,
+   "screenshots": [],
+   "capabilities": {
+    "internet": false,
+    "auto_update": false,
+    "extensions": true
+   },
+   "current_version": "2.201",
+   "created_at": "2026-10-07T15:12:14.628112+00:00",
+   "updated_at": "2026-11-04T13:31:18.455196+00:00",
+   "downloads": 109,
+   "demo": 0,
+   "status": "approved",
+   "visibility": "public",
+   "banner": null,
+   "choice_category": "Cosmetic",
+   "custom_slug": "monke-cosmetics",
+   "links": [
+    {
+     "label": "Discord",
+     "url": "https://discord.gg/5E2WaaRx5u"
+    }
+   ],
+   "author": {
+    "id": "493006479687680001",
+    "name": "Ngbatz",
+    "discord_username": "ngbatzyt",
+    "is_admin": true,
+    "is_verified": true,
+    "avatar": "/media/be6f382d2fad30b66926a84037d28cf2.webp",
+    "profile_url": "/profile/ngbatz"
+   },
+   "badges": [
+    "Top 10 Downloads",
+    "Modder\u2019s Choice \u00b7 Cosmetic"
+   ],
+   "id": "monke-cosmetics",
+   "url": "https://monkeforge.org/view/monke-cosmetics",
+   "loaders": [
+    "bepinex5"
+   ]
+  },
+  {
+   "guid": "com.ngbatz.bark",
+   "name": "Bark",
+   "description": "Bark is a mod for the VR game Gorilla Tag. It allows the player to summon a 3D interface into the game that toggles various fun/useful mechanics on and off. Because it is only enabled in modded lobbies, this mod is safe to use online.",
+   "category": "Gameplay",
+   "source_url": "https://github.com/NgbatzYT/Bark",
+   "logo": null,
+   "screenshots": [],
+   "capabilities": {
+    "internet": false,
+    "auto_update": false,
+    "extensions": false
+   },
+   "current_version": "3.0.2",
+   "created_at": "2026-11-04T00:31:10.437095+00:00",
+   "updated_at": "2026-11-04T00:31:10.437095+00:00",
+   "downloads": 58,
+   "demo": 0,
+   "status": "approved",
+   "visibility": "public",
+   "banner": null,
+   "choice_category": "Gameplay",
+   "custom_slug": "bark",
+   "links": [
+    {
+     "label": "Discord",
+     "url": "https://discord.gg/5E2WaaRx5u"
+    }
+   ],
+   "author": {
+    "id": "493006479687680001",
+    "name": "Ngbatz",
+    "discord_username": "ngbatzyt",
+    "is_admin": true,
+    "is_verified": true,
+    "avatar": "/media/be6f382d2fad30b66926a84037d28cf2.webp",
+    "profile_url": "/profile/ngbatz"
+   },
+   "badges": [
+    "Top 10 Downloads",
+    "Modder\u2019s Choice \u00b7 Gameplay"
+   ],
+   "id": "bark",
+   "url": "https://monkeforge.org/view/bark",
+   "loaders": [
+    "bepinex5"
+   ]
+  },
+  {
+   "guid": "dev.sirkingbinx.bingusnametagsplusplus",
+   "name": "BingusNametags++",
+   "description": "BingusNametags++ is a simple, clean, but customizable nametag mod for Gorilla Tag. You can customize it to your needs with a very cool featureset:\n\n- customize your own nametag with **bold** *italicized*, underlined, and colored text\n- customize the font used by pasting a `.ttf` or `.otf` file into the data directory\n- change visibility of certain items (such as platform/special user icons and the nametags themselves)\n- change offset, scale, and visibility of nametags\n- change where the nametag is visible (for example, show in VR but not on the PC monitor)\n\nIt's also open-source, free, and doesn't take up half of your screen.",
+   "category": "Cosmetic",
+   "source_url": "https://github.com/sirkingbinx/BingusNametagsPlusPlus",
+   "logo": "/media/03300f6f5e9574e82822b0dbc90fed8a.webp",
+   "screenshots": [
+    "/media/b5f1e9e189a20643b727bcaa88553d68.webp"
+   ],
+   "capabilities": {
+    "internet": true,
+    "auto_update": true,
+    "extensions": true
+   },
+   "current_version": "1.9.0",
+   "created_at": "2026-10-07T15:15:29.975587+00:00",
+   "updated_at": "2026-11-02T22:20:21.465757+00:00",
+   "downloads": 235610,
+   "demo": 0,
+   "status": "approved",
+   "visibility": "public",
+   "banner": null,
+   "choice_category": "Other",
+   "custom_slug": "bnametags",
+   "links": [
+    {
+     "label": "Discord",
+     "url": "https://discord.gg/Uka3KvdZhM"
+    }
+   ],
+   "author": {
+    "id": "514514780061696001",
+    "name": "sirkingbinx",
+    "discord_username": "sirkingbinx",
+    "is_admin": true,
+    "is_verified": true,
+    "avatar": "/media/0a767c5d55f6ffbf1c21eef77449143d.webp",
+    "profile_url": "/profile/sirkingbinx"
+   },
+   "badges": [
+    "Top 10 Downloads",
+    "Modder\u2019s Choice \u00b7 Other"
+   ],
+   "id": "bnametags",
+   "url": "https://monkeforge.org/view/bnametags",
+   "loaders": [
+    "bepinex5",
+    "bepinex6",
+    "melonloader"
+   ]
+  },
+  {
+   "guid": "com.mudanimates.gorillasounds",
+   "name": "Gorilla Sounds",
+   "description": "A simple sound player for replacing songs and listening to music.\r\nPress F7 to open the gui.\r\nSongs are located in GS Files/Sounds.",
+   "category": "Gameplay",
+   "source_url": "https://github.com/atp892/GorillaSounds",
+   "logo": "/media/f161a3db395ce6a015adba6cee1c243f.webp",
+   "screenshots": [
+    "/media/23c2b8b506d01c29bfda45048508b16b.webp"
+   ],
+   "capabilities": {
+    "internet": false,
+    "auto_update": false,
+    "extensions": false
+   },
+   "current_version": "1.1",
+   "created_at": "2026-11-01T15:11:35.079505+00:00",
+   "updated_at": "2026-11-01T15:11:35.079505+00:00",
+   "downloads": 7,
+   "demo": 0,
+   "status": "approved",
+   "visibility": "public",
+   "banner": null,
+   "choice_category": null,
+   "custom_slug": null,
+   "links": [],
+   "author": {
+    "id": "1523751208102268978",
+    "name": "atp892",
+    "discord_username": "atp892",
+    "is_admin": false,
+    "is_verified": false,
+    "avatar": null,
+    "profile_url": "/profile/1523751208102268978"
+   },
+   "badges": [],
+   "id": "com.mudanimates.gorillasounds",
+   "url": "https://monkeforge.org/view/com.mudanimates.gorillasounds",
+   "loaders": [
+    "bepinex5"
+   ]
+  },
+  {
+   "guid": "com.bluejetdev.triggerturn",
+   "name": "TriggerTurn",
+   "description": "This mod is specifically made for people with stickdrift, make sure you have your sitck turning set to none and you can use your right trigger to turn right and your left trigger to turn left\r\n\r\nbugs that im aware of-\r\nYou cant change your turning speed, should be fixed really soon\r\nyou cant disable the mod in game, also aware of that and should be fixed really soon\r\n\r\nnote-\r\nyou can use this mod with **any** computer mod and the default computer",
+   "category": "Gameplay",
+   "source_url": "https://github.com/bluejet2442/TriggerTurn?tab=readme-ov-file",
+   "logo": "/media/5d79234080b845d8169e3dce1a7a8379.webp",
+   "screenshots": [],
+   "capabilities": {
+    "internet": false,
+    "auto_update": false,
+    "extensions": false
+   },
+   "current_version": "1.0.0",
+   "created_at": "2026-10-31T17:41:24.599420+00:00",
+   "updated_at": "2026-10-31T17:41:24.599420+00:00",
+   "downloads": 20,
+   "demo": 0,
+   "status": "approved",
+   "visibility": "public",
+   "banner": null,
+   "choice_category": null,
+   "custom_slug": null,
+   "links": [],
+   "author": {
+    "id": "938830520211619960",
+    "name": "BlueJet",
+    "discord_username": "bluejetgt",
+    "is_admin": false,
+    "is_verified": false,
+    "avatar": null,
+    "profile_url": "/profile/938830520211619960"
+   },
+   "badges": [],
+   "id": "com.bluejetdev.triggerturn",
+   "url": "https://monkeforge.org/view/com.bluejetdev.triggerturn",
+   "loaders": [
+    "bepinex5"
+   ]
+  },
+  {
+   "guid": "com.monkeframes.monkeframes",
+   "name": "MonkeFrames",
+   "description": "MonkeFrames is a keyframe-based camera animator loosely based on the Orion Drift spectator view that allows you to plan out camera movements with transitions for each property.\r\n\r\nCreate a keyframe by pressing V. It's properties will show up on the MonkeFrames panel in the top right. You can tweak its transitions, position, and rotation, or replace the currently selected keyframe by pressing X.",
+   "category": "Utilities",
+   "source_url": "https://github.com/MonkeFrames/MonkeFrames",
+   "logo": "/media/7666041590c37e25ba299383b0df1846.webp",
+   "screenshots": [
+    "/media/cbcf332b7f36e2e32582ad2026bc1c86.webp",
+    "/media/2375255bc6a8bc0593be2590156950f7.webp",
+    "/media/b080776546e8b01f3e5a782ee31f416f.webp"
+   ],
+   "capabilities": {
+    "internet": true,
+    "auto_update": false,
+    "extensions": true
+   },
+   "current_version": "2.1",
+   "created_at": "2026-10-31T00:31:32.321605+00:00",
+   "updated_at": "2026-10-31T00:31:32.321605+00:00",
+   "downloads": 14,
+   "demo": 0,
+   "status": "approved",
+   "visibility": "public",
+   "banner": null,
+   "choice_category": null,
+   "custom_slug": null,
+   "links": [
+    {
+     "label": "monkeframes.com",
+     "url": "https://monkeframes.com"
+    }
+   ],
+   "author": {
+    "id": "group-66ab51cbc3a6c08d5f8bcaaa",
+    "name": "monkeframes",
+    "discord_username": "group-66ab51cbc3a6c08d5f8bcaaa",
+    "is_admin": false,
+    "is_verified": true,
+    "avatar": "/media/7b11c1d10bd8595fd77eb4a17a7ba1ee.webp",
+    "profile_url": "/profile/monkeframes"
+   },
+   "badges": [],
+   "id": "com.monkeframes.monkeframes",
+   "url": "https://monkeforge.org/view/com.monkeframes.monkeframes",
+   "loaders": [
+    "bepinex5"
+   ]
+  },
+  {
+   "guid": "emily.tfsdemon.discordrpc",
+   "name": "Gorilla Tag Discord RPC",
+   "description": "GorillaTagDiscordRPC is a BepInEx mod for Gorilla Tag that adds a custom Discord Rich Presence for the game. It displays the room code, public/private status, game mode, and player counts in real time, featuring an in-game toggle GUI by pressing the H key.\r\n\r\nNow Shows Map, Queue, Tag or Untagged or other game mode specific state\r\n\r\nAlso Has Quest Support Using Friend Machine (must be only account added) Very Limited Tho ( may not work rn ill change this if it does )",
+   "category": "Gameplay",
+   "source_url": "https://github.com/TFSDemon/Gorilla-Tag-Discord-RPC",
+   "logo": null,
+   "screenshots": [],
+   "capabilities": {
+    "internet": true,
+    "auto_update": false,
+    "extensions": false
+   },
+   "current_version": "3.0",
+   "created_at": "2026-10-17T21:35:42.594674+00:00",
+   "updated_at": "2026-10-27T06:00:09.427017+00:00",
+   "downloads": 47,
+   "demo": 0,
+   "status": "approved",
+   "visibility": "public",
+   "banner": null,
+   "choice_category": null,
+   "custom_slug": null,
+   "links": [],
+   "author": {
+    "id": "461344276547371010",
+    "name": "\u2744\ufe0f \u26c4 5'2 Tsundere\ud83c\udf84\ud83c\udf81",
+    "discord_username": "tfsdemon",
+    "is_admin": false,
+    "is_verified": true,
+    "avatar": null,
+    "profile_url": "/profile/461344276547371010"
+   },
+   "badges": [],
+   "id": "emily.tfsdemon.discordrpc",
+   "url": "https://monkeforge.org/view/emily.tfsdemon.discordrpc",
+   "loaders": [
+    "bepinex5"
+   ]
+  },
+  {
+   "guid": "com.dev.gorillalibrary",
+   "name": "GorillaLibrary",
+   "description": "# GorillaLibrary\r\n\r\nGorillaLibrary is a master library meant to aid mod developers in various factors all around the games codebase.\r\n\r\nSome notable feature include:\r\n- **Custom gamemodes:** GorillaLibrary includes an easy way for mod developers to create custom gamemodes, familiar to those who made them using Utilla, with backwards compatibility with Utilla.\r\n- **Easy networking:** A new channel system that any mod developers can use to easily network specific things inside of their mods.\r\n- **Custom wardrobes:** Easily add things such as custom cosmetics or anything related to the wardrobes inside of the game in mods.\r\n- **Easy game events:** GorillaLibrary provides a whole lot of events to subscribe to within your mods, these range from just the game initalizing to someone's colour changing.\r\n- And a whole lot more including inputs, rig utilities, etc.\r\n\r\nYou can view the documentation here: \r\nhttps://gorillatagmoddinghub.github.io/GorillaLibrary/index.html",
+   "category": "Utilities",
+   "source_url": "https://github.com/GorillaTagModdingHub/GorillaLibrary",
+   "logo": null,
+   "screenshots": [],
+   "capabilities": {
+    "internet": true,
+    "auto_update": false,
+    "extensions": true
+   },
+   "current_version": "1.1.0",
+   "created_at": "2026-10-25T16:41:15.896502+00:00",
+   "updated_at": "2026-10-25T16:41:15.896502+00:00",
+   "downloads": 82,
+   "demo": 0,
+   "status": "approved",
+   "visibility": "public",
+   "banner": null,
+   "choice_category": null,
+   "custom_slug": "gorillalibrary",
+   "links": [
+    {
+     "label": "Discord",
+     "url": "https://discord.gg/jTdcSdGZYY"
+    }
+   ],
+   "author": {
+    "id": "538887142559055882",
+    "name": "Lapis",
+    "discord_username": "lapiscreates",
+    "is_admin": false,
+    "is_verified": true,
+    "avatar": "/media/90e5cdf4e3ddf2afa849f04a34f3259e.webp",
+    "profile_url": "/profile/lapis"
+   },
+   "badges": [
+    "Top 10 Downloads"
+   ],
+   "id": "gorillalibrary",
+   "url": "https://monkeforge.org/view/gorillalibrary",
+   "loaders": [
+    "bepinex5"
+   ]
+  },
+  {
+   "guid": "com.trialsteam.gorillatrials",
+   "name": "GorillaTrials",
+   "description": "Gorilla Tag mod that adds parkour trials with a global leaderboard, achievements, custom map support, replays, and more. Inspired off of Orion Drift's parkour trials and GorillaKZ.",
+   "category": "Gameplay",
+   "source_url": "https://github.com/LapisGit/GorillaTrials/tree/main",
+   "logo": null,
+   "screenshots": [
+    "/media/f457bef5f5f123284a30734218129300.webp"
+   ],
+   "capabilities": {
+    "internet": true,
+    "auto_update": false,
+    "extensions": false
+   },
+   "current_version": "1.6.0",
+   "created_at": "2026-10-18T15:19:11.023556+00:00",
+   "updated_at": "2026-10-18T15:19:11.023556+00:00",
+   "downloads": 12,
+   "demo": 0,
+   "status": "approved",
+   "visibility": "public",
+   "banner": null,
+   "choice_category": null,
+   "custom_slug": "gorillatrials",
+   "links": [
+    {
+     "label": "Discord",
+     "url": "https://discord.gg/Yc8VXZSPQK"
+    }
+   ],
+   "author": {
+    "id": "538887142559055882",
+    "name": "Lapis",
+    "discord_username": "lapiscreates",
+    "is_admin": false,
+    "is_verified": true,
+    "avatar": "/media/90e5cdf4e3ddf2afa849f04a34f3259e.webp",
+    "profile_url": "/profile/lapis"
+   },
+   "badges": [],
+   "id": "gorillatrials",
+   "url": "https://monkeforge.org/view/gorillatrials",
+   "loaders": [
+    "bepinex5"
+   ]
+  },
+  {
+   "guid": "tech.lapiscreates.computerlib",
+   "name": "ComputerLib",
+   "description": "Allows mod developers to create custom GorillaComputer pages for their mods.\n\nmade since i was bored and ill probably make an irc client or something for gorillacomputer soon\n\nnote: custom gorillacomputer replacements probably will not display custom screens with this, although it may work, it has not been tested. this is for the vanilla gorillacomputer.",
+   "category": "Gameplay",
+   "source_url": "https://github.com/LapisGit/ComputerLib",
+   "logo": null,
+   "screenshots": [
+    "/media/ff6f4a60ff4bfcb462391680209d07c0.webp"
+   ],
+   "capabilities": {
+    "internet": false,
+    "auto_update": false,
+    "extensions": true
+   },
+   "current_version": "1.0.0",
+   "created_at": "2026-10-16T19:25:56.802628+00:00",
+   "updated_at": "2026-10-16T19:26:47.486436+00:00",
+   "downloads": 22,
+   "demo": 0,
+   "status": "approved",
+   "visibility": "public",
+   "banner": null,
+   "choice_category": null,
+   "custom_slug": null,
+   "links": [],
+   "author": {
+    "id": "538887142559055882",
+    "name": "Lapis",
+    "discord_username": "lapiscreates",
+    "is_admin": false,
+    "is_verified": true,
+    "avatar": "/media/90e5cdf4e3ddf2afa849f04a34f3259e.webp",
+    "profile_url": "/profile/lapis"
+   },
+   "badges": [],
+   "id": "tech.lapiscreates.computerlib",
+   "url": "https://monkeforge.org/view/tech.lapiscreates.computerlib",
+   "loaders": [
+    "bepinex5"
+   ]
+  },
+  {
+   "guid": "com.smoothe.getblocked",
+   "name": "GetBlocked",
+   "description": "GetBlocked adds a simple Block button directly to the Gorilla Tag leaderboard. Blocking a player hides their gorilla, cosmetics, and nametag from your view while also muting them. Blocked players stay blocked across lobbies until you manually unblock them.",
+   "category": "Gameplay",
+   "source_url": "https://github.com/SmoothesHub/GetBlocked",
+   "logo": "/media/d1409ff25df960952d45eb1c34f3e2d2.webp",
+   "screenshots": [],
+   "capabilities": {
+    "internet": true,
+    "auto_update": false,
+    "extensions": false
+   },
+   "current_version": "1.0.0",
+   "created_at": "2026-10-14T22:49:35.304247+00:00",
+   "updated_at": "2026-10-15T00:34:19.331060+00:00",
+   "downloads": 51,
+   "demo": 0,
+   "status": "approved",
+   "visibility": "public",
+   "banner": null,
+   "choice_category": null,
+   "custom_slug": null,
+   "links": [
+    {
+     "label": "Smoothes Hub",
+     "url": "https://discord.com/invite/AtAzHK2EX8"
+    },
+    {
+     "label": "SmootheOfficial",
+     "url": "https://www.youtube.com/@smootheofficial"
+    }
+   ],
+   "author": {
+    "id": "1509011925541851166",
+    "name": "Spook-E Smooth-E",
+    "discord_username": "smoothegt",
+    "is_admin": false,
+    "is_verified": false,
+    "avatar": null,
+    "profile_url": "/profile/1509011925541851166"
+   },
+   "badges": [
+    "Top 10 Downloads"
+   ],
+   "id": "com.smoothe.getblocked",
+   "url": "https://monkeforge.org/view/com.smoothe.getblocked",
+   "loaders": [
+    "bepinex5"
+   ]
+  },
+  {
+   "guid": "dev.sirkingbinx.os",
+   "name": "BinxOS",
+   "description": "### Public Beta\nThis is a public beta for this mod. There may be bugs and issues, you can ping me on Discord <@sirkingbinx> for bug reports.\n\nUsage tutorial: https://youtu.be/IXQr4Ps9y0M\n\n### BinxOS\nBinxOS is an in-game dashboard and general utility for Gorilla Tag that allows media controls, window docking, reporting, and mod management. If you're tired of having to deal with many different tools to achieve what you want in Gorilla Tag, this is what you're looking for.\n\n- Leaderboard: You can mute/unmute, report players, and view player and lobby information using an always-avaliable window.\n- Windows: Bring your apps from Windows 10/11 into Gorilla Tag with proper overlay management. You can dock a window to your HUD, undock it into the in-game space, and interact with them.",
+   "category": "Utilities",
+   "source_url": null,
+   "logo": "/media/5bc06e5f7a02bb5c419192338ec87fd4.webp",
+   "screenshots": [
+    "/media/f263aade34d5db68467ecc1beb0205e4.webp",
+    "/media/e1e233749ccade524625b57e0028e0ef.webp"
+   ],
+   "capabilities": {
+    "internet": true,
+    "auto_update": false,
+    "extensions": false
+   },
+   "current_version": "0.1.2",
+   "created_at": "2026-10-08T22:04:12.933103+00:00",
+   "updated_at": "2026-10-14T21:25:33.354130+00:00",
+   "downloads": 123,
+   "demo": 0,
+   "status": "approved",
+   "visibility": "public",
+   "banner": null,
+   "choice_category": null,
+   "custom_slug": "binxos",
+   "links": [],
+   "author": {
+    "id": "514514780061696001",
+    "name": "sirkingbinx",
+    "discord_username": "sirkingbinx",
+    "is_admin": true,
+    "is_verified": true,
+    "avatar": "/media/0a767c5d55f6ffbf1c21eef77449143d.webp",
+    "profile_url": "/profile/sirkingbinx"
+   },
+   "badges": [
+    "Top 10 Downloads"
+   ],
+   "id": "binxos",
+   "url": "https://monkeforge.org/view/binxos",
+   "loaders": [
+    "bepinex5"
+   ]
+  },
+  {
+   "guid": "com.lolcaf.handsfree",
+   "name": "Hands Free",
+   "description": "# Hands Free\r\nHands Free is a BepInEx mod for the steam version of gorilla tag. (SteamVR only!) The mod is meant to let your hands be free while in your steam menu.\\\r\n*the mod was originally going to be called Better Steam Menu (why the files have that name)*\r\n## Config\r\nThis mod uses BepInEx built in config system.\\\r\nHead to your Gorilla Tag installation folder,\\\r\n`Gorilla Tag > BepInEx > config > com.lolcaf.handsfree.cfg`\\\r\nThere is only one setting, you can toggle whether or not Hands Free will affect the meta report menu and free your hands while the menu is open.\r\n## Disclaimer\r\nThis product is not affiliated with Another Axiom Inc. or its videogames Gorilla Tag and Orion Drift and is not endorsed or otherwise sponsored by Another Axiom. Portions of the materials contained herein are property of Another Axiom. \u00a92021 Another Axiom Inc.",
+   "category": "Other",
+   "source_url": "https://github.com/lolcaf/HandsFree-GTag",
+   "logo": null,
+   "screenshots": [],
+   "capabilities": {
+    "internet": false,
+    "auto_update": false,
+    "extensions": false
+   },
+   "current_version": "1.0.0",
+   "created_at": "2026-10-14T21:08:52.974063+00:00",
+   "updated_at": "2026-10-14T21:08:52.974063+00:00",
+   "downloads": 34,
+   "demo": 0,
+   "status": "approved",
+   "visibility": "public",
+   "banner": null,
+   "choice_category": null,
+   "custom_slug": null,
+   "links": [
+    {
+     "label": "Github",
+     "url": "https://github.com/lolcaf"
+    }
+   ],
+   "author": {
+    "id": "1339013908773470270",
+    "name": "lolca_f",
+    "discord_username": "lolcaf",
+    "is_admin": false,
+    "is_verified": false,
+    "avatar": "/media/7830038fdbd3876f07af4849425d41bb.webp",
+    "profile_url": "/profile/1339013908773470270"
+   },
+   "badges": [],
+   "id": "com.lolcaf.handsfree",
+   "url": "https://monkeforge.org/view/com.lolcaf.handsfree",
+   "loaders": [
+    "bepinex5"
+   ]
+  },
+  {
+   "guid": "org.monkeforge.launchpad.connector",
+   "name": "Launchpad Connector",
+   "description": "The in-game companion for MonkeForge Launchpad. Provides notifications and computer control from your launchpad.\r\n\r\nTo learn more about Launchpad, visit [https://monkeforge.org/app](https://monkeforge.org/app).",
+   "category": "Utilities",
+   "source_url": "https://github.com/gtmonkeforge/launchpad-connector",
+   "logo": null,
+   "screenshots": [],
+   "capabilities": {
+    "internet": true,
+    "auto_update": false,
+    "extensions": false
+   },
+   "current_version": "1.1.0",
+   "created_at": "2026-10-13T22:22:02.605277+00:00",
+   "updated_at": "2026-10-13T22:22:02.605277+00:00",
+   "downloads": 89,
+   "demo": 0,
+   "status": "approved",
+   "visibility": "public",
+   "banner": null,
+   "choice_category": null,
+   "custom_slug": null,
+   "links": [],
+   "author": {
+    "id": "group-9253530849136d299b04f64e",
+    "name": "monkeforge",
+    "discord_username": "group-9253530849136d299b04f64e",
+    "is_admin": false,
+    "is_verified": true,
+    "avatar": "/media/b01f7a18a1cf50e60d17d9095edf4a58.webp",
+    "profile_url": "/profile/monkeforge"
+   },
+   "badges": [
+    "Top 10 Downloads"
+   ],
+   "id": "org.monkeforge.launchpad.connector",
+   "url": "https://monkeforge.org/view/org.monkeforge.launchpad.connector",
+   "loaders": [
+    "bepinex5"
+   ]
+  },
+  {
+   "guid": "com.toastconcern.oldmodes",
+   "name": "OldModes",
+   "description": "A mode that adds modded and non modded varients of the old gamemodes: Ambush, Ghost Tag, Freeze Tag, and Hunt\r\n\r\nYou are able to host the gamemodes and have standalone players join to play aswell",
+   "category": "Gameplay",
+   "source_url": "https://github.com/Toastconcern/OldModes",
+   "logo": null,
+   "screenshots": [],
+   "capabilities": {
+    "internet": false,
+    "auto_update": false,
+    "extensions": false
+   },
+   "current_version": "1.1.0",
+   "created_at": "2026-10-13T03:26:17.523836+00:00",
+   "updated_at": "2026-10-13T03:26:17.523836+00:00",
+   "downloads": 48,
+   "demo": 0,
+   "status": "approved",
+   "visibility": "public",
+   "banner": null,
+   "choice_category": null,
+   "custom_slug": null,
+   "links": [],
+   "author": {
+    "id": "640601311686950938",
+    "name": "ToastConcern",
+    "discord_username": "toastconcern",
+    "is_admin": false,
+    "is_verified": true,
+    "avatar": null,
+    "profile_url": "/profile/640601311686950938"
+   },
+   "badges": [
+    "Top 10 Downloads"
+   ],
+   "id": "com.toastconcern.oldmodes",
+   "url": "https://monkeforge.org/view/com.toastconcern.oldmodes",
+   "loaders": [
+    "bepinex5"
+   ]
+  },
+  {
+   "guid": "com.olibobs.roomcodedisplay",
+   "name": "RoomCodeDisplay",
+   "description": "A simple BepInEx mod for Gorilla Tag that shows your current room code on your desktop to be mainly used for streaming.",
+   "category": "Gameplay",
+   "source_url": "https://github.com/Olibobs81/RoomCodeDisplay",
+   "logo": null,
+   "screenshots": [],
+   "capabilities": {
+    "internet": false,
+    "auto_update": false,
+    "extensions": false
+   },
+   "current_version": "1.1.0",
+   "created_at": "2026-10-07T17:11:01.524326+00:00",
+   "updated_at": "2026-10-07T17:11:01.524326+00:00",
+   "downloads": 31,
+   "demo": 0,
+   "status": "approved",
+   "visibility": "public",
+   "banner": null,
+   "choice_category": "Accessibility",
+   "custom_slug": "roomcodedisplay",
+   "links": [],
+   "author": {
+    "id": "1083410206584754176",
+    "name": "Olibobs",
+    "discord_username": "olibobsvr",
+    "is_admin": false,
+    "is_verified": true,
+    "avatar": "/media/1f8f1324f68b63a5d53cd44859e0ed03.webp",
+    "profile_url": "/profile/olibobs"
+   },
+   "badges": [
+    "Modder\u2019s Choice \u00b7 Accessibility"
+   ],
+   "id": "roomcodedisplay",
+   "url": "https://monkeforge.org/view/roomcodedisplay",
+   "loaders": [
+    "bepinex5"
+   ]
+  },
+  {
+   "guid": "com.crafterbot.gorillahands",
+   "name": "GorillaHands",
+   "description": "A Gorilla Tag mod inspired by the movement from Lyneca's Mystic Hands. Made by Chin & Crafterbot.",
+   "category": "Gameplay",
+   "source_url": "https://github.com/CrafterBotOfficial/GorillaHands",
+   "logo": "/media/85823276bcb53c39b28d8bfdc35f45f4.webp",
+   "screenshots": [],
+   "capabilities": {
+    "internet": false,
+    "auto_update": false,
+    "extensions": false
+   },
+   "current_version": "1.0.3.1",
+   "created_at": "2026-10-07T15:14:44.707516+00:00",
+   "updated_at": "2026-10-07T15:14:44.707516+00:00",
+   "downloads": 25,
+   "demo": 0,
+   "status": "approved",
+   "visibility": "public",
+   "banner": null,
+   "choice_category": null,
+   "custom_slug": null,
+   "links": [
+    {
+     "label": "Crafterbot",
+     "url": "https://crafterbot.com"
+    }
+   ],
+   "author": {
+    "id": "716771606579511429",
+    "name": "Crafterbot",
+    "discord_username": "crafterbot",
+    "is_admin": true,
+    "is_verified": true,
+    "avatar": null,
+    "profile_url": "/profile/716771606579511429"
+   },
+   "badges": [],
+   "id": "com.crafterbot.gorillahands",
+   "url": "https://monkeforge.org/view/com.crafterbot.gorillahands",
+   "loaders": [
+    "bepinex5"
+   ]
+  }
+ ],
+ "total": 22,
+ "page": 1,
+ "limit": 100
+}

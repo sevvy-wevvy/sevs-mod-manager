@@ -80,6 +80,30 @@ static const char *query_value(const char *s, const char *key, char *out, size_t
     return NULL;
 }
 
+static int serve_monkeforge(const char *url, SmmBuf *out)
+{
+    const char *g = strstr(url, "/api/v1/mods/");
+    if (!g) {
+        char page[16];
+        query_value(url, "page", page, sizeof page);
+        if (page[0] && atoi(page) > 1) return serve_text("{\"items\":[],\"total\":22,\"page\":2,\"limit\":100}", out);
+        return serve_file("monkeforge_mods.json", out);
+    }
+    char guid[160];
+    size_t l = strcspn(g + 13, "?");
+    if (l >= sizeof guid) l = sizeof guid - 1;
+    memcpy(guid, g + 13, l);
+    guid[l] = 0;
+    int zip = strstr(guid, "computerinterface") || strstr(guid, "monkecosmetics") || strstr(guid, "bark");
+    const char *loaders[] = {"bepinex5", "melonloader"};
+    smm_buf_printf(out, "{\"guid\":\"%s\",\"releases\":[{\"version\":\"1.0.0\",\"downloads\":[", guid);
+    for (int i = 0; i < 2; i++)
+        smm_buf_printf(out, "%s{\"id\":\"demo%d\",\"filename\":\"%s.%s\",\"size\":2048,\"sha256\":\"\",\"kind\":\"%s\",\"loader\":\"%s\",\"url\":\"%s/api/v1/downloads/demo-%s-%s\"}",
+                       i ? "," : "", i, guid, zip ? "zip" : "dll", zip ? "zip" : "dll", loaders[i], "https://monkeforge.org", zip ? "zip" : "dll", guid);
+    smm_buf_append(out, "]}]}", 4);
+    return 200;
+}
+
 int smm_demo_http(const char *url, const char *post, SmmBuf *out, int *handled)
 {
     if (!g_demo) {
@@ -89,6 +113,7 @@ int smm_demo_http(const char *url, const char *post, SmmBuf *out, int *handled)
     *handled = 1;
     char act[64], tab[64];
     if (strstr(url, "thunderstore.io/c/") && strstr(url, "/api/v1/package/")) return serve_file("thunderstore_packages.json", out);
+    if (strstr(url, "monkeforge.org/api/v1/mods")) return serve_monkeforge(url, out);
     if (strstr(url, "cyberstorm/community")) return serve_file("communities.json", out);
     if (strstr(url, "raw.githubusercontent.com") && strstr(url, "ver.txt")) return serve_file("ver.txt", out);
     if (strstr(url, "api.github.com") && strstr(url, "/releases/latest")) return serve_text("{\"tag_name\":\"v1.0.0\"}", out);
@@ -169,6 +194,25 @@ int smm_demo_download(const char *url, const char *dest, int *handled)
         } else {
             smm_zipw_add_mem(&w, "MelonLoader/net6/MelonLoader.dll", dll.p, dll.n);
         }
+        smm_buf_free(&dll);
+        return smm_zipw_close(&w);
+    }
+    const char *mf = strstr(url, "monkeforge.org/api/v1/downloads/demo-");
+    if (mf) {
+        int zip = !strncmp(mf + 37, "zip-", 4);
+        const char *guid = mf + 41;
+        if (!zip) {
+            fake_dll(&dll, guid);
+            int rc = smm_file_write(dest, dll.p, dll.n);
+            smm_buf_free(&dll);
+            return rc;
+        }
+        SmmZipWriter w;
+        if (smm_zipw_open(&w, dest) != 0) return -1;
+        char entry[400];
+        fake_dll(&dll, guid);
+        smm_fmt(entry, sizeof entry, "BepInEx/plugins/%s/%s.dll", guid, guid);
+        smm_zipw_add_mem(&w, entry, dll.p, dll.n);
         smm_buf_free(&dll);
         return smm_zipw_close(&w);
     }
@@ -461,7 +505,8 @@ int smm_demo_init(const char *fixtures)
     smm_copy(smm_settings.game_path, sizeof smm_settings.game_path, exe);
     smm_map_set(&smm_settings.known_game_paths, "Gorilla Tag", exe);
     const char *src = smm_os_getenv("SMM_DEMO_SOURCE");
-    if (!src || strcmp(src, "sb") != 0) smm_map_set(&smm_settings.thunderstore_communities, "Gorilla Tag", "gorilla-tag");
+    if (src && strcmp(src, "mf") == 0) smm_strs_add(&smm_settings.monkeforge_games, "Gorilla Tag");
+    else if (!src || strcmp(src, "sb") != 0) smm_map_set(&smm_settings.thunderstore_communities, "Gorilla Tag", "gorilla-tag");
     smm_settings.app_version_seen = SMM_VERSION;
     const char *tut = smm_os_getenv("SMM_DEMO_TUTORIAL");
     smm_settings.has_seen_tutorial = !(tut && *tut && strcmp(tut, "0") != 0);

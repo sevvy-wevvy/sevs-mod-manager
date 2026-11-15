@@ -186,19 +186,15 @@ static void unwrap_known_root(const char *root, char *out, size_t n)
     }
 }
 
-int smm_mod_install_thunderstore(const char *url, const char *folder_name, SmmProgress *p)
+int smm_mod_install_zip_file(const char *zip, const char *folder_name, SmmProgress *p)
 {
     int loader = smm_detect_loader();
     char dir[SMM_PATH];
     if (!smm_mods_install_dir(dir, sizeof dir)) return smm_op_fail(p, "No game path set.");
     smm_os_mkdir_p(dir);
-    char zipname[220], zip[SMM_PATH], staging[SMM_PATH], stage_name[64];
-    smm_fmt(zipname, sizeof zipname, "%s.zip", folder_name);
-    temp_file(zipname, zip, sizeof zip);
+    char staging[SMM_PATH], stage_name[64];
     smm_fmt(stage_name, sizeof stage_name, "smm_pkg_%lld_%d", smm_os_now(), rand() % 100000);
     temp_file(stage_name, staging, sizeof staging);
-    smm_progress(p, 0, "Downloading %s...", folder_name);
-    if (smm_http_download(url, zip, p, folder_name, 0, 90) != 0) return -1;
     smm_progress(p, 95, "Extracting %s...", folder_name);
     SmmZip z;
     if (smm_zip_open_file(&z, zip) != 0) {
@@ -235,6 +231,19 @@ int smm_mod_install_thunderstore(const char *url, const char *folder_name, SmmPr
     if (rc != 0) return smm_op_fail(p, "Couldn't install %s", folder_name);
     smm_progress(p, 100, "%s installed.", folder_name);
     return 0;
+}
+
+int smm_mod_install_thunderstore(const char *url, const char *folder_name, SmmProgress *p)
+{
+    char dir[SMM_PATH];
+    if (!smm_mods_install_dir(dir, sizeof dir)) return smm_op_fail(p, "No game path set.");
+    smm_os_mkdir_p(dir);
+    char zipname[220], zip[SMM_PATH];
+    smm_fmt(zipname, sizeof zipname, "%s.zip", folder_name);
+    temp_file(zipname, zip, sizeof zip);
+    smm_progress(p, 0, "Downloading %s...", folder_name);
+    if (smm_http_download(url, zip, p, folder_name, 0, 90) != 0) return -1;
+    return smm_mod_install_zip_file(zip, folder_name, p);
 }
 
 int smm_mod_install_local(const char *dll_path)
@@ -361,7 +370,7 @@ void smm_mod_key(const SmmMod *m, char *out, size_t n)
 
 int smm_mod_download_url(const SmmMod *m, char *out, size_t n)
 {
-    if (m->source == SMM_SRC_THUNDERSTORE) {
+    if (m->source == SMM_SRC_THUNDERSTORE || m->source == SMM_SRC_MONKEFORGE) {
         smm_copy(out, n, m->download_url);
         return m->download_url[0] != 0;
     }
@@ -384,6 +393,7 @@ int smm_mod_install(const SmmMod *m, SmmProgress *p)
     smm_mod_key(m, key, sizeof key);
     int rc;
     if (m->source == SMM_SRC_THUNDERSTORE) rc = smm_mod_install_thunderstore(url, m->dll_name, p);
+    else if (m->source == SMM_SRC_MONKEFORGE) rc = smm_mf_install(m, p);
     else rc = smm_mod_install_dll(url, key, p);
     if (rc != 0) return rc;
     if (m->version[0]) smm_mod_version_set(key, m->version);
@@ -398,6 +408,7 @@ int smm_mod_files_present(const SmmMod *m)
 int smm_mod_is_installed(const SmmMod *m, const SmmInstalledList *inst)
 {
     (void)inst;
+    if (m->source == SMM_SRC_MONKEFORGE) return smm_mf_is_installed(m);
     char dir[SMM_PATH];
     if (!smm_mods_install_dir(dir, sizeof dir)) return 0;
     char p[SMM_PATH], fn[220];
@@ -418,6 +429,7 @@ int smm_mod_is_installed(const SmmMod *m, const SmmInstalledList *inst)
 
 int smm_mod_is_disabled(const SmmMod *m)
 {
+    if (m->source == SMM_SRC_MONKEFORGE) return smm_mf_is_disabled(m);
     char dir[SMM_PATH];
     if (!smm_mods_install_dir(dir, sizeof dir)) return 0;
     char p[SMM_PATH], fn[240];

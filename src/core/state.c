@@ -94,6 +94,7 @@ void smm_settings_free(SmmSettings *s)
     smm_map_free(&s->thunderstore_communities);
     smm_strs_free(&s->hidden_presets);
     smm_strs_free(&s->manual_only_games);
+    smm_strs_free(&s->monkeforge_games);
     smm_map_free(&s->steam_exe_paths);
     smm_map_free(&s->loader_overrides);
     smm_strs_free(&s->disable_starting_indicator);
@@ -182,6 +183,7 @@ void smm_state_load(void)
     load_map(&s->thunderstore_communities, smm_json_get(j, "ThunderstoreCommunities"));
     load_strs(&s->hidden_presets, smm_json_get(j, "HiddenPresets"));
     load_strs(&s->manual_only_games, smm_json_get(j, "ManualOnlyGames"));
+    load_strs(&s->monkeforge_games, smm_json_get(j, "MonkeForgeGames"));
     load_map(&s->steam_exe_paths, smm_json_get(j, "SteamExePaths"));
     load_map(&s->loader_overrides, smm_json_get(j, "LoaderOverrides"));
     load_strs(&s->disable_starting_indicator, smm_json_get(j, "DisableStartingIndicator"));
@@ -237,6 +239,8 @@ int smm_state_save(void)
     write_strs(&b, "HiddenPresets", &s->hidden_presets);
     smm_buf_append(&b, ",\n", 2);
     write_strs(&b, "ManualOnlyGames", &s->manual_only_games);
+    smm_buf_append(&b, ",\n", 2);
+    write_strs(&b, "MonkeForgeGames", &s->monkeforge_games);
     smm_buf_append(&b, ",\n", 2);
     write_map(&b, "SteamExePaths", &s->steam_exe_paths, 0);
     smm_buf_append(&b, ",\n", 2);

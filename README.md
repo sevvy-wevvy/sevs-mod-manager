@@ -77,6 +77,7 @@ cd sevs-mod-manager
 Browse and download mods from Thunderstore<br>
 Browse, download, and upvote mods from the official SB API<br>
 Search and filter mods (All / Featured / Verified / Unverified tabs)<br>
+Gorilla Tag only: browse and install from <a href="https://monkeforge.org">MonkeForge</a> too, downloads are checked against its SHA-256<br>
 Warns before installing unverified mods<br>
 Auto-installs a mod's dependencies and the right mod loader (BepInEx or MelonLoader)<br>
 Install your own DLLs, or drag and drop them onto the window<br><br>

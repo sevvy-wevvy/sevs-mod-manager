@@ -317,6 +317,116 @@ static void test_install(void)
     smm_mods_free(&all);
 }
 
+static void test_monkeforge(const char *work)
+{
+    char hex[72], f[SMM_PATH];
+    smm_join(f, sizeof f, work, "sha.txt");
+    smm_file_write(f, "abc", 3);
+    CHECK(smm_sha256_file(f, hex) == 0);
+    CHECK_STR(hex, "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad");
+    char cmd[2400], want[80] = "";
+    smm_join(f, sizeof f, g_fix_dir, "../goome.h");
+    CHECK(smm_sha256_file(f, hex) == 0);
+    smm_fmt(cmd, sizeof cmd, "sha256sum '%s' | cut -d' ' -f1", f);
+    FILE *pp = popen(cmd, "r");
+    if (pp) {
+        if (fscanf(pp, "%64s", want) != 1) want[0] = 0;
+        pclose(pp);
+    }
+    CHECK_STR(hex, want);
+
+    CHECK(smm_mf_supported());
+    CHECK(!smm_mf_active());
+    smm_mf_set_active(1);
+    CHECK(smm_mf_active());
+    smm_state_save();
+    smm_state_load();
+    CHECK(smm_mf_active());
+    smm_mf_set_active(0);
+    CHECK(!smm_mf_active());
+    char saved_path[SMM_PATH], saved_name[128];
+    smm_copy(saved_path, sizeof saved_path, smm_settings.game_path);
+    smm_copy(saved_name, sizeof saved_name, smm_settings.game_name);
+    smm_settings.game_path[0] = 0;
+    smm_copy(smm_settings.game_name, sizeof smm_settings.game_name, "Some Other Game");
+    smm_mf_set_active(1);
+    CHECK(!smm_mf_supported() && !smm_mf_active());
+    smm_copy(smm_settings.game_path, sizeof smm_settings.game_path, saved_path);
+    smm_copy(smm_settings.game_name, sizeof smm_settings.game_name, saved_name);
+
+    char fx[SMM_PATH];
+    SmmBuf b = {0};
+    smm_join(fx, sizeof fx, g_fix_dir, "monkeforge_mods.json");
+    CHECK(smm_file_read(fx, &b) == 0);
+    SmmMods bep = {0}, melon = {0};
+    long long total = 0;
+    CHECK(smm_mf_parse_list(b.p, b.n, SMM_LOADER_BEPINEX, &bep, &total) == 22 && total == 22);
+    CHECK(smm_mf_parse_list(b.p, b.n, SMM_LOADER_MELON, &melon, &total) == 2);
+    smm_buf_free(&b);
+    int feat = 0;
+    for (int i = 0; i < bep.n; i++) {
+        feat += bep.v[i].featured;
+        CHECK(bep.v[i].source == SMM_SRC_MONKEFORGE && bep.v[i].verified && bep.v[i].version[0] && strstr(bep.v[i].download_url, "/api/v1/mods/"));
+    }
+    CHECK(feat == 5);
+    CHECK_STR(bep.v[0].dll_name, "com.tonimacaroni.computerinterface");
+    CHECK_STR(bep.v[0].author, "DecalFree");
+    CHECK(strstr(bep.v[0].icon_url, "https://monkeforge.org/media/") == bep.v[0].icon_url);
+    CHECK_STR(bep.v[0].repo_url, "https://monkeforge.org/view/computerinterface");
+    CHECK(smm_mf_parse_list("{\"nope\":1}", 11, 0, &bep, NULL) < 0);
+    smm_mods_free(&bep);
+    smm_mods_free(&melon);
+
+    smm_join(fx, sizeof fx, g_fix_dir, "monkeforge_detail.json");
+    CHECK(smm_file_read(fx, &b) == 0);
+    SmmMfFile file;
+    CHECK(smm_mf_pick_file(b.p, b.n, SMM_LOADER_BEPINEX, &file) == 1);
+    CHECK_STR(file.filename, "ComputerInterface-BepInEx.zip");
+    CHECK_STR(file.kind, "zip");
+    CHECK_STR(file.version, "2.1.5");
+    CHECK_STR(file.sha256, "b0257bd45b9aa8e47eaeba1d76ea442873e0aa1f604bcd177c19a64d879f2897");
+    CHECK(smm_mf_pick_file(b.p, b.n, SMM_LOADER_MELON, &file) == 1);
+    CHECK_STR(file.filename, "ComputerInterface-MelonLoader.zip");
+    CHECK(smm_mf_pick_file("{\"releases\":[]}", 15, 0, &file) == 0);
+    smm_buf_free(&b);
+
+    SmmMods all = {0};
+    CHECK(smm_mf_list(&all) == 22);
+    const SmmMod *zipmod = NULL, *dllmod = NULL;
+    for (int i = 0; i < all.n; i++) {
+        if (!strcmp(all.v[i].dll_name, "com.tonimacaroni.computerinterface")) zipmod = &all.v[i];
+        if (!strcmp(all.v[i].dll_name, "com.kx.shopindex")) dllmod = &all.v[i];
+    }
+    CHECK(zipmod && dllmod);
+    char dir[SMM_PATH], p[SMM_PATH], v[64];
+    smm_mods_install_dir(dir, sizeof dir);
+    CHECK(!smm_mod_is_installed(zipmod, NULL) && !smm_mod_is_installed(dllmod, NULL));
+    CHECK(smm_mod_install(zipmod, NULL) == 0);
+    CHECK(smm_mod_install(dllmod, NULL) == 0);
+    CHECK(smm_mod_is_installed(zipmod, NULL) && smm_mod_is_installed(dllmod, NULL));
+    smm_join3(p, sizeof p, dir, "com.tonimacaroni.computerinterface", "com.tonimacaroni.computerinterface.dll");
+    CHECK(smm_os_is_file(p));
+    smm_join(p, sizeof p, dir, "com.kx.shopindex.dll");
+    CHECK(smm_os_is_file(p));
+    smm_mod_version_get("com.kx.shopindex", v, sizeof v);
+    CHECK_STR(v, "4.0.0");
+    CHECK(smm_mod_disable("com.kx.shopindex") == 0 && smm_mod_is_disabled(dllmod) && !smm_mod_is_installed(dllmod, NULL));
+    CHECK(smm_mod_disable("com.tonimacaroni.computerinterface") == 0 && smm_mod_is_disabled(zipmod));
+    CHECK(smm_mod_enable("com.kx.shopindex") == 0 && smm_mod_enable("com.tonimacaroni.computerinterface") == 0);
+    SmmInstalledList l = {0};
+    smm_installed_scan(&l);
+    int seen = 0;
+    for (int i = 0; i < l.n; i++) seen += !strcmp(l.v[i].name, "com.kx.shopindex") || !strcmp(l.v[i].name, "com.tonimacaroni.computerinterface");
+    CHECK(seen == 2);
+    smm_apply_latest_versions(&l, &all);
+    for (int i = 0; i < l.n; i++)
+        if (!strcmp(l.v[i].name, "com.kx.shopindex")) CHECK_STR(l.v[i].latest_version, "4.0.0");
+    smm_installed_free(&l);
+    CHECK(smm_mod_uninstall("com.kx.shopindex") == 0 && smm_mod_uninstall("com.tonimacaroni.computerinterface") == 0);
+    CHECK(!smm_mod_is_installed(zipmod, NULL) && !smm_mod_is_installed(dllmod, NULL));
+    smm_mods_free(&all);
+}
+
 static void test_install_local(const char *work)
 {
     char f[SMM_PATH], dir[SMM_PATH], d[SMM_PATH];
@@ -726,6 +836,7 @@ int main(int argc, char **argv)
     test_thunderstore();
     test_sb();
     test_install();
+    test_monkeforge(work);
     test_install_local(work);
     test_loadouts();
     test_config();
