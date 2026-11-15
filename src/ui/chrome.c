@@ -115,7 +115,8 @@ static void menu_overlay(void)
         R ir = rect(b.x + 4, b.y + 4 + i * ih, b.w - 8, ih);
         int hov = !menu_disabled[i] && ui_hover(ir);
         if (hov) fill(ir, 6, P.alt), ui_cursor(GOOME_CURSOR_HAND);
-        tx_fit(rect(ir.x + 10, ir.y, ir.w - 20, ir.h), menu_names[i], 13, menu_disabled[i] ? P.sub : P.text, 0, AL_LEFT);
+        draw_game_dot(rect(ir.x + 8, ir.y + 4, 22, 22), menu_names[i], menu_paths[i]);
+        tx_fit(rect(ir.x + 38, ir.y, ir.w - 48, ir.h), menu_names[i], 13, menu_disabled[i] ? P.sub : P.text, 0, AL_LEFT);
         if (hov && ui_click(ir)) {
             quick_switch(menu_paths[i], menu_names[i]);
             menu_open = 0;
@@ -251,7 +252,7 @@ static void draw_title(R r, int rounded)
     R box = rect(r.x + r.w - 200, r.y, 200, r.h);
     R iconbox = cut_right(&box, 32);
     int has = app_has_game();
-    if (has) draw_game_dot(rect(iconbox.x + 6, r.y + (r.h - 20) / 2, 20, 20), smm_settings.game_name);
+    if (has) draw_game_dot(rect(iconbox.x + 6, r.y + (r.h - 20) / 2, 20, 20), smm_settings.game_name, smm_settings.game_path);
     char label[160];
     snprintf(label, sizeof(label), "%s", has ? smm_settings.game_name : "No game selected");
     R lr = rect(box.x, box.y, box.w - 8, box.h);
@@ -337,7 +338,7 @@ static void draw_sidebar(Frame f)
     draw_play(play_rect());
     R g = side_game_rect();
     int has = app_has_game();
-    if (has) draw_game_dot(rect(12, g.y + 8, 32, 32), smm_settings.game_name);
+    if (has) draw_game_dot(rect(12, g.y + 8, 32, 32), smm_settings.game_name, smm_settings.game_path);
     tx_fit(rect(52, g.y, SIDE_W - 60, g.h), has ? smm_settings.game_name : "No game selected", 11.3, P.text, 0, AL_LEFT);
     if (ui_hover(g)) ui_cursor(GOOME_CURSOR_HAND);
     if (ui_click(g)) {

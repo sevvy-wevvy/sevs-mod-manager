@@ -714,6 +714,310 @@ static void test_steam(void)
     CHECK(smm_current_preset()->steam_app_id == 1533390);
 }
 
+typedef struct {
+    int type, id;
+    unsigned char *data;
+    size_t n;
+} PeRes;
+
+static void put16(unsigned char *p, unsigned v)
+{
+    p[0] = v & 255;
+    p[1] = v >> 8 & 255;
+}
+
+static void put32(unsigned char *p, unsigned v)
+{
+    put16(p, v & 0xFFFF);
+    put16(p + 2, v >> 16);
+}
+
+static void build_pe(int pe64, const PeRes *res, int nres, SmmBuf *out)
+{
+    unsigned opt = pe64 ? 240 : 224;
+    unsigned hdr = 0x40 + 24 + opt + 40;
+    unsigned raw_off = (hdr + 0x1FF) & ~0x1FFu;
+    int types[8], ntypes = 0;
+    for (int i = 0; i < nres; i++) {
+        int seen = 0;
+        for (int t = 0; t < ntypes; t++) seen |= types[t] == res[i].type;
+        if (!seen) types[ntypes++] = res[i].type;
+    }
+    for (int a = 0; a < ntypes; a++)
+        for (int b = a + 1; b < ntypes; b++)
+            if (types[b] < types[a]) {
+                int t = types[a];
+                types[a] = types[b];
+                types[b] = t;
+            }
+    size_t cap = 4096;
+    for (int i = 0; i < nres; i++) cap += res[i].n + 128;
+    unsigned char *rs = calloc(1, cap);
+    unsigned pos = 16 + ntypes * 8;
+    put16(rs + 14, ntypes);
+    unsigned data_pos = 0;
+    unsigned type_dir[8];
+    for (int t = 0; t < ntypes; t++) {
+        put32(rs + 16 + t * 8, types[t]);
+        put32(rs + 16 + t * 8 + 4, 0x80000000u | pos);
+        type_dir[t] = pos;
+        int cnt = 0;
+        for (int i = 0; i < nres; i++) cnt += res[i].type == types[t];
+        put16(rs + pos + 14, cnt);
+        pos += 16 + cnt * 8;
+    }
+    unsigned entries_at = pos;
+    unsigned lang_dirs = entries_at, leafs = entries_at + nres * 24, blobs = leafs + nres * 16;
+    data_pos = blobs;
+    int k = 0;
+    for (int t = 0; t < ntypes; t++) {
+        int slot = 0;
+        for (int i = 0; i < nres; i++) {
+            if (res[i].type != types[t]) continue;
+            unsigned e = type_dir[t] + 16 + slot * 8;
+            unsigned ld = lang_dirs + k * 24, leaf = leafs + k * 16;
+            put32(rs + e, res[i].id);
+            put32(rs + e + 4, 0x80000000u | ld);
+            put16(rs + ld + 14, 1);
+            put32(rs + ld + 16, 0x409);
+            put32(rs + ld + 20, leaf);
+            put32(rs + leaf, 0x1000 + data_pos);
+            put32(rs + leaf + 4, (unsigned)res[i].n);
+            memcpy(rs + data_pos, res[i].data, res[i].n);
+            data_pos += (unsigned)res[i].n;
+            data_pos = (data_pos + 3) & ~3u;
+            slot++;
+            k++;
+        }
+    }
+    unsigned rawsize = (data_pos + 0x1FF) & ~0x1FFu;
+    size_t total = raw_off + rawsize;
+    unsigned char *f = calloc(1, total);
+    f[0] = 'M';
+    f[1] = 'Z';
+    put32(f + 60, 0x40);
+    unsigned char *nt = f + 0x40;
+    memcpy(nt, "PE\0\0", 4);
+    put16(nt + 4, pe64 ? 0x8664 : 0x14c);
+    put16(nt + 6, 1);
+    put16(nt + 20, opt);
+    put16(nt + 24, pe64 ? 0x20b : 0x10b);
+    unsigned dd = 24 + (pe64 ? 112 : 96);
+    put32(nt + 24 + (pe64 ? 108 : 92), 16);
+    put32(nt + dd + 16, 0x1000);
+    put32(nt + dd + 20, data_pos);
+    unsigned char *sec = nt + 24 + opt;
+    memcpy(sec, ".rsrc", 5);
+    put32(sec + 8, data_pos);
+    put32(sec + 12, 0x1000);
+    put32(sec + 16, rawsize);
+    put32(sec + 20, raw_off);
+    memcpy(f + raw_off, rs, data_pos);
+    free(rs);
+    smm_buf_append(out, f, total);
+    free(f);
+}
+
+static unsigned char *make_dib(int w, int h, int bits, int alpha, size_t *n)
+{
+    unsigned ncol = bits <= 8 ? 1u << bits : 0;
+    size_t stride = (((size_t)w * bits + 31) / 32) * 4, mstride = (((size_t)w + 31) / 32) * 4;
+    *n = 40 + ncol * 4 + stride * h + mstride * h;
+    unsigned char *d = calloc(1, *n);
+    put32(d, 40);
+    put32(d + 4, w);
+    put32(d + 8, h * 2);
+    put16(d + 12, 1);
+    put16(d + 14, bits);
+    unsigned char *pal = d + 40, *px = pal + ncol * 4, *mask = px + stride * h;
+    for (unsigned i = 0; i < ncol; i++) {
+        pal[i * 4] = (unsigned char)(i * 7);
+        pal[i * 4 + 1] = (unsigned char)(255 - i * 3);
+        pal[i * 4 + 2] = (unsigned char)(i * 5 + 1);
+    }
+    for (int y = 0; y < h; y++)
+        for (int x = 0; x < w; x++) {
+            unsigned char *row = px + (size_t)y * stride;
+            if (bits == 32) {
+                row[x * 4] = 10;
+                row[x * 4 + 1] = 20;
+                row[x * 4 + 2] = 200;
+                row[x * 4 + 3] = alpha ? 128 : 0;
+            } else if (bits == 24) {
+                row[x * 3] = 10;
+                row[x * 3 + 1] = 20;
+                row[x * 3 + 2] = 200;
+            } else if (bits == 8) row[x] = (unsigned char)((x + y) & 3);
+            else if (bits == 4) row[x / 2] |= (unsigned char)(((x + y) & 3) << (x % 2 ? 0 : 4));
+            else if ((x + y) & 1) row[x / 8] |= (unsigned char)(0x80 >> (x % 8));
+            if (x == 0) mask[(size_t)y * mstride] |= 0x80;
+        }
+    return d;
+}
+
+static unsigned char *make_png(int w, int h, size_t *n)
+{
+    size_t rawn = (size_t)(w * 4 + 1) * h;
+    unsigned char *raw = calloc(1, rawn);
+    for (int y = 0; y < h; y++)
+        for (int x = 0; x < w; x++) {
+            unsigned char *p = raw + (size_t)y * (w * 4 + 1) + 1 + x * 4;
+            p[0] = 255;
+            p[1] = 0;
+            p[2] = 0;
+            p[3] = 255;
+        }
+    size_t z = 2 + 5 + rawn + 4;
+    *n = 8 + 25 + 12 + z + 12;
+    unsigned char *d = calloc(1, *n);
+    static const unsigned char sig[8] = {0x89, 'P', 'N', 'G', 13, 10, 26, 10};
+    memcpy(d, sig, 8);
+    unsigned char *c = d + 8;
+    c[3] = 13;
+    memcpy(c + 4, "IHDR", 4);
+    c[10] = (unsigned char)(w >> 8);
+    c[11] = (unsigned char)w;
+    c[14] = (unsigned char)(h >> 8);
+    c[15] = (unsigned char)h;
+    c[16] = 8;
+    c[17] = 6;
+    c += 25;
+    c[0] = (unsigned char)(z >> 24);
+    c[1] = (unsigned char)(z >> 16);
+    c[2] = (unsigned char)(z >> 8);
+    c[3] = (unsigned char)z;
+    memcpy(c + 4, "IDAT", 4);
+    c[8] = 0x78;
+    c[9] = 1;
+    c[10] = 1;
+    put16(c + 11, (unsigned)rawn);
+    put16(c + 13, (unsigned)~rawn);
+    memcpy(c + 15, raw, rawn);
+    c += 12 + z;
+    memcpy(c + 4, "IEND", 4);
+    free(raw);
+    return d;
+}
+
+static unsigned char *make_group(const int *sizes, const int *bits, const int *ids, int n, size_t *len)
+{
+    *len = 6 + n * 14;
+    unsigned char *g = calloc(1, *len);
+    put16(g + 2, 1);
+    put16(g + 4, n);
+    for (int i = 0; i < n; i++) {
+        unsigned char *e = g + 6 + i * 14;
+        e[0] = sizes[i] >= 256 ? 0 : (unsigned char)sizes[i];
+        e[1] = e[0];
+        put16(e + 4, 1);
+        put16(e + 6, bits[i]);
+        put16(e + 12, ids[i]);
+    }
+    return g;
+}
+
+static int pe_icon_mem(const SmmBuf *pe, const char *path, int want, unsigned **argb, int *w, int *h)
+{
+    CHECK(smm_file_write(path, pe->p, pe->n) == 0);
+    return smm_pe_icon(path, want, argb, w, h);
+}
+
+static void test_peicon(const char *work)
+{
+    char path[SMM_PATH];
+    smm_join(path, sizeof path, work, "fake.exe");
+    int sizes[3] = {16, 32, 48}, ids[3] = {1, 2, 3};
+    int variants[][2] = {{32, 1}, {32, 0}, {24, 0}, {8, 0}, {4, 0}, {1, 0}};
+    for (int pe64 = 0; pe64 < 2; pe64++)
+        for (unsigned v = 0; v < sizeof variants / sizeof variants[0]; v++) {
+            int bits = variants[v][0], alpha = variants[v][1];
+            size_t n1, n2, n3, gn;
+            unsigned char *d1 = make_dib(16, 16, bits, alpha, &n1), *d2 = make_dib(32, 32, bits, alpha, &n2), *d3 = make_dib(48, 48, bits, alpha, &n3);
+            int gb[3] = {bits, bits, bits};
+            unsigned char *g = make_group(sizes, gb, ids, 3, &gn);
+            PeRes res[4] = {{3, 1, d1, n1}, {3, 2, d2, n2}, {3, 3, d3, n3}, {14, 1, g, gn}};
+            SmmBuf pe = {0};
+            build_pe(pe64, res, 4, &pe);
+            unsigned *px = NULL;
+            int w = 0, h = 0;
+            CHECK(pe_icon_mem(&pe, path, 32, &px, &w, &h) == 1);
+            CHECK(w == 32 && h == 32);
+            if (px && w == 32) {
+                if (bits == 32 && alpha) CHECK(px[5 * 32 + 5] == 0x80640A05u && px[0] == 0x80640A05u);
+                if (bits == 32 && !alpha) CHECK(px[5 * 32 + 5] == 0xFFC8140Au);
+                if (bits == 24) CHECK(px[5 * 32 + 5] == 0xFFC8140Au);
+                if (bits != 32 || !alpha) CHECK(px[0] == 0 && (px[1] >> 24) == 255);
+            }
+            free(px);
+            px = NULL;
+            CHECK(pe_icon_mem(&pe, path, 100, &px, &w, &h) == 1 && w == 48);
+            free(px);
+            px = NULL;
+            CHECK(pe_icon_mem(&pe, path, 1, &px, &w, &h) == 1 && w == 16);
+            free(px);
+            smm_buf_free(&pe);
+            free(d1);
+            free(d2);
+            free(d3);
+            free(g);
+        }
+    size_t pn, dn, gn;
+    unsigned char *png = make_png(64, 64, &pn), *dib = make_dib(16, 16, 32, 1, &dn);
+    int ps[2] = {16, 64}, pb[2] = {32, 32}, pi[2] = {1, 2};
+    unsigned char *g = make_group(ps, pb, pi, 2, &gn);
+    PeRes res[3] = {{3, 1, dib, dn}, {3, 2, png, pn}, {14, 7, g, gn}};
+    SmmBuf pe = {0};
+    build_pe(1, res, 3, &pe);
+    unsigned *px = NULL;
+    int w = 0, h = 0;
+    CHECK(pe_icon_mem(&pe, path, 64, &px, &w, &h) == 1 && w == 64 && h == 64);
+    CHECK(px && px[10 * 64 + 10] == 0xFFFF0000u);
+    free(px);
+    px = NULL;
+    CHECK(pe_icon_mem(&pe, path, 16, &px, &w, &h) == 1 && w == 16);
+    free(px);
+    px = NULL;
+    smm_buf_free(&pe);
+    PeRes nogroup[1] = {{3, 1, dib, dn}};
+    build_pe(0, nogroup, 1, &pe);
+    CHECK(pe_icon_mem(&pe, path, 32, &px, &w, &h) == 0);
+    smm_buf_free(&pe);
+    CHECK(smm_pe_icon(path, 32, NULL, &w, &h) == 0);
+    CHECK(smm_pe_icon("/nonexistent/none.exe", 32, &px, &w, &h) == 0);
+    SmmBuf junk = {0};
+    smm_buf_append(&junk, "MZ not a real exe", 17);
+    CHECK(pe_icon_mem(&junk, path, 32, &px, &w, &h) == 0);
+    smm_buf_free(&junk);
+    build_pe(1, res, 3, &pe);
+    unsigned seed = 12345;
+    for (int round = 0; round < 3000; round++) {
+        SmmBuf m = {0};
+        smm_buf_append(&m, pe.p, pe.n);
+        seed = seed * 1103515245u + 12345u;
+        int kind = round % 3;
+        if (kind == 0) m.n = (seed >> 8) % pe.n;
+        else
+            for (int f = 0; f < 1 + (int)(seed >> 28); f++) {
+                seed = seed * 1103515245u + 12345u;
+                size_t at = (seed >> 8) % (pe.n < 2048 ? pe.n : 2048);
+                if (kind == 2) at = (seed >> 8) % pe.n;
+                m.p[at] = (char)(seed >> 3);
+            }
+        unsigned *fz = NULL;
+        int fw, fh;
+        if (pe_icon_mem(&m, path, 48, &fz, &fw, &fh) == 1) {
+            CHECK(fw > 0 && fh > 0 && fw <= 1024 && fh <= 1024);
+            free(fz);
+        }
+        smm_buf_free(&m);
+    }
+    smm_buf_free(&pe);
+    free(png);
+    free(dib);
+    free(g);
+    remove(path);
+}
+
 static void test_theme(void)
 {
     SmmTheme t;
@@ -844,6 +1148,7 @@ int main(int argc, char **argv)
     test_logs(work);
     test_steam();
     test_theme();
+    test_peicon(work);
     test_game();
     test_packs(work);
     test_queue();

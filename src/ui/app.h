@@ -115,7 +115,8 @@ int icon_cache_draw(const char *url, R r, double radius);
 
 void theme_refresh(void);
 void play_state(int *starting, int *running);
-void draw_game_dot(R r, const char *name);
+void draw_game_dot(R r, const char *name, const char *exe);
+void draw_letter_dot(R r, const char *name);
 
 int shot_run(const char *dir);
 

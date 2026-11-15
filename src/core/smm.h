@@ -412,6 +412,7 @@ int smm_mf_is_disabled(const SmmMod *m);
 int smm_steam_list_installed(SmmSteamGames *out);
 int smm_steam_find_game_path(int appid, const char *exe_name, char *out, size_t n);
 int smm_steam_exe_candidates(int appid, SmmStrs *out);
+int smm_pe_icon(const char *exe_path, int want_size, unsigned **argb, int *w, int *h);
 int smm_steam_root(char *out, size_t n);
 int smm_steam_compat_prefix(int appid, char *out, size_t n);
 

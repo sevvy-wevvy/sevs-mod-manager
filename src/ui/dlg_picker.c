@@ -188,7 +188,7 @@ void dlg_game_picker_open(void)
     picker_first = !app_has_game();
 }
 
-static void tile(R r, const char *name, int mode_icons)
+static void tile(R r, const char *name, const char *exe, int mode_icons)
 {
     int hov = ui_hover(r);
     if (hov) ui_cursor(GOOME_CURSOR_HAND);
@@ -196,7 +196,7 @@ static void tile(R r, const char *name, int mode_icons)
     uint32_t u = accent_for(name);
     (void)mode_icons;
     fill(r, 14, col_lerp(hov ? hb : base, u, 0.35));
-    draw_game_dot(rect(r.x + (r.w - 46) / 2, r.y + 14, 46, 46), name);
+    draw_game_dot(rect(r.x + (r.w - 46) / 2, r.y + 14, 46, 46), name, exe);
     tx_fit(rect(r.x + 4, r.y + r.h - 28, r.w - 8, 22), name, 11.3, P.text, 0, AL_CENTER);
 }
 
@@ -255,7 +255,7 @@ void draw_picker(Dlg *d)
         double gw = cols * (tile_w + gx), x0 = view.x + (view.w - gw) / 2 + gx / 2;
         for (int i = 0; i < n; i++) {
             R tr = rect(x0 + (i % cols) * (tile_w + gx), y + (i / cols) * (tile_h + 8), tile_w, tile_h);
-            tile(tr, items[i].name, 1);
+            tile(tr, items[i].name, items[i].custom_path, 1);
             if (ui_click(tr)) {
                 if (items[i].p) pick_preset(items[i].p);
                 else commit_custom_exe(items[i].custom_path);
@@ -272,7 +272,7 @@ void draw_picker(Dlg *d)
             R tr = rect(br.x + 16, br.y, br.w - 70, br.h);
             if (mode == SMM_PICKER_BOTH) {
                 tx_fit(tr, items[i].name, 13.3, P.accent_text, 0, AL_LEFT);
-                draw_game_dot(rect(br.x + br.w - 40, br.y + 10, 26, 26), items[i].name);
+                draw_game_dot(rect(br.x + br.w - 40, br.y + 10, 26, 26), items[i].name, items[i].custom_path);
             } else tx_fit(rect(br.x + 16, br.y, br.w - 32, br.h), items[i].name, 13.3, P.accent_text, 0, AL_CENTER);
             if (ui_click(br)) {
                 if (items[i].p) pick_preset(items[i].p);
@@ -408,7 +408,7 @@ void draw_steam(Dlg *d)
         fill(pic, 6, P.surface);
         char url[200];
         snprintf(url, sizeof(url), "https://cdn.akamai.steamstatic.com/steam/apps/%d/library_600x900.jpg", steam.v[i].appid);
-        if (!icon_cache_draw(url, pic, 6)) draw_game_dot(rect(pic.x + (pic.w - 54) / 2, pic.y + 50, 54, 54), steam.v[i].name);
+        if (!icon_cache_draw(url, pic, 6)) draw_letter_dot(rect(pic.x + (pic.w - 54) / 2, pic.y + 50, 54, 54), steam.v[i].name);
         tx_fit(rect(card.x + 4, card.y + 168, cw - 8, 18), steam.v[i].name, 11.3, P.text, 0, AL_CENTER);
         if (ui_click(card)) {
             steam_pick_app = steam.v[i].appid;
