@@ -17,7 +17,7 @@ Add your own mods to the SB/SMM library at <a href=https://sevvy-wevvy.com/mods/
   <a href="https://sevvy-wevvy.com/discord">
     <img src="https://img.shields.io/discord/1398944180079689728?label=Discord&style=for-the-badge" alt="Discord">
   </a>
-  <a href="https://github.com/goome-ui"><img src="https://img.shields.io/badge/made%20with-goome-6fdc5f?style=for-the-badge&labelColor=1b1d22" alt="made with goome"></a>
+  <a href="https://github.com/goome-ui"><img src="https://img.shields.io/badge/made%20with-goome-6fdc5f?style=for-the-badge" alt="made with goome"></a>
 </p>
 
 <details open>
