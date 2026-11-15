@@ -152,6 +152,7 @@ typedef struct {
     SmmStrs disable_starting_indicator;
     int has_seen_tutorial;
     int disable_discord_rpc;
+    char registered_exe[SMM_PATH];
 } SmmSettings;
 
 typedef struct {

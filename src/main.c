@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "ui/app.h"
+#include "ui/integrate.h"
 
 void chrome_draw(void);
 int shot_run(const char *dir);
@@ -137,6 +138,10 @@ int main(int argc, char **argv)
     const char *pack = NULL;
     int skip = 0;
     for (int i = 1; i < argc; i++) {
+        int rc = integrate_cli(argv[i]);
+        if (rc >= 0) return rc;
+    }
+    for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "--skip-picker") == 0) skip = 1;
         else if (!pack) pack = argv[i];
     }
@@ -146,5 +151,6 @@ int main(int argc, char **argv)
     if (demo && *demo && strcmp(demo, "0") != 0 && smm_demo_init(getenv("SMM_FIXTURES") ? getenv("SMM_FIXTURES") : "fixtures") < 0) fprintf(stderr, "demo mode failed: %s\n", smm_error());
     const char *shot = getenv("SMM_SHOT");
     if (shot && *shot) return shot_run(shot);
+    integrate_auto();
     return run_window(pack, skip);
 }

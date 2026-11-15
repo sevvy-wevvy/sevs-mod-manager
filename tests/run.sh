@@ -10,4 +10,7 @@ rm -f "$work/test_core"
 cc -std=c99 -g -Wall -Wextra -o "$work/test_webp" "$here"/test_webp.c "$root"/src/ui/webp.c || exit 1
 "$work/test_webp" "$root/fixtures" || rc=1
 rm -f "$work/test_webp"
+cc -std=c99 -g -Wall -Wextra -pthread -o "$work/test_integrate" "$here"/test_integrate.c "$root"/src/ui/integrate_text.c "$root"/src/core/*.c || exit 1
+"$work/test_integrate" || rc=1
+rm -f "$work/test_integrate"
 exit $rc

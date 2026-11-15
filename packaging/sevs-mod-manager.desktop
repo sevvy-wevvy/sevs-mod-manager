@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Sevs Mod Manager
+Comment=Mod manager for Unity games
+Exec=smm %f
+Icon=sevs-mod-manager
+StartupWMClass=sevs-mod-manager
+MimeType=application/x-smmpack;
+Categories=Game;Utility;
+Terminal=false
