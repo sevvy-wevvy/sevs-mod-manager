@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+static const char *g_fix_dir;
 static int g_checks, g_fails;
 
 #define CHECK(c) do { g_checks++; if (!(c)) { g_fails++; printf("FAIL %s:%d  %s\n", __FILE__, __LINE__, #c); } } while (0)
@@ -84,7 +85,7 @@ static void test_zip(const char *work)
     smm_fmt(cmd, sizeof cmd, "unzip -tq '%s' >/dev/null", zpath);
     CHECK(system(cmd) == 0);
     smm_join(big, sizeof big, work, "ext.zip");
-    smm_fmt(cmd, sizeof cmd, "cd '%s' && rm -rf zsrc ext.zip && mkdir -p zsrc/d1/d2 && cp ../c-smm/src/core/zip.c zsrc/d1/ && cp ../c-smm/goome.h zsrc/d1/d2/g.h && echo hello > zsrc/h.txt && zip -qr ext.zip zsrc", work);
+    smm_fmt(cmd, sizeof cmd, "cd '%s' && rm -rf zsrc ext.zip && mkdir -p zsrc/d1/d2 && cp %s/../src/core/zip.c zsrc/d1/ && cp %s/../goome.h zsrc/d1/d2/g.h && echo hello > zsrc/h.txt && zip -qr ext.zip zsrc", work, g_fix_dir, g_fix_dir);
     CHECK(system(cmd) == 0);
     CHECK(smm_zip_open_file(&z, big) == 0);
     char ex[SMM_PATH];
@@ -95,7 +96,7 @@ static void test_zip(const char *work)
     char a[SMM_PATH], b[SMM_PATH];
     smm_join(a, sizeof a, ex, "zsrc/d1/d2/g.h");
     CHECK(smm_os_size(a) > 100000);
-    smm_fmt(cmd, sizeof cmd, "cmp '%s/zsrc/d1/d2/g.h' '%s/../c-smm/goome.h' && cmp '%s/zsrc/d1/zip.c' '%s/../c-smm/src/core/zip.c'", ex, work, ex, work);
+    smm_fmt(cmd, sizeof cmd, "cmp '%s/zsrc/d1/d2/g.h' '%s/../goome.h' && cmp '%s/zsrc/d1/zip.c' '%s/../src/core/zip.c'", ex, g_fix_dir, ex, g_fix_dir);
     CHECK(system(cmd) == 0);
     (void)b;
     smm_buf_free(&text);
@@ -702,6 +703,7 @@ static void test_game(void)
     CHECK_STR(smm_loader_dll_override(SMM_LOADER_MELON), "version=n,b");
 }
 
+
 int main(int argc, char **argv)
 {
     setvbuf(stdout, NULL, _IONBF, 0);
@@ -713,6 +715,7 @@ int main(int argc, char **argv)
     test_util();
     test_json();
     test_zip(work);
+    g_fix_dir = argc > 2 ? argv[2] : "fixtures";
     if (smm_demo_init(argc > 2 ? argv[2] : "fixtures") != 0) {
         printf("demo init failed: %s\n", smm_error());
         return 2;
