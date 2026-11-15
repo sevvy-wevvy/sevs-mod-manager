@@ -207,8 +207,22 @@ void theme_refresh(void)
     P.accent_text = smm_rgb_pack(t.accent_text) | 0xFF000000u;
 }
 
+static int draw_steam_art(R r, const char *name)
+{
+    const SmmPreset *p = name ? smm_preset_find(name) : NULL;
+    if (!p || p->steam_app_id <= 0) return 0;
+    char url[200];
+    snprintf(url, sizeof(url), "https://cdn.akamai.steamstatic.com/steam/apps/%d/library_600x900.jpg", p->steam_app_id);
+    const goome_bitmap *bm = NULL;
+    if (!icon_cache_get(url, &bm)) return 0;
+    int side = bm->w < bm->h ? bm->w : bm->h;
+    goome_draw_bitmap_part(K.c, bm, (bm->w - side) / 2, (bm->h - side) / 5, side, side, r.x, r.y, r.w, r.h, 0xFFFFFFFF);
+    return 1;
+}
+
 void draw_game_dot(R r, const char *name)
 {
+    if (draw_steam_art(r, name)) return;
     unsigned h = 7;
     for (const char *s = name; s && *s; s++) h = h * 31 + (unsigned char)*s;
     static const uint32_t pal[] = {0xFF7C3AED, 0xFF2563EB, 0xFF059669, 0xFFD97706, 0xFFDC2626, 0xFFDB2777, 0xFF0891B2};
