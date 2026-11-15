@@ -904,10 +904,16 @@ void panel_mods(R r)
     R ex = rect(top.x + (top.w - ew) / 2, top.y + 8, ew, 28);
     if (w_button(ex, "Install External Mod", BTN_SOLID, 1)) install_external();
 
-    R lp = cut_left(&r, 380);
+    int right_list = smm_settings.layout == SMM_LAYOUT_R2MODMAN;
+    R lp = right_list ? cut_right(&r, 380) : cut_left(&r, 380);
     fill(lp, 0, P.alt);
-    vline(lp.x + lp.w - 1, lp.y, lp.y + lp.h, col_rgb(55, 55, 55));
-    draw_list(rect(lp.x, lp.y, lp.w - 1, lp.h));
+    if (right_list) {
+        vline(lp.x, lp.y, lp.y + lp.h, col_rgb(55, 55, 55));
+        draw_list(rect(lp.x + 1, lp.y, lp.w - 1, lp.h));
+    } else {
+        vline(lp.x + lp.w - 1, lp.y, lp.y + lp.h, col_rgb(55, 55, 55));
+        draw_list(rect(lp.x, lp.y, lp.w - 1, lp.h));
+    }
     draw_detail(r);
     draw_ctx_menu();
 }

@@ -66,6 +66,10 @@ static int radio(const char *s, int *v, int value)
 static int button(double *x, const char *s, int enabled, int icon)
 {
     double w = tx_w(s, 13, 0) + 24 + (icon ? 16 : 0);
+    if (*x > X + 14 && *x + w > X + W - 8) {
+        *x = X + 14;
+        Y += 40;
+    }
     R r = rect(*x, Y, w, 32);
     int hit = w_button(r, "", BTN_SOLID, enabled);
     uint32_t fg = enabled ? P.text : col_alpha(P.text, 110);
@@ -89,6 +93,16 @@ static int link(double x, const char *s)
 static void apply_theme_live(void)
 {
     theme_refresh();
+}
+
+void settings_set_layout(int layout)
+{
+    style_sel = layout;
+    smm_settings.layout = layout;
+    smm_settings.theme = layout == SMM_LAYOUT_MONKE ? SMM_THEME_WHITE : layout == SMM_LAYOUT_R2MODMAN ? SMM_THEME_R2MODMAN : SMM_THEME_BLACK;
+    theme_sel = smm_settings.theme;
+    smm_state_save();
+    apply_theme_live();
 }
 
 static void change_game(void)
@@ -177,35 +191,20 @@ static void check_dialogs(void)
     }
 }
 
-void panel_settings(R r)
+static void sec_style(void)
 {
-    check_dialogs();
-    R st = cut_bottom(&r, 22);
-    tx_in(rect(st.x + 8, st.y, st.w - 8, st.h), status, 12, P.sub, 0, AL_LEFT);
-    fill(r, 0, P.alt);
-    double content = 1600;
-    W = r.w;
-    static double last_h = 1500;
-    content = last_h;
-    sc_begin(&scroll, r, content);
-    X = r.x + 18;
-    Y = r.y - scroll.off + 4;
-    double y0 = Y;
-
     head("Style");
     int ns = style_sel;
     radio("Sev's Mod Manager (default)", &ns, SMM_LAYOUT_SMM);
     radio("r2modman", &ns, SMM_LAYOUT_R2MODMAN);
     radio("MonkeModManager", &ns, SMM_LAYOUT_MONKE);
-    if (ns != style_sel) {
-        style_sel = ns;
-        smm_settings.layout = ns;
-        smm_settings.theme = ns == SMM_LAYOUT_MONKE ? SMM_THEME_WHITE : ns == SMM_LAYOUT_R2MODMAN ? SMM_THEME_R2MODMAN : SMM_THEME_BLACK;
-        theme_sel = smm_settings.theme;
-        smm_state_save();
-        apply_theme_live();
-    }
+    if (ns != style_sel) settings_set_layout(ns);
 
+    
+}
+
+static void sec_game(void)
+{
     head("Game");
     char gp[SMM_PATH + 16];
     if (app_has_game()) snprintf(gp, sizeof(gp), "Game: %s", smm_settings.game_path);
@@ -244,6 +243,11 @@ void panel_settings(R r)
     }
     Y += 30;
 
+    
+}
+
+static void sec_manage(void)
+{
     head("Manage Games");
     for (int i = 0; i < smm_preset_count(); i++) {
         const SmmPreset *p = smm_preset_at(i);
@@ -268,7 +272,7 @@ void panel_settings(R r)
     int rm = -1;
     for (int i = 0; i < smm_settings.custom_games.n; i++) {
         tx_fit(rect(X + 28, Y, 320, 28), smm_settings.custom_games.k[i], 13, P.text, 0, AL_LEFT);
-        double rx = X + 360;
+        double rx = X + (W > 460 ? 360 : W - 100);
         if (button(&rx, "Remove", 1, 0)) rm = i;
         Y += 36;
     }
@@ -289,6 +293,12 @@ void panel_settings(R r)
     }
     Y += 46;
 
+    
+}
+
+static void sec_source(void)
+{
+    double bx = X + 14;
     head("Mod Source");
     int nts = use_ts;
     if (w_check(X + 14, Y, "Use Thunderstore for this game", &nts)) {
@@ -315,10 +325,14 @@ void panel_settings(R r)
     if (comm) snprintf(cl, sizeof(cl), "Community: %s", comm);
     else snprintf(cl, sizeof(cl), "Uses Sev's Mod Manager's own mod list.");
     label(cl, P.sub);
-    bx = X + 14;
     if (comm && button(&bx, "Change Community...", 1, 0)) dlg_community_open();
     Y += 40;
 
+    
+}
+
+static void sec_theme(void)
+{
     head("Theme");
     int nt = theme_sel;
     radio("Black (default)", &nt, SMM_THEME_BLACK);
@@ -355,6 +369,12 @@ void panel_settings(R r)
         Y += 44;
     }
 
+    
+}
+
+static void sec_about(void)
+{
+    double bx = X + 14;
     head("About");
     tx(X + 14, Y, "Sev's Mod Manager by ", 13, P.text, 0);
     double bw = tx_w("Sev's Mod Manager by ", 13, 0);
@@ -363,10 +383,14 @@ void panel_settings(R r)
     Y += 28;
     if (link(X + 14, "Please donate if you like this project!")) smm_open_url("https://sevvy-wevvy.com/donate");
     Y += 34;
-    bx = X + 14;
     if (button(&bx, "Switch Game...", 1, 0)) dlg_game_picker_open();
     Y += 40;
 
+    
+}
+
+static void sec_updates(void)
+{
     head("Updates");
     int au = smm_settings.auto_check_updates;
     if (check("Check for Sev's Mod Manager updates on startup", &au)) {
@@ -379,8 +403,13 @@ void panel_settings(R r)
         smm_state_save();
     }
 
+    
+}
+
+static void sec_tutorial(void)
+{
+    double bx = X + 14;
     head("Tutorial");
-    bx = X + 14;
     if (button(&bx, "Redo Tutorial", 1, 0)) {
         smm_settings.has_seen_tutorial = 0;
         smm_state_save();
@@ -388,6 +417,11 @@ void panel_settings(R r)
     }
     Y += 40;
 
+    
+}
+
+static void sec_activity(void)
+{
     head("Activity");
     char tg[80];
     snprintf(tg, sizeof(tg), "Recent operations");
@@ -421,7 +455,60 @@ void panel_settings(R r)
             Y += 24;
         }
     }
-    Y += 20;
-    last_h = Y - y0 + 10;
+}
+
+typedef void (*Section)(void);
+
+static void mascot(R r)
+{
+    double cx = r.x + r.w / 2, cy = r.y + 90;
+    uint32_t c = P.accent;
+    goome_draw_circle(K.c, cx - 30, cy - 36, 2.5, c);
+    goome_draw_circle(K.c, cx + 34, cy - 30, 2.5, c);
+    goome_draw_line(K.c, cx - 22, cy - 18, cx + 22, cy - 22, 5, c);
+    goome_draw_line(K.c, cx - 22, cy - 18, cx - 14, cy + 4, 5, c);
+    goome_draw_line(K.c, cx - 14, cy + 4, cx + 20, cy + 6, 5, c);
+    goome_draw_line(K.c, cx - 34, cy + 22, cx - 24, cy + 32, 4, c);
+    goome_draw_line(K.c, cx - 24, cy + 32, cx + 24, cy + 32, 4, c);
+    goome_draw_line(K.c, cx + 24, cy + 32, cx + 34, cy + 22, 4, c);
+    tx_in(rect(cx - 60, cy + 52, 120, 40), "smm", 34, c, 1, AL_CENTER);
+}
+
+static double column(const Section *list, int n, double x, double w, double y)
+{
+    X = x;
+    W = w;
+    Y = y;
+    for (int i = 0; i < n; i++) list[i]();
+    return Y;
+}
+
+void panel_settings(R r)
+{
+    check_dialogs();
+    R st = cut_bottom(&r, 22);
+    tx_in(rect(st.x + 8, st.y, st.w - 8, st.h), status, 12, P.sub, 0, AL_LEFT);
+    fill(r, 0, P.alt);
+    static double last_h = 1500;
+    sc_begin(&scroll, r, last_h);
+    double top = r.y - scroll.off + 4;
+    double end;
+    int lay = smm_settings.layout;
+    if (lay == SMM_LAYOUT_MONKE) {
+        static const Section left[] = {sec_tutorial, sec_style, sec_game, sec_manage, sec_source};
+        static const Section right[] = {sec_activity, sec_about, sec_theme, sec_updates};
+        double cw = 320;
+        double a = column(left, 5, r.x + 12, cw - 12, top);
+        double b = column(right, 4, r.x + r.w - cw, cw - 12, top);
+        end = a > b ? a : b;
+        mascot(rect(r.x + cw, r.y, r.w - 2 * cw, r.h));
+    } else if (lay == SMM_LAYOUT_R2MODMAN) {
+        static const Section all[] = {sec_about, sec_game, sec_style, sec_theme, sec_manage, sec_source, sec_updates, sec_tutorial, sec_activity};
+        end = column(all, 9, r.x + 24, r.w - 24, top);
+    } else {
+        static const Section all[] = {sec_style, sec_game, sec_manage, sec_source, sec_theme, sec_about, sec_updates, sec_tutorial, sec_activity};
+        end = column(all, 9, r.x + 18, r.w - 18, top);
+    }
+    last_h = end - top + 30;
     sc_end(&scroll, r, last_h);
 }

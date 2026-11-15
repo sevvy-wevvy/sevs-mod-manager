@@ -381,6 +381,7 @@ int tx_wrap_lines(const char *s, double size, int bold, double w)
 void fill(R r, double rad, uint32_t c)
 {
     if (r.w <= 0 || r.h <= 0) return;
+    if (K.square) rad = 0;
     if (rad <= 0) goome_draw_rect(K.c, r.x, r.y, r.w, r.h, c);
     else goome_draw_round_rect(K.c, r.x, r.y, r.w, r.h, rad, c);
 }
@@ -388,16 +389,19 @@ void fill(R r, double rad, uint32_t c)
 void fill_rd(R r, goome_radii rd, uint32_t c)
 {
     if (r.w <= 0 || r.h <= 0) return;
+    if (K.square) rd = goome_radius(0);
     goome_draw_rrect(K.c, r.x, r.y, r.w, r.h, rd, c);
 }
 
 void stroke(R r, double rad, double w, uint32_t c)
 {
+    if (K.square) rad = 0;
     goome_draw_rrect_line(K.c, r.x, r.y, r.w, r.h, goome_radius(rad), w, c);
 }
 
 void stroke_rd(R r, goome_radii rd, double w, uint32_t c)
 {
+    if (K.square) rd = goome_radius(0);
     goome_draw_rrect_line(K.c, r.x, r.y, r.w, r.h, rd, w, c);
 }
 
