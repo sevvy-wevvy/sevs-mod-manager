@@ -189,6 +189,7 @@ void smm_state_load(void)
     load_strs(&s->disable_starting_indicator, smm_json_get(j, "DisableStartingIndicator"));
     s->has_seen_tutorial = smm_json_bool(j, "HasSeenTutorial", 0);
     s->disable_discord_rpc = smm_json_bool(j, "DisableDiscordRpc", 0);
+    smm_copy(s->registered_exe, sizeof s->registered_exe, smm_json_str(j, "RegisteredExe", ""));
     smm_json_free(j);
 }
 
@@ -247,8 +248,10 @@ int smm_state_save(void)
     write_map(&b, "LoaderOverrides", &s->loader_overrides, 1);
     smm_buf_append(&b, ",\n", 2);
     write_strs(&b, "DisableStartingIndicator", &s->disable_starting_indicator);
-    smm_buf_printf(&b, ",\n  \"HasSeenTutorial\": %s,\n  \"DisableDiscordRpc\": %s\n}",
+    smm_buf_printf(&b, ",\n  \"HasSeenTutorial\": %s,\n  \"DisableDiscordRpc\": %s,\n  \"RegisteredExe\": ",
                    s->has_seen_tutorial ? "true" : "false", s->disable_discord_rpc ? "true" : "false");
+    smm_json_escape(&b, s->registered_exe);
+    smm_buf_append(&b, "\n}", 2);
     char path[SMM_PATH], dir[SMM_PATH];
     smm_state_path(path, sizeof path);
     smm_dirname(path, dir, sizeof dir);

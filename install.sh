@@ -17,13 +17,6 @@ curl -fsSL "https://github.com/$repo/releases/download/$tag/smm-$name" -o "$bin/
 chmod +x "$bin/smm.part"
 mv "$bin/smm.part" "$bin/smm"
 [ "$(uname -s)" = Darwin ] && xattr -d com.apple.quarantine "$bin/smm" 2>/dev/null || true
-if [ "$(uname -s)" = Linux ]; then
-  apps="${XDG_DATA_HOME:-$HOME/.local/share}/applications"
-  mkdir -p "$apps"
-  icons="${XDG_DATA_HOME:-$HOME/.local/share}/icons/hicolor/256x256/apps"
-  mkdir -p "$icons"
-  curl -fsSL "https://raw.githubusercontent.com/$repo/dev/assets/icon.png" -o "$icons/sevs-mod-manager.png" || true
-  printf '[Desktop Entry]\nType=Application\nName=Sevs Mod Manager\nExec=%s/smm\nIcon=sevs-mod-manager\nStartupWMClass=sevs-mod-manager\nCategories=Game;Utility;\nTerminal=false\n' "$bin" > "$apps/sevs-mod-manager.desktop"
-fi
+"$bin/smm" --register || echo "could not register the launcher entry, run smm --register later" >&2
 echo "installed to $bin/smm"
 case ":$PATH:" in *":$bin:"*) ;; *) echo "add $bin to your PATH to run it as: smm" ;; esac
