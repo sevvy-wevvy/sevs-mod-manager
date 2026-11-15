@@ -77,7 +77,7 @@ cd sevs-mod-manager
 Browse and download mods from Thunderstore<br>
 Browse, download, and upvote mods from the official SB API<br>
 Search and filter mods (All / Featured / Verified / Unverified tabs)<br>
-Gorilla Tag only: browse and install from <a href="https://monkeforge.org">MonkeForge</a> too, downloads are checked against its SHA-256<br>
+Gorilla Tag: browse and install from <a href="https://monkeforge.org">MonkeForge</a> too, every download is checked against its SHA-256<br>
 Warns before installing unverified mods<br>
 Auto-installs a mod's dependencies and the right mod loader (BepInEx or MelonLoader)<br>
 Install your own DLLs, or drag and drop them onto the window<br><br>
@@ -95,11 +95,12 @@ Live game log, your last 10 sessions, search and filters<br>
 "Possible culprit" banner when a mod crashes the game<br><br>
 
 <b>Games</b><br>
-Finds your Steam games on every OS, Proton included<br>
-Five themes, including a white one and an r2modman style<br>
+Finds your Steam games on every OS, Proton included, and quick-switches between them<br>
+Real game art for the games you manage<br>
+Three layouts (Sev's Mod Manager, r2modman and MonkeModManager style) and five themes, all switch live without a restart<br>
 
 </details>
 
 <p align="center">
-The old C# version lives on the <code>main</code> branch. Discord rich presence was dropped in the rewrite.
+This is a full rewrite of the old C# app in C. Discord rich presence was dropped, and the old C# code is still in the git history before the rewrite.
 </p>
