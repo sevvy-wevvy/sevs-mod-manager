@@ -703,7 +703,6 @@ static void test_game(void)
     CHECK_STR(smm_loader_dll_override(SMM_LOADER_MELON), "version=n,b");
 }
 
-
 int main(int argc, char **argv)
 {
     setvbuf(stdout, NULL, _IONBF, 0);
@@ -712,10 +711,10 @@ int main(int argc, char **argv)
     smm_join(demo, sizeof demo, work, "demo");
     smm_os_setenv("SMM_DEMO_DIR", demo);
     smm_os_mkdir_p(work);
+    g_fix_dir = argc > 2 ? argv[2] : "fixtures";
     test_util();
     test_json();
     test_zip(work);
-    g_fix_dir = argc > 2 ? argv[2] : "fixtures";
     if (smm_demo_init(argc > 2 ? argv[2] : "fixtures") != 0) {
         printf("demo init failed: %s\n", smm_error());
         return 2;
