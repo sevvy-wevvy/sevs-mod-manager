@@ -28,11 +28,17 @@ int integ_write(const char *path, const void *data, size_t n)
     return smm_file_write_atomic(path, data, n);
 }
 
-void integ_run_quiet(const char *a, const char *b, const char *c, const char *d, const char *e)
+int integ_run_code(const char *a, const char *b, const char *c, const char *d, const char *e)
 {
     const char *argv[6] = {a, b, c, d, e, NULL};
-    int code;
-    smm_os_run(argv, NULL, &code);
+    int code = -1;
+    if (smm_os_run(argv, NULL, &code) != 0) return -1;
+    return code;
+}
+
+void integ_run_quiet(const char *a, const char *b, const char *c, const char *d, const char *e)
+{
+    integ_run_code(a, b, c, d, e);
 }
 
 int integrate_exe_path(char *out, size_t n)
