@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 #include "app.h"
 #include "webp.h"
 
@@ -183,6 +184,7 @@ int icon_cache_get(const char *url, const goome_bitmap **out)
     IconEntry *e = &icons[n_icons++];
     memset(e, 0, sizeof(*e));
     snprintf(e->url, sizeof(e->url), "%s", url);
+    __sync_synchronize();
     e->state = 1;
     __sync_fetch_and_add(&icon_busy, 1);
     if (smm_thread_start(icon_fetch, e) < 0) icon_fetch(e);
@@ -278,9 +280,178 @@ static int draw_steam_art(R r, const char *name)
     return 1;
 }
 
-void draw_game_dot(R r, const char *name)
+typedef struct {
+    char name[128];
+    char exe[SMM_PATH];
+    int state;
+    goome_bitmap bm;
+    Job job;
+} ExeIcon;
+
+#define EXE_ICON_MAX 64
+static ExeIcon exe_icons[EXE_ICON_MAX];
+static int n_exe_icons;
+static int exe_icon_active;
+
+static int is_file(const char *p)
 {
-    if (draw_steam_art(r, name)) return;
+    FILE *f = fopen(p, "rb");
+    if (!f) return 0;
+    fclose(f);
+    return 1;
+}
+
+static int resolve_game_exe(const char *name, char *out, size_t n)
+{
+    if (smm_settings.game_name[0] && strcasecmp(name, smm_settings.game_name) == 0 && is_file(smm_settings.game_path)) {
+        snprintf(out, n, "%s", smm_settings.game_path);
+        return 1;
+    }
+    const char *custom = smm_map_get(&smm_settings.custom_games, name);
+    if (custom && is_file(custom)) {
+        snprintf(out, n, "%s", custom);
+        return 1;
+    }
+    const SmmPreset *p = smm_preset_find(name);
+    if (!p) return 0;
+    for (int k = 0; k < p->n_paths; k++)
+        if (is_file(p->default_paths[k])) {
+            snprintf(out, n, "%s", p->default_paths[k]);
+            return 1;
+        }
+    const char *known = smm_map_get(&smm_settings.known_game_paths, p->name);
+    if (known && is_file(known)) {
+        snprintf(out, n, "%s", known);
+        return 1;
+    }
+    if (p->steam_app_id > 0 && p->n_paths > 0) {
+        const char *base = strrchr(p->default_paths[0], '\\');
+        if (!base) base = strrchr(p->default_paths[0], '/');
+        base = base ? base + 1 : p->default_paths[0];
+        if (smm_steam_find_game_path(p->steam_app_id, base, out, n) > 0) return 1;
+    }
+    return 0;
+}
+
+static uint32_t *scale_icon(const unsigned *src, int sw, int sh, int side)
+{
+    uint32_t *px = malloc(sizeof(uint32_t) * side * side);
+    if (!px) return NULL;
+    for (int y = 0; y < side; y++)
+        for (int x = 0; x < side; x++) {
+            double fx = (x + 0.5) * sw / side, fy = (y + 0.5) * sh / side;
+            double sx = (double)sw / side, sy = (double)sh / side;
+            double c[4] = {0, 0, 0, 0}, total = 0;
+            double x0 = sx > 1 ? fx - sx / 2 : fx - 0.5, x1 = sx > 1 ? fx + sx / 2 : fx + 0.5;
+            double y0 = sy > 1 ? fy - sy / 2 : fy - 0.5, y1 = sy > 1 ? fy + sy / 2 : fy + 0.5;
+            if (sx <= 1) {
+                int ix = (int)floor(x0);
+                double tx = x0 - ix;
+                int iy = (int)floor(y0);
+                double ty = y0 - iy;
+                for (int j = 0; j < 2; j++)
+                    for (int i = 0; i < 2; i++) {
+                        int px_ = ix + i, py_ = iy + j;
+                        if (px_ < 0) px_ = 0;
+                        if (py_ < 0) py_ = 0;
+                        if (px_ >= sw) px_ = sw - 1;
+                        if (py_ >= sh) py_ = sh - 1;
+                        double wgt = (i ? tx : 1 - tx) * (j ? ty : 1 - ty);
+                        uint32_t v = src[py_ * sw + px_];
+                        c[0] += wgt * (v >> 24);
+                        c[1] += wgt * ((v >> 16) & 255);
+                        c[2] += wgt * ((v >> 8) & 255);
+                        c[3] += wgt * (v & 255);
+                        total += wgt;
+                    }
+            } else {
+                for (int yy = (int)floor(y0); yy < (int)ceil(y1); yy++)
+                    for (int xx = (int)floor(x0); xx < (int)ceil(x1); xx++) {
+                        if (xx < 0 || yy < 0 || xx >= sw || yy >= sh) continue;
+                        double ox = fmin(xx + 1, x1) - fmax(xx, x0), oy = fmin(yy + 1, y1) - fmax(yy, y0);
+                        if (ox <= 0 || oy <= 0) continue;
+                        double wgt = ox * oy;
+                        uint32_t v = src[yy * sw + xx];
+                        c[0] += wgt * (v >> 24);
+                        c[1] += wgt * ((v >> 16) & 255);
+                        c[2] += wgt * ((v >> 8) & 255);
+                        c[3] += wgt * (v & 255);
+                        total += wgt;
+                    }
+            }
+            if (total <= 0) {
+                px[y * side + x] = 0;
+                continue;
+            }
+            uint32_t o[4];
+            for (int k = 0; k < 4; k++) {
+                double v = c[k] / total + 0.5;
+                o[k] = v > 255 ? 255 : (uint32_t)v;
+            }
+            if (o[1] > o[0]) o[1] = o[0];
+            if (o[2] > o[0]) o[2] = o[0];
+            if (o[3] > o[0]) o[3] = o[0];
+            px[y * side + x] = o[0] << 24 | o[1] << 16 | o[2] << 8 | o[3];
+        }
+    return px;
+}
+
+static void exe_icon_worker(void *arg)
+{
+    ExeIcon *e = arg;
+    char path[SMM_PATH];
+    const char *use = e->exe[0] && is_file(e->exe) ? e->exe : NULL;
+    if (use) snprintf(path, sizeof(path), "%s", use);
+    else if (!resolve_game_exe(e->name, path, sizeof(path))) return;
+    unsigned *argb = NULL;
+    int w = 0, h = 0;
+    if (!smm_pe_icon(path, ART_SIDE, &argb, &w, &h)) return;
+    uint32_t *px = scale_icon(argb, w, h, ART_SIDE);
+    free(argb);
+    if (!px) return;
+    e->bm.px = px;
+    e->bm.w = e->bm.h = e->bm.stride = ART_SIDE;
+    e->bm.owned = 1;
+    __sync_synchronize();
+    e->state = 1;
+}
+
+static const goome_bitmap *exe_icon(const char *name, const char *exe)
+{
+    if (!name || !name[0]) return NULL;
+    for (int i = 0; i < n_exe_icons; i++)
+        if (exe_icons[i].state == 0 && exe_icons[i].job.state == 2) {
+            job_finished(&exe_icons[i].job);
+            exe_icon_active--;
+            if (exe_icons[i].state == 0) exe_icons[i].state = -2;
+        }
+    const char *want = exe ? exe : "";
+    ExeIcon *e = NULL;
+    for (int i = 0; i < n_exe_icons; i++)
+        if (strcmp(exe_icons[i].name, name) == 0 && strcmp(exe_icons[i].exe, want) == 0) {
+            e = &exe_icons[i];
+            break;
+        }
+    if (!e) {
+        if (n_exe_icons >= EXE_ICON_MAX) return NULL;
+        e = &exe_icons[n_exe_icons++];
+        memset(e, 0, sizeof(*e));
+        snprintf(e->name, sizeof(e->name), "%s", name);
+        snprintf(e->exe, sizeof(e->exe), "%s", want);
+        e->state = -1;
+    }
+    if (e->state == -1) {
+        if (exe_icon_active >= 4) return NULL;
+        e->state = 0;
+        exe_icon_active++;
+        job_start(&e->job, exe_icon_worker, e);
+        return NULL;
+    }
+    return e->state == 1 ? &e->bm : NULL;
+}
+
+void draw_letter_dot(R r, const char *name)
+{
     unsigned h = 7;
     for (const char *s = name; s && *s; s++) h = h * 31 + (unsigned char)*s;
     static const uint32_t pal[] = {0xFF7C3AED, 0xFF2563EB, 0xFF059669, 0xFFD97706, 0xFFDC2626, 0xFFDB2777, 0xFF0891B2};
@@ -289,4 +460,16 @@ void draw_game_dot(R r, const char *name)
     char ch[2] = {name && name[0] ? name[0] : '?', 0};
     if (ch[0] >= 'a' && ch[0] <= 'z') ch[0] -= 32;
     tx_in(r, ch, r.h * 0.55, 0xFFFFFFFF, 1, AL_CENTER);
+}
+
+void draw_game_dot(R r, const char *name, const char *exe)
+{
+    const goome_bitmap *bm = exe_icon(name, exe);
+    if (bm) {
+        goome_draw_bitmap(K.c, bm, r.x, r.y, r.w, r.h, goome_radius(r.w * 0.24), 0xFFFFFFFF);
+        return;
+    }
+    if (draw_steam_art(r, name)) return;
+    if (name && strcasecmp(name, smm_settings.game_name) == 0 && app_icon_draw(r, r.w * 0.24)) return;
+    draw_letter_dot(r, name);
 }
