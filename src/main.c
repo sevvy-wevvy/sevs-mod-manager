@@ -39,7 +39,7 @@ void app_drop(const char *path)
 void app_startup(const char *pack_path, int skip_picker)
 {
     int demo = smm_demo_enabled();
-    if (!demo && !skip_picker) smm_settings.game_path[0] = 0;
+    if (!demo && !skip_picker && !pack_path) smm_settings.game_path[0] = 0;
     if (!demo && app_has_game()) {
         FILE *f = fopen(smm_settings.game_path, "rb");
         if (f) fclose(f);
