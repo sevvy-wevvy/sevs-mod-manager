@@ -178,5 +178,18 @@ int smm_config_parse_bepinex(const char *path, SmmConfigFile *file);
 int smm_demo_running_flag(int set, int val);
 void smm_url_escape(const char *s, char *out, size_t n);
 void smm_dir_for_loader(int kind, char *out, size_t n);
+int smm_mod_install_zip_file(const char *zip, const char *folder_name, SmmProgress *p);
+int smm_sha256_file(const char *path, char *hex_out);
+
+typedef struct {
+    char url[512];
+    char filename[160];
+    char sha256[72];
+    char kind[8];
+    char version[48];
+} SmmMfFile;
+
+int smm_mf_parse_list(const char *text, size_t n, int loader, SmmMods *out, long long *total);
+int smm_mf_pick_file(const char *text, size_t n, int loader, SmmMfFile *out);
 
 #endif

@@ -31,7 +31,7 @@ typedef struct {
 
 typedef struct SmmProgress SmmProgress;
 
-enum { SMM_SRC_API = 0, SMM_SRC_THUNDERSTORE = 1 };
+enum { SMM_SRC_API = 0, SMM_SRC_THUNDERSTORE = 1, SMM_SRC_MONKEFORGE = 2 };
 enum { SMM_LOADER_BEPINEX = 0, SMM_LOADER_MELON = 1 };
 enum { SMM_THEME_BLACK = 0, SMM_THEME_WHITE = 1, SMM_THEME_CUSTOM = 2, SMM_THEME_SYNCED_SB = 3, SMM_THEME_R2MODMAN = 4 };
 enum { SMM_LAYOUT_SMM = 0, SMM_LAYOUT_R2MODMAN = 1, SMM_LAYOUT_MONKE = 2 };
@@ -146,6 +146,7 @@ typedef struct {
     SmmMap thunderstore_communities;
     SmmStrs hidden_presets;
     SmmStrs manual_only_games;
+    SmmStrs monkeforge_games;
     SmmMap steam_exe_paths;
     SmmMap loader_overrides;
     SmmStrs disable_starting_indicator;
@@ -399,6 +400,14 @@ int smm_ts_list_packages(const char *community, SmmMods *out);
 int smm_ts_list_communities(SmmCommunities *out);
 int smm_ts_guess_community(const char *game_name, char *out, size_t n);
 int smm_update_latest_version(void);
+
+int smm_mf_supported(void);
+int smm_mf_active(void);
+void smm_mf_set_active(int on);
+int smm_mf_list(SmmMods *out);
+int smm_mf_install(const SmmMod *m, SmmProgress *p);
+int smm_mf_is_installed(const SmmMod *m);
+int smm_mf_is_disabled(const SmmMod *m);
 
 int smm_steam_list_installed(SmmSteamGames *out);
 int smm_steam_find_game_path(int appid, const char *exe_name, char *out, size_t n);
