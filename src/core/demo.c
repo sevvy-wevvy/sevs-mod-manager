@@ -111,7 +111,7 @@ int smm_demo_http(const char *url, const char *post, SmmBuf *out, int *handled)
         return -1;
     }
     const char *real = smm_os_getenv("SMM_DEMO_REAL");
-    if (real && *real && strstr(url, "steamstatic.com")) {
+    if (real && *real && (strstr(url, "steamstatic.com") || strstr(url, "monkeforge.org/media"))) {
         *handled = 0;
         return -1;
     }
