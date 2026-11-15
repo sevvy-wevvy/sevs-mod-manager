@@ -461,17 +461,7 @@ typedef void (*Section)(void);
 
 static void mascot(R r)
 {
-    double cx = r.x + r.w / 2, cy = r.y + 90;
-    uint32_t c = P.accent;
-    goome_draw_circle(K.c, cx - 30, cy - 36, 2.5, c);
-    goome_draw_circle(K.c, cx + 34, cy - 30, 2.5, c);
-    goome_draw_line(K.c, cx - 22, cy - 18, cx + 22, cy - 22, 5, c);
-    goome_draw_line(K.c, cx - 22, cy - 18, cx - 14, cy + 4, 5, c);
-    goome_draw_line(K.c, cx - 14, cy + 4, cx + 20, cy + 6, 5, c);
-    goome_draw_line(K.c, cx - 34, cy + 22, cx - 24, cy + 32, 4, c);
-    goome_draw_line(K.c, cx - 24, cy + 32, cx + 24, cy + 32, 4, c);
-    goome_draw_line(K.c, cx + 24, cy + 32, cx + 34, cy + 22, 4, c);
-    tx_in(rect(cx - 60, cy + 52, 120, 40), "smm", 34, c, 1, AL_CENTER);
+    app_icon_draw(rect(r.x + (r.w - 160) / 2, r.y + (r.h - 160) / 2, 160, 160), 0);
 }
 
 static double column(const Section *list, int n, double x, double w, double y)
