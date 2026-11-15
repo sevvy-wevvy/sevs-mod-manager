@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "app.h"
+#include "webp.h"
 
 static char status[256] = "Starting...";
 static int progress;
@@ -164,8 +165,12 @@ int icon_cache_get(const char *url, const goome_bitmap **out)
         IconEntry *e = &icons[i];
         if (strcmp(e->url, url) != 0) continue;
         if (e->state == 2) {
-            if (e->buf.p && goome_bitmap_load_mem(e->buf.p, e->buf.n, &e->bm) == GOOME_OK) e->state = 4;
-            else e->state = 3;
+            int rc = GOOME_EARG;
+            if (e->buf.p) {
+                if (smm_webp_check(e->buf.p, e->buf.n)) rc = smm_webp_decode(e->buf.p, e->buf.n, &e->bm);
+                else rc = goome_bitmap_load_mem(e->buf.p, e->buf.n, &e->bm);
+            }
+            e->state = rc == GOOME_OK ? 4 : 3;
             smm_buf_free(&e->buf);
         }
         if (e->state == 4) {
