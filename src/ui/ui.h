@@ -46,6 +46,8 @@ typedef struct {
     int animating;
     int quit;
     int maximized;
+    int square;
+    int windowed;
 } Ui;
 
 extern Ui K;

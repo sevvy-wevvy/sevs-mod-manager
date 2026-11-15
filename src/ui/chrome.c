@@ -8,6 +8,10 @@
 #define TAB_H 38
 #define STATUS_H 24
 #define WIN_RAD 14
+#define SIDE_W 200
+#define R2_TOP 30
+#define MONKE_TITLE_H 30
+#define MONKE_TAB_H 38
 
 static const char *const NAV[TAB_COUNT] = {"Mods", "Installed", "Logs", "Loadouts", "Modpacks", "Config", "Settings"};
 
@@ -22,7 +26,13 @@ static char menu_paths[24][1024];
 static int menu_n;
 static int menu_disabled[24];
 static R menu_anchor;
+static int menu_up;
 static int light_hover[3];
+
+static int layout(void)
+{
+    return smm_settings.layout;
+}
 
 static int file_exists(const char *p)
 {
@@ -86,6 +96,7 @@ static void menu_overlay(void)
     double ih = 30, w = 220;
     double h = (menu_n ? menu_n : 1) * ih + 8;
     R b = rect(menu_anchor.x + menu_anchor.w - w, menu_anchor.y + menu_anchor.h + 4, w, h);
+    if (menu_up) b = rect(menu_anchor.x + 8, menu_anchor.y - h - 4, w, h);
     int saved = K.blocked;
     K.blocked = 0;
     shadow(b, 8, 12, 0x77000000);
@@ -151,6 +162,7 @@ static void draw_play(R r)
     int hov = ui_hover(r);
     if (hov) ui_cursor(GOOME_CURSOR_HAND);
     fill(r, 8, hov ? h : f);
+    if (layout() == SMM_LAYOUT_MONKE) stroke(inset(r, 1), 0, 2, hov ? tint : col_lerp(P.border, tint, 0.5));
     double tw = tx_w(label, 12, 1), iw = starting ? 0 : 10;
     double x = r.x + (r.w - tw - (iw ? iw + 7 : 0)) / 2;
     if (!starting) {
@@ -177,9 +189,36 @@ static void light(int i, double x, double y, uint32_t c, int *action)
     if (ui_click(r)) *action = i + 1;
 }
 
-static void draw_title(R r, int rounded)
+typedef struct {
+    R title, tabs, side, body, status;
+} Frame;
+
+static Frame frame(void)
 {
-    fill_rd(r, (goome_radii){rounded ? WIN_RAD : 0, rounded ? WIN_RAD : 0, 0, 0}, P.surface);
+    Frame f;
+    memset(&f, 0, sizeof(f));
+    int lay = layout();
+    if (lay == SMM_LAYOUT_R2MODMAN) {
+        f.side = rect(0, 0, SIDE_W, K.h);
+        f.title = rect(0, 0, SIDE_W, R2_TOP);
+        f.status = rect(SIDE_W, K.h - STATUS_H, K.w - SIDE_W, STATUS_H);
+        f.body = rect(SIDE_W, 0, K.w - SIDE_W, K.h - STATUS_H);
+    } else if (lay == SMM_LAYOUT_MONKE) {
+        f.title = rect(0, 0, K.w, MONKE_TITLE_H);
+        f.tabs = rect(0, MONKE_TITLE_H, K.w, MONKE_TAB_H);
+        f.status = rect(0, K.h - STATUS_H, K.w, STATUS_H);
+        f.body = rect(0, MONKE_TITLE_H + MONKE_TAB_H + 1, K.w, K.h - MONKE_TITLE_H - MONKE_TAB_H - 1 - STATUS_H);
+    } else {
+        f.title = rect(0, 0, K.w, TITLE_H);
+        f.tabs = rect(0, TITLE_H, K.w, TAB_H);
+        f.status = rect(0, K.h - STATUS_H, K.w, STATUS_H);
+        f.body = rect(0, TITLE_H + TAB_H + 1, K.w, K.h - TITLE_H - TAB_H - 1 - STATUS_H);
+    }
+    return f;
+}
+
+static void lights(R r)
+{
     int act = 0;
     light(0, r.x + 14, r.y + 13, col_rgb(255, 95, 86), &act);
     light(1, r.x + 36, r.y + 13, col_rgb(255, 189, 46), &act);
@@ -187,13 +226,24 @@ static void draw_title(R r, int rounded)
     if (act == 1) K.quit = 1;
     if (act == 2) goome_window_state(K.g, GOOME_STATE_MINIMIZED);
     if (act == 3) goome_window_state(K.g, K.maximized ? GOOME_STATE_NORMAL : GOOME_STATE_MAXIMIZED);
+}
 
+static void drag_zone(R drag)
+{
+    if (K.pressed && ui_hover(drag) && !K.blocked) goome_window_drag(K.g, 0);
+    if (K.dbl && ui_hover(drag)) goome_window_state(K.g, K.maximized ? GOOME_STATE_NORMAL : GOOME_STATE_MAXIMIZED);
+}
+
+static void draw_title(R r, int rounded)
+{
+    fill_rd(r, (goome_radii){rounded ? WIN_RAD : 0, rounded ? WIN_RAD : 0, 0, 0}, P.surface);
+    lights(r);
     tx_in(r, "Sev's Mod Manager", 13, P.text, 0, AL_CENTER);
 
     R box = rect(r.x + r.w - 200, r.y, 200, r.h);
     R iconbox = cut_right(&box, 32);
     int has = app_has_game();
-    if (has) draw_game_dot(rect(iconbox.x + 6, r.y + 10, 20, 20), smm_settings.game_name);
+    if (has) draw_game_dot(rect(iconbox.x + 6, r.y + (r.h - 20) / 2, 20, 20), smm_settings.game_name);
     char label[160];
     snprintf(label, sizeof(label), "%s", has ? smm_settings.game_name : "No game selected");
     R lr = rect(box.x, box.y, box.w - 8, box.h);
@@ -202,30 +252,52 @@ static void draw_title(R r, int rounded)
     if (ui_hover(hit)) ui_cursor(GOOME_CURSOR_HAND);
     if (ui_click(hit)) {
         if (menu_open) menu_open = 0;
-        else build_menu(), menu_open = 1, menu_anchor = hit, menu_frame = K.frame;
+        else build_menu(), menu_open = 1, menu_up = 0, menu_anchor = hit, menu_frame = K.frame;
     }
 
-    R drag = rect(r.x + 78, r.y, r.w - 78 - 200, r.h);
-    if (K.pressed && ui_hover(drag) && !K.blocked) goome_window_drag(K.g, 0);
-    if (K.dbl && ui_hover(drag)) goome_window_state(K.g, K.maximized ? GOOME_STATE_NORMAL : GOOME_STATE_MAXIMIZED);
+    drag_zone(rect(r.x + 78, r.y, r.w - 78 - 200, r.h));
 }
 
 static R nav_rect(R strip, int i)
 {
+    if (layout() == SMM_LAYOUT_MONKE) return rect(strip.x + 6 + i * 90, strip.y, 90, strip.h);
     return rect(strip.x + 8 + i * 90, strip.y + 3, 90, 32);
+}
+
+static R side_nav_rect(int i)
+{
+    return rect(8, R2_TOP + 10 + i * 38, SIDE_W - 16, 36);
+}
+
+static R side_play_rect(void)
+{
+    return rect(8, K.h - 48 - 44 + 4, SIDE_W - 16, 36);
+}
+
+static R side_game_rect(void)
+{
+    return rect(0, K.h - 48, SIDE_W, 48);
+}
+
+static void nav_click(int i)
+{
+    if (!ui_click(tab_rect(i))) return;
+    if (!tutorial_active() || i == TAB_MODS || i == TAB_INSTALLED) app_goto_tab(i);
 }
 
 static void draw_tabs(R r)
 {
+    int lay = layout();
+    int mk = lay == SMM_LAYOUT_MONKE;
     fill(r, 0, P.surface);
     int cur = app_tab();
     for (int i = 0; i < TAB_COUNT; i++) {
         R b = nav_rect(r, i);
         int hov = ui_hover(b);
         if (hov) fill(b, 8, P.alt), ui_cursor(GOOME_CURSOR_HAND);
+        if (mk) stroke(inset(b, 1), 0, 2, P.border);
         tx_in(b, NAV[i], 13, P.text, i == cur, AL_CENTER);
-        if (ui_click(b) && !tutorial_active()) app_goto_tab(i);
-        else if (ui_click(b) && tutorial_active() && (i == TAB_MODS || i == TAB_INSTALLED)) app_goto_tab(i);
+        nav_click(i);
     }
     R cb = nav_rect(r, cur);
     ul_tx = cb.x + 6 - r.x;
@@ -236,23 +308,64 @@ static void draw_tabs(R r)
     if (fabs(ul_x - ul_tx) > 0.4 || fabs(ul_w - ul_tw) > 0.4) K.animating = 1;
     else ul_x = ul_tx, ul_w = ul_tw;
     fill(rect(r.x + ul_x, r.y + r.h - 4, ul_w, 3), 2, P.accent);
-    draw_play(rect(r.x + r.w - 130 + 8, r.y + 3, 114, 32));
+    draw_play(play_rect());
+}
+
+static void draw_sidebar(Frame f)
+{
+    fill(f.side, 0, P.surface);
+    lights(f.title);
+    drag_zone(rect(78, 0, SIDE_W - 78, R2_TOP));
+    int cur = app_tab();
+    for (int i = 0; i < TAB_COUNT; i++) {
+        R b = side_nav_rect(i);
+        int hov = ui_hover(b);
+        if (i == cur) fill(b, 0, P.accent);
+        else if (hov) fill(b, 0, P.alt);
+        if (hov) ui_cursor(GOOME_CURSOR_HAND);
+        tx_in(rect(b.x + 14, b.y, b.w - 22, b.h), NAV[i], 13, i == cur ? P.accent_text : P.text, 0, AL_LEFT);
+        nav_click(i);
+    }
+    draw_play(play_rect());
+    R g = side_game_rect();
+    int has = app_has_game();
+    if (has) draw_game_dot(rect(12, g.y + 8, 32, 32), smm_settings.game_name);
+    tx_fit(rect(52, g.y, SIDE_W - 60, g.h), has ? smm_settings.game_name : "No game selected", 11.3, P.text, 0, AL_LEFT);
+    if (ui_hover(g)) ui_cursor(GOOME_CURSOR_HAND);
+    if (ui_click(g)) {
+        if (menu_open) menu_open = 0;
+        else build_menu(), menu_open = 1, menu_up = 1, menu_anchor = g, menu_frame = K.frame;
+    }
 }
 
 R tab_rect(int i)
 {
-    return nav_rect(rect(0, TITLE_H, K.w, TAB_H), i);
+    if (layout() == SMM_LAYOUT_R2MODMAN) return side_nav_rect(i);
+    return nav_rect(frame().tabs, i);
 }
 
 R play_rect(void)
 {
+    int lay = layout();
+    if (lay == SMM_LAYOUT_R2MODMAN) return side_play_rect();
+    if (lay == SMM_LAYOUT_MONKE) return rect(K.w - 130 + 8, MONKE_TITLE_H, 114, MONKE_TAB_H);
     return rect(K.w - 130 + 8, TITLE_H + 3, 114, 32);
 }
 
-static void draw_status(R r, int rounded)
+void chrome_layout_changed(int from, int to)
+{
+    ul_init = 0;
+    menu_open = 0;
+    if (!K.windowed || K.maximized) return;
+    int add = (to == SMM_LAYOUT_R2MODMAN) - (from == SMM_LAYOUT_R2MODMAN);
+    if (add) goome_window_size(K.g, (int)K.w + add * SIDE_W, (int)K.h);
+}
+
+static void draw_status(R r, int rounded, int grip)
 {
     fill_rd(r, (goome_radii){0, 0, rounded ? WIN_RAD : 0, rounded ? WIN_RAD : 0}, P.alt);
     tx_in(rect(r.x + 8, r.y, r.w - 60, r.h), app_status_text(), 11, P.sub, 0, AL_LEFT);
+    if (!grip) return;
     double x = r.x + r.w - 14, y = r.y + r.h - 6;
     goome_draw_line(K.c, x, y - 8, x - 8, y, 1.4, P.border);
     goome_draw_line(K.c, x, y - 4, x - 4, y, 1.4, P.border);
@@ -283,38 +396,42 @@ void chrome_reset(void)
 
 void chrome_draw(void)
 {
+    static int last_layout = -1;
+    int lay = layout();
+    if (last_layout >= 0 && last_layout != lay) chrome_layout_changed(last_layout, lay);
+    last_layout = lay;
+    K.square = lay != SMM_LAYOUT_SMM;
     int st = goome_window_get_state(K.g);
     K.maximized = st == GOOME_STATE_MAXIMIZED || st == GOOME_STATE_FULLSCREEN;
-    int rounded = !K.maximized;
+    int rounded = !K.maximized && lay == SMM_LAYOUT_SMM;
     goome_erase(K.c, 0, 0, K.w, K.h);
     fill(rect(0, 0, K.w, K.h), rounded ? WIN_RAD : 0, P.bg);
 
     poll_game();
     tutorial_pre();
-    int tut = tutorial_active();
     int saved = K.blocked;
     K.blocked = saved || dlg_any() || menu_open || w_dropdown_open();
     int blocked_all = K.blocked;
-    R title = rect(0, 0, K.w, TITLE_H);
-    R tabs = rect(0, TITLE_H, K.w, TAB_H);
-    R status = rect(0, K.h - STATUS_H, K.w, STATUS_H);
-    R body = rect(0, TITLE_H + TAB_H + 1, K.w, K.h - TITLE_H - TAB_H - 1 - STATUS_H);
+    Frame f = frame();
 
     if (menu_open && !w_dropdown_open()) K.blocked = 1;
-    draw_title(title, rounded);
-    draw_tabs(tabs);
-    hline(0, K.w, TITLE_H + TAB_H, P.border);
-    switch (app_tab()) {
-    case TAB_MODS: panel_mods(body); break;
-    case TAB_INSTALLED: panel_installed(body); break;
-    case TAB_LOGS: panel_logs(body); break;
-    case TAB_LOADOUTS: panel_loadouts(body); break;
-    case TAB_MODPACKS: panel_modpacks(body); break;
-    case TAB_CONFIG: panel_config(body); break;
-    case TAB_SETTINGS: panel_settings(body); break;
+    if (lay == SMM_LAYOUT_R2MODMAN) {
+        draw_sidebar(f);
+    } else {
+        draw_title(f.title, rounded);
+        draw_tabs(f.tabs);
+        hline(0, K.w, f.tabs.y + f.tabs.h, P.border);
     }
-    draw_status(status, rounded);
-    (void)tut;
+    switch (app_tab()) {
+    case TAB_MODS: panel_mods(f.body); break;
+    case TAB_INSTALLED: panel_installed(f.body); break;
+    case TAB_LOGS: panel_logs(f.body); break;
+    case TAB_LOADOUTS: panel_loadouts(f.body); break;
+    case TAB_MODPACKS: panel_modpacks(f.body); break;
+    case TAB_CONFIG: panel_config(f.body); break;
+    case TAB_SETTINGS: panel_settings(f.body); break;
+    }
+    draw_status(f.status, rounded, lay == SMM_LAYOUT_SMM);
     K.blocked = saved;
     if (!blocked_all) edge_resize();
     menu_overlay();

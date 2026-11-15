@@ -143,6 +143,20 @@ static void click_at(goome_ui *u, double x, double y)
     mouse(u, GOOME_UP, x, y);
 }
 
+static void scroll_wheel(goome_ui *u, int dy, int times)
+{
+    for (int i = 0; i < times; i++) {
+        goome_event e;
+        memset(&e, 0, sizeof(e));
+        e.type = GOOME_SCROLL;
+        e.x = 500;
+        e.y = 400;
+        e.dy = dy / 8;
+        goome_push(K.g, &e);
+        frames(u, 2, 0);
+    }
+}
+
 void shot_prepare(int step)
 {
     if (step == 3) loadouts_select(0);
@@ -169,6 +183,50 @@ static void reset(goome_ui *u)
     dlg_close_all();
     w_close_popups();
     mouse(u, GOOME_MOTION, 5, 5);
+}
+
+static int live_failed;
+
+static void live_check(int ok, const char *what)
+{
+    printf("%s live: %s\n", ok ? "ok" : "FAIL", what);
+    if (!ok) live_failed = 1;
+}
+
+static void live_switch_test(goome_ui *u, const char *dir)
+{
+    settings_set_layout(SMM_LAYOUT_SMM);
+    app_goto_tab(TAB_MODS);
+    settle(u);
+    mods_select(7);
+    const SmmMods *before = mods_latest();
+    int n_before = before ? before->n : -1;
+    char game[128];
+    snprintf(game, sizeof(game), "%s", smm_settings.game_name);
+    save_shot(u, dir, "25-live-1-smm");
+    static const int order[] = {SMM_LAYOUT_R2MODMAN, SMM_LAYOUT_MONKE, SMM_LAYOUT_SMM};
+    static const char *const names[] = {"25-live-2-r2modman", "25-live-3-monke", "25-live-4-smm-again"};
+    uint32_t last_bg = P.bg;
+    for (int i = 0; i < 3; i++) {
+        settings_set_layout(order[i]);
+        settle(u);
+        save_shot(u, dir, names[i]);
+        const SmmMods *after = mods_latest();
+        live_check(strcmp(game, smm_settings.game_name) == 0, "game kept");
+        live_check(app_tab() == TAB_MODS, "tab kept");
+        live_check(after == before && (after ? after->n : -1) == n_before, "mod list kept");
+        live_check(P.bg != last_bg, "theme followed layout");
+        last_bg = P.bg;
+        live_check(smm_settings.layout == order[i], "layout stored");
+    }
+    app_goto_tab(TAB_SETTINGS);
+    settings_set_layout(SMM_LAYOUT_R2MODMAN);
+    settle(u);
+    app_goto_tab(TAB_MODS);
+    settle(u);
+    save_shot(u, dir, "25-live-5-r2modman-back");
+    settings_set_layout(SMM_LAYOUT_SMM);
+    printf("live switch test %s\n", live_failed ? "FAILED" : "passed");
 }
 
 int shot_run(const char *dir)
@@ -290,6 +348,33 @@ int shot_run(const char *dir)
     smm_settings.game_picker_display = SMM_PICKER_BOTH;
     reset(u);
     (void)click_at;
+    reset(u);
+    app_goto_tab(TAB_MODS);
+    static const struct {
+        int layout;
+        const char *tag;
+    } styles[] = {{SMM_LAYOUT_R2MODMAN, "23-r2modman"}, {SMM_LAYOUT_MONKE, "24-monke"}};
+    for (int i = 0; i < 2; i++) {
+        settings_set_layout(styles[i].layout);
+        char nm[80];
+        app_goto_tab(TAB_MODS);
+        settle(u);
+        mods_select(5);
+        snprintf(nm, sizeof(nm), "%s-01-mods", styles[i].tag);
+        save_shot(u, dir, nm);
+        app_goto_tab(TAB_INSTALLED);
+        snprintf(nm, sizeof(nm), "%s-02-installed", styles[i].tag);
+        save_shot(u, dir, nm);
+        app_goto_tab(TAB_SETTINGS);
+        scroll_wheel(u, -80, 10);
+        snprintf(nm, sizeof(nm), "%s-07-settings", styles[i].tag);
+        save_shot(u, dir, nm);
+        app_goto_tab(TAB_LOADOUTS);
+        shot_prepare(3);
+        snprintf(nm, sizeof(nm), "%s-03-loadouts", styles[i].tag);
+        save_shot(u, dir, nm);
+    }
+    live_switch_test(u, dir);
     goome_ui_free(u);
     goome_close(g);
     return 0;

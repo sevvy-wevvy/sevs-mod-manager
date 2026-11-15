@@ -63,6 +63,7 @@ void dlg_scrim(void);
 
 void tutorial_start(void);
 void tutorial_pre(void);
+void chrome_layout_changed(int from, int to);
 R tab_rect(int i);
 R play_rect(void);
 R installed_list_rect(void);
@@ -104,6 +105,7 @@ void logs_tick(void);
 void logs_game_state(int running);
 void panel_settings(R r);
 void settings_activate(void);
+void settings_set_layout(int layout);
 
 int file_pick_open(const char *title, const char *filter_desc, const char *filter_ext, char *out, size_t n);
 int file_pick_save(const char *title, const char *default_name, const char *filter_ext, char *out, size_t n);

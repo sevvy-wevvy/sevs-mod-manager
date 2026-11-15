@@ -100,6 +100,7 @@ static int run_window(const char *pack, int skip)
     }
     goome_ui *u = goome_ui_new(g);
     ui_init(g, u);
+    K.windowed = 1;
     goome_ui_auto_grab(u, 0);
     goome_ui_theme(u)->bg = 0;
     goome_ui_theme(u)->anim_ms = 0;
