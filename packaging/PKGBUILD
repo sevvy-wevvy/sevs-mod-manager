@@ -25,6 +25,7 @@ build() {
 package() {
   cd sevs-mod-manager
   install -Dm755 build/smm "$pkgdir/usr/bin/smm"
-  printf '[Desktop Entry]\nType=Application\nName=Sevs Mod Manager\nExec=smm\nCategories=Game;Utility;\nTerminal=false\n' > sevs-mod-manager.desktop
+  printf '[Desktop Entry]\nType=Application\nName=Sevs Mod Manager\nExec=smm\nIcon=sevs-mod-manager\nStartupWMClass=sevs-mod-manager\nCategories=Game;Utility;\nTerminal=false\n' > sevs-mod-manager.desktop
+  install -Dm644 assets/icon.png "$pkgdir/usr/share/icons/hicolor/256x256/apps/sevs-mod-manager.png"
   install -Dm644 sevs-mod-manager.desktop "$pkgdir/usr/share/applications/sevs-mod-manager.desktop"
 }

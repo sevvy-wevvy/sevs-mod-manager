@@ -86,7 +86,7 @@ static int run_window(const char *pack, int skip)
     int err = 0;
     goome_opts o;
     memset(&o, 0, sizeof(o));
-    o.title = "Sev's Mod Manager";
+    o.title = "sevs-mod-manager";
     o.mode = GOOME_MODE_WINDOW;
     o.width = 1100;
     o.height = 720;
@@ -94,6 +94,7 @@ static int run_window(const char *pack, int skip)
     o.min_height = 560;
     o.window_flags = GOOME_WINDOW_RESIZABLE | GOOME_WINDOW_BORDERLESS | GOOME_WINDOW_TRANSPARENT | GOOME_WINDOW_CENTER;
     goome *g = goome_open(&o, &err);
+    if (g) goome_window_title(g, "Sev's Mod Manager");
     if (!g) {
         fprintf(stderr, "cant open a window: %s\n", goome_strerror(err));
         return 1;

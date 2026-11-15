@@ -20,7 +20,10 @@ mv "$bin/smm.part" "$bin/smm"
 if [ "$(uname -s)" = Linux ]; then
   apps="${XDG_DATA_HOME:-$HOME/.local/share}/applications"
   mkdir -p "$apps"
-  printf '[Desktop Entry]\nType=Application\nName=Sevs Mod Manager\nExec=%s/smm\nCategories=Game;Utility;\nTerminal=false\n' "$bin" > "$apps/sevs-mod-manager.desktop"
+  icons="${XDG_DATA_HOME:-$HOME/.local/share}/icons/hicolor/256x256/apps"
+  mkdir -p "$icons"
+  curl -fsSL "https://raw.githubusercontent.com/$repo/dev/assets/icon.png" -o "$icons/sevs-mod-manager.png" || true
+  printf '[Desktop Entry]\nType=Application\nName=Sevs Mod Manager\nExec=%s/smm\nIcon=sevs-mod-manager\nStartupWMClass=sevs-mod-manager\nCategories=Game;Utility;\nTerminal=false\n' "$bin" > "$apps/sevs-mod-manager.desktop"
 fi
 echo "installed to $bin/smm"
 case ":$PATH:" in *":$bin:"*) ;; *) echo "add $bin to your PATH to run it as: smm" ;; esac

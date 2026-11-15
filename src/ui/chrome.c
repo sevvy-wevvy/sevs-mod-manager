@@ -54,6 +54,14 @@ static void build_menu(void)
             const char *known = smm_map_get(&smm_settings.known_game_paths, p->name);
             if (known && file_exists(known)) path = known;
         }
+        char steam_path[1024];
+        if (!path && p->steam_app_id > 0 && p->n_paths > 0) {
+            const char *base = strrchr(p->default_paths[0], '\\');
+            if (!base) base = strrchr(p->default_paths[0], '/');
+            base = base ? base + 1 : p->default_paths[0];
+            if (smm_steam_find_game_path(p->steam_app_id, base, steam_path, sizeof(steam_path)) > 0) path = steam_path;
+        }
+        if (!path && strcasecmp(p->name, smm_settings.game_name) == 0 && file_exists(smm_settings.game_path)) path = smm_settings.game_path;
         if (!path) continue;
         snprintf(menu_names[menu_n], 128, "%s", p->name);
         snprintf(menu_paths[menu_n], 1024, "%s", path);

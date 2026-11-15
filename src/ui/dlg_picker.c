@@ -65,6 +65,7 @@ static void commit(const char *path, const char *name)
     snprintf(smm_settings.game_path, sizeof(smm_settings.game_path), "%s", path);
     snprintf(smm_settings.game_name, sizeof(smm_settings.game_name), "%s", name);
     const SmmPreset *p = smm_preset_find(name);
+    if (p) smm_map_set(&smm_settings.known_game_paths, name, path);
     if (p && p->default_community && !smm_map_get(&smm_settings.thunderstore_communities, name))
         smm_map_set(&smm_settings.thunderstore_communities, name, p->default_community);
     smm_state_save();
@@ -203,7 +204,7 @@ void draw_picker(Dlg *d)
 {
     poll_detect();
     R c;
-    int closed = dlg_frame("Select Game", 440, 470, &c, 1);
+    int closed = dlg_frame("Select Game", 440, 540, &c, 1);
     if (closed && !detecting) {
         if (picker_first && !app_has_game()) K.quit = 1;
         dlg_pop();
@@ -218,7 +219,7 @@ void draw_picker(Dlg *d)
     fill_rd(rect(c.x - 15, c.y - 11, c.w + 30, c.h + 26), (goome_radii){0, 0, 11, 11}, P.alt);
     tx_in(rect(c.x + 4, c.y - 6, c.w, 26), "Choose a game to manage", 14.7, P.text, 1, AL_LEFT);
     hline(c.x - 16 + 1, c.x + c.w + 16 - 1, c.y + 22, P.border);
-    R view = rect(c.x, c.y + 36, c.w, 54 * 6);
+    R view = rect(c.x, c.y + 36, c.w, 54 * 7);
     int mode = smm_settings.game_picker_display;
     typedef struct {
         char name[128];
@@ -280,13 +281,13 @@ void draw_picker(Dlg *d)
         }
         y += n * 54;
     }
-    R cb = rect(view.x, y + 0, 380, 46);
+    R sb = rect(view.x, y, 380, 46);
+    if (w_button_col(sb, "Select Steam Game...", col_lighten(P.alt, 20), col_lighten(P.alt, 34), P.text, goome_radius(10))) dlg_steam_open();
+    R cb = rect(view.x, y + 54, 380, 46);
     if (w_button_col(cb, "Custom Game...", col_lighten(P.alt, 20), col_lighten(P.alt, 34), P.text, goome_radius(10))) {
         char path[SMM_PATH];
         if (file_pick_open("Select Game Executable", "Executable", "exe", path, sizeof(path)) > 0) commit_custom_exe(path);
     }
-    R sb = rect(view.x, y + 54, 380, 46);
-    if (w_button_col(sb, "Select Steam Game...", col_lighten(P.alt, 20), col_lighten(P.alt, 34), P.text, goome_radius(10))) dlg_steam_open();
     sc_end(&pscroll, view, total);
     K.blocked = saved;
     if (detecting) {

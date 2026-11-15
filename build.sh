@@ -22,6 +22,10 @@ win)
 esac
 mkdir -p "$out"
 srcs=(src/main.c src/goome_impl.c src/ui/*.c src/core/*.c)
+if [ "$what" = win ]; then
+  "${WINDRES:-x86_64-w64-mingw32-windres}" assets/smm.rc -O coff -o "$out/smm_rc.o"
+  srcs+=("$out/smm_rc.o")
+fi
 $cc -std=c99 -O2 -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -Wno-format-truncation \
   -o "$out/smm$ext" "${srcs[@]}" "${libs[@]}"
 echo "built $out/smm$ext"
