@@ -1,0 +1,1995 @@
+[
+ {
+  "name": "BepInExPack_GorillaTag",
+  "full_name": "BepInEx-BepInExPack_GorillaTag",
+  "owner": "BepInEx",
+  "package_url": "https://thunderstore.io/c/gorilla-tag/p/BepInEx/BepInExPack_GorillaTag/",
+  "date_created": "2025-03-01T10:00:00.000000Z",
+  "date_updated": "2026-10-01T12:30:00.000000Z",
+  "uuid4": "00000000-0000-4000-8000-000000000000",
+  "rating_score": 4210,
+  "is_pinned": true,
+  "is_deprecated": false,
+  "has_nsfw_content": false,
+  "categories": [
+   "Mods"
+  ],
+  "versions": [
+   {
+    "name": "BepInExPack_GorillaTag",
+    "full_name": "BepInEx-BepInExPack_GorillaTag-5.4.2304",
+    "description": "BepInEx pack for Gorilla Tag. Preconfigured and ready to use.",
+    "icon": "https://gcdn.thunderstore.io/live/repository/icons/BepInEx-BepInExPack_GorillaTag-5.4.2304.png",
+    "version_number": "5.4.2304",
+    "dependencies": [],
+    "download_url": "https://thunderstore.io/package/download/BepInEx/BepInExPack_GorillaTag/5.4.2304/",
+    "downloads": 13630,
+    "date_created": "2026-09-20T09:00:00.000000Z",
+    "website_url": "https://github.com/BepInEx/BepInExPack_GorillaTag",
+    "is_active": true,
+    "uuid4": "10000000-0000-4000-8000-000000000000",
+    "file_size": 40000
+   },
+   {
+    "name": "BepInExPack_GorillaTag",
+    "full_name": "BepInEx-BepInExPack_GorillaTag-0.0.1",
+    "description": "older",
+    "icon": "",
+    "version_number": "0.0.1",
+    "dependencies": [],
+    "download_url": "https://thunderstore.io/package/download/BepInEx/BepInExPack_GorillaTag/0.0.1/",
+    "downloads": 10,
+    "date_created": "2025-03-01T09:00:00.000000Z",
+    "website_url": "",
+    "is_active": true,
+    "uuid4": "20000000-0000-4000-8000-000000000000",
+    "file_size": 1000
+   }
+  ]
+ },
+ {
+  "name": "Utilla",
+  "full_name": "legoandmars-Utilla",
+  "owner": "legoandmars",
+  "package_url": "https://thunderstore.io/c/gorilla-tag/p/legoandmars/Utilla/",
+  "date_created": "2025-03-02T10:00:00.000000Z",
+  "date_updated": "2026-10-02T12:30:00.000000Z",
+  "uuid4": "00000000-0000-4000-8000-000000000001",
+  "rating_score": 980,
+  "is_pinned": true,
+  "is_deprecated": false,
+  "has_nsfw_content": false,
+  "categories": [
+   "Mods"
+  ],
+  "versions": [
+   {
+    "name": "Utilla",
+    "full_name": "legoandmars-Utilla-1.6.4",
+    "description": "Utility library for Gorilla Tag mods: room detection, gamemodes and more.",
+    "icon": "https://gcdn.thunderstore.io/live/repository/icons/legoandmars-Utilla-1.6.4.png",
+    "version_number": "1.6.4",
+    "dependencies": [
+     "BepInEx-BepInExPack_GorillaTag-5.4.2304"
+    ],
+    "download_url": "https://thunderstore.io/package/download/legoandmars/Utilla/1.6.4/",
+    "downloads": 3940,
+    "date_created": "2026-09-20T09:00:00.000000Z",
+    "website_url": "https://github.com/legoandmars/Utilla",
+    "is_active": true,
+    "uuid4": "10000000-0000-4000-8000-000000000001",
+    "file_size": 43000
+   },
+   {
+    "name": "Utilla",
+    "full_name": "legoandmars-Utilla-0.0.1",
+    "description": "older",
+    "icon": "",
+    "version_number": "0.0.1",
+    "dependencies": [],
+    "download_url": "https://thunderstore.io/package/download/legoandmars/Utilla/0.0.1/",
+    "downloads": 10,
+    "date_created": "2025-03-01T09:00:00.000000Z",
+    "website_url": "",
+    "is_active": true,
+    "uuid4": "20000000-0000-4000-8000-000000000001",
+    "file_size": 1000
+   }
+  ]
+ },
+ {
+  "name": "ComputerInterface",
+  "full_name": "ToniMacaroni-ComputerInterface",
+  "owner": "ToniMacaroni",
+  "package_url": "https://thunderstore.io/c/gorilla-tag/p/ToniMacaroni/ComputerInterface/",
+  "date_created": "2025-03-03T10:00:00.000000Z",
+  "date_updated": "2026-10-03T12:30:00.000000Z",
+  "uuid4": "00000000-0000-4000-8000-000000000002",
+  "rating_score": 1530,
+  "is_pinned": true,
+  "is_deprecated": false,
+  "has_nsfw_content": false,
+  "categories": [
+   "Mods"
+  ],
+  "versions": [
+   {
+    "name": "ComputerInterface",
+    "full_name": "ToniMacaroni-ComputerInterface-1.5.2",
+    "description": "Adds a usable computer to the wrist. Lets other mods add their own screens.",
+    "icon": "https://gcdn.thunderstore.io/live/repository/icons/ToniMacaroni-ComputerInterface-1.5.2.png",
+    "version_number": "1.5.2",
+    "dependencies": [
+     "BepInEx-BepInExPack_GorillaTag-5.4.2304",
+     "legoandmars-Utilla-1.6.4"
+    ],
+    "download_url": "https://thunderstore.io/package/download/ToniMacaroni/ComputerInterface/1.5.2/",
+    "downloads": 5590,
+    "date_created": "2026-09-20T09:00:00.000000Z",
+    "website_url": "https://github.com/ToniMacaroni/ComputerInterface",
+    "is_active": true,
+    "uuid4": "10000000-0000-4000-8000-000000000002",
+    "file_size": 46000
+   },
+   {
+    "name": "ComputerInterface",
+    "full_name": "ToniMacaroni-ComputerInterface-0.0.1",
+    "description": "older",
+    "icon": "",
+    "version_number": "0.0.1",
+    "dependencies": [],
+    "download_url": "https://thunderstore.io/package/download/ToniMacaroni/ComputerInterface/0.0.1/",
+    "downloads": 10,
+    "date_created": "2025-03-01T09:00:00.000000Z",
+    "website_url": "",
+    "is_active": true,
+    "uuid4": "20000000-0000-4000-8000-000000000002",
+    "file_size": 1000
+   }
+  ]
+ },
+ {
+  "name": "GorillaCosmetics",
+  "full_name": "Graic-GorillaCosmetics",
+  "owner": "Graic",
+  "package_url": "https://thunderstore.io/c/gorilla-tag/p/Graic/GorillaCosmetics/",
+  "date_created": "2025-03-04T10:00:00.000000Z",
+  "date_updated": "2026-10-04T12:30:00.000000Z",
+  "uuid4": "00000000-0000-4000-8000-000000000003",
+  "rating_score": 760,
+  "is_pinned": true,
+  "is_deprecated": false,
+  "has_nsfw_content": false,
+  "categories": [
+   "Mods"
+  ],
+  "versions": [
+   {
+    "name": "GorillaCosmetics",
+    "full_name": "Graic-GorillaCosmetics-2.1.0",
+    "description": "Load custom cosmetics and materials from files. Share them with friends.",
+    "icon": "https://gcdn.thunderstore.io/live/repository/icons/Graic-GorillaCosmetics-2.1.0.png",
+    "version_number": "2.1.0",
+    "dependencies": [
+     "BepInEx-BepInExPack_GorillaTag-5.4.2304",
+     "legoandmars-Utilla-1.6.4"
+    ],
+    "download_url": "https://thunderstore.io/package/download/Graic/GorillaCosmetics/2.1.0/",
+    "downloads": 3280,
+    "date_created": "2026-09-20T09:00:00.000000Z",
+    "website_url": "https://github.com/Graic/GorillaCosmetics",
+    "is_active": true,
+    "uuid4": "10000000-0000-4000-8000-000000000003",
+    "file_size": 49000
+   },
+   {
+    "name": "GorillaCosmetics",
+    "full_name": "Graic-GorillaCosmetics-0.0.1",
+    "description": "older",
+    "icon": "",
+    "version_number": "0.0.1",
+    "dependencies": [],
+    "download_url": "https://thunderstore.io/package/download/Graic/GorillaCosmetics/0.0.1/",
+    "downloads": 10,
+    "date_created": "2025-03-01T09:00:00.000000Z",
+    "website_url": "",
+    "is_active": true,
+    "uuid4": "20000000-0000-4000-8000-000000000003",
+    "file_size": 1000
+   }
+  ]
+ },
+ {
+  "name": "MonkeMapLoader",
+  "full_name": "Bobbie-MonkeMapLoader",
+  "owner": "Bobbie",
+  "package_url": "https://thunderstore.io/c/gorilla-tag/p/Bobbie/MonkeMapLoader/",
+  "date_created": "2025-03-05T10:00:00.000000Z",
+  "date_updated": "2026-10-05T12:30:00.000000Z",
+  "uuid4": "00000000-0000-4000-8000-000000000004",
+  "rating_score": 640,
+  "is_pinned": false,
+  "is_deprecated": false,
+  "has_nsfw_content": false,
+  "categories": [
+   "Mods"
+  ],
+  "versions": [
+   {
+    "name": "MonkeMapLoader",
+    "full_name": "Bobbie-MonkeMapLoader-0.9.6",
+    "description": "Load custom maps into the game from the in-game computer.",
+    "icon": "https://gcdn.thunderstore.io/live/repository/icons/Bobbie-MonkeMapLoader-0.9.6.png",
+    "version_number": "0.9.6",
+    "dependencies": [
+     "BepInEx-BepInExPack_GorillaTag-5.4.2304",
+     "ToniMacaroni-ComputerInterface-1.5.2"
+    ],
+    "download_url": "https://thunderstore.io/package/download/Bobbie/MonkeMapLoader/0.9.6/",
+    "downloads": 2920,
+    "date_created": "2026-09-20T09:00:00.000000Z",
+    "website_url": "https://github.com/Bobbie/MonkeMapLoader",
+    "is_active": true,
+    "uuid4": "10000000-0000-4000-8000-000000000004",
+    "file_size": 52000
+   },
+   {
+    "name": "MonkeMapLoader",
+    "full_name": "Bobbie-MonkeMapLoader-0.0.1",
+    "description": "older",
+    "icon": "",
+    "version_number": "0.0.1",
+    "dependencies": [],
+    "download_url": "https://thunderstore.io/package/download/Bobbie/MonkeMapLoader/0.0.1/",
+    "downloads": 10,
+    "date_created": "2025-03-01T09:00:00.000000Z",
+    "website_url": "",
+    "is_active": true,
+    "uuid4": "20000000-0000-4000-8000-000000000004",
+    "file_size": 1000
+   }
+  ]
+ },
+ {
+  "name": "GorillaInfoWatch",
+  "full_name": "developer9998-GorillaInfoWatch",
+  "owner": "developer9998",
+  "package_url": "https://thunderstore.io/c/gorilla-tag/p/developer9998/GorillaInfoWatch/",
+  "date_created": "2025-03-06T10:00:00.000000Z",
+  "date_updated": "2026-10-06T12:30:00.000000Z",
+  "uuid4": "00000000-0000-4000-8000-000000000005",
+  "rating_score": 590,
+  "is_pinned": false,
+  "is_deprecated": false,
+  "has_nsfw_content": false,
+  "categories": [
+   "Mods"
+  ],
+  "versions": [
+   {
+    "name": "GorillaInfoWatch",
+    "full_name": "developer9998-GorillaInfoWatch-0.4.1",
+    "description": "A watch for your wrist with room info, friends and a clock.",
+    "icon": "https://gcdn.thunderstore.io/live/repository/icons/developer9998-GorillaInfoWatch-0.4.1.png",
+    "version_number": "0.4.1",
+    "dependencies": [
+     "BepInEx-BepInExPack_GorillaTag-5.4.2304",
+     "legoandmars-Utilla-1.6.4"
+    ],
+    "download_url": "https://thunderstore.io/package/download/developer9998/GorillaInfoWatch/0.4.1/",
+    "downloads": 2770,
+    "date_created": "2026-09-20T09:00:00.000000Z",
+    "website_url": "https://github.com/developer9998/GorillaInfoWatch",
+    "is_active": true,
+    "uuid4": "10000000-0000-4000-8000-000000000005",
+    "file_size": 55000
+   },
+   {
+    "name": "GorillaInfoWatch",
+    "full_name": "developer9998-GorillaInfoWatch-0.0.1",
+    "description": "older",
+    "icon": "",
+    "version_number": "0.0.1",
+    "dependencies": [],
+    "download_url": "https://thunderstore.io/package/download/developer9998/GorillaInfoWatch/0.0.1/",
+    "downloads": 10,
+    "date_created": "2025-03-01T09:00:00.000000Z",
+    "website_url": "",
+    "is_active": true,
+    "uuid4": "20000000-0000-4000-8000-000000000005",
+    "file_size": 1000
+   }
+  ]
+ },
+ {
+  "name": "GorillaFriends",
+  "full_name": "Fchb1239-GorillaFriends",
+  "owner": "Fchb1239",
+  "package_url": "https://thunderstore.io/c/gorilla-tag/p/Fchb1239/GorillaFriends/",
+  "date_created": "2025-03-07T10:00:00.000000Z",
+  "date_updated": "2026-10-07T12:30:00.000000Z",
+  "uuid4": "00000000-0000-4000-8000-000000000006",
+  "rating_score": 710,
+  "is_pinned": true,
+  "is_deprecated": false,
+  "has_nsfw_content": false,
+  "categories": [
+   "Mods"
+  ],
+  "versions": [
+   {
+    "name": "GorillaFriends",
+    "full_name": "Fchb1239-GorillaFriends-1.8.0",
+    "description": "Friend list, recently met players and notifications when friends join.",
+    "icon": "https://gcdn.thunderstore.io/live/repository/icons/Fchb1239-GorillaFriends-1.8.0.png",
+    "version_number": "1.8.0",
+    "dependencies": [
+     "BepInEx-BepInExPack_GorillaTag-5.4.2304"
+    ],
+    "download_url": "https://thunderstore.io/package/download/Fchb1239/GorillaFriends/1.8.0/",
+    "downloads": 3130,
+    "date_created": "2026-09-20T09:00:00.000000Z",
+    "website_url": "https://github.com/Fchb1239/GorillaFriends",
+    "is_active": true,
+    "uuid4": "10000000-0000-4000-8000-000000000006",
+    "file_size": 58000
+   },
+   {
+    "name": "GorillaFriends",
+    "full_name": "Fchb1239-GorillaFriends-0.0.1",
+    "description": "older",
+    "icon": "",
+    "version_number": "0.0.1",
+    "dependencies": [],
+    "download_url": "https://thunderstore.io/package/download/Fchb1239/GorillaFriends/0.0.1/",
+    "downloads": 10,
+    "date_created": "2025-03-01T09:00:00.000000Z",
+    "website_url": "",
+    "is_active": true,
+    "uuid4": "20000000-0000-4000-8000-000000000006",
+    "file_size": 1000
+   }
+  ]
+ },
+ {
+  "name": "CustomCosmeticsMenu",
+  "full_name": "Lofiat-CustomCosmeticsMenu",
+  "owner": "Lofiat",
+  "package_url": "https://thunderstore.io/c/gorilla-tag/p/Lofiat/CustomCosmeticsMenu/",
+  "date_created": "2025-03-08T10:00:00.000000Z",
+  "date_updated": "2026-10-08T12:30:00.000000Z",
+  "uuid4": "00000000-0000-4000-8000-000000000007",
+  "rating_score": 205,
+  "is_pinned": false,
+  "is_deprecated": false,
+  "has_nsfw_content": false,
+  "categories": [
+   "Mods"
+  ],
+  "versions": [
+   {
+    "name": "CustomCosmeticsMenu",
+    "full_name": "Lofiat-CustomCosmeticsMenu-1.2.3",
+    "description": "Menu to equip custom cosmetics without leaving the lobby.",
+    "icon": "https://gcdn.thunderstore.io/live/repository/icons/Lofiat-CustomCosmeticsMenu-1.2.3.png",
+    "version_number": "1.2.3",
+    "dependencies": [
+     "Graic-GorillaCosmetics-2.1.0"
+    ],
+    "download_url": "https://thunderstore.io/package/download/Lofiat/CustomCosmeticsMenu/1.2.3/",
+    "downloads": 1615,
+    "date_created": "2026-09-20T09:00:00.000000Z",
+    "website_url": "https://github.com/Lofiat/CustomCosmeticsMenu",
+    "is_active": true,
+    "uuid4": "10000000-0000-4000-8000-000000000007",
+    "file_size": 61000
+   },
+   {
+    "name": "CustomCosmeticsMenu",
+    "full_name": "Lofiat-CustomCosmeticsMenu-0.0.1",
+    "description": "older",
+    "icon": "",
+    "version_number": "0.0.1",
+    "dependencies": [],
+    "download_url": "https://thunderstore.io/package/download/Lofiat/CustomCosmeticsMenu/0.0.1/",
+    "downloads": 10,
+    "date_created": "2025-03-01T09:00:00.000000Z",
+    "website_url": "",
+    "is_active": true,
+    "uuid4": "20000000-0000-4000-8000-000000000007",
+    "file_size": 1000
+   }
+  ]
+ },
+ {
+  "name": "FPSCounter",
+  "full_name": "kingofnetflix-FPSCounter",
+  "owner": "kingofnetflix",
+  "package_url": "https://thunderstore.io/c/gorilla-tag/p/kingofnetflix/FPSCounter/",
+  "date_created": "2025-03-09T10:00:00.000000Z",
+  "date_updated": "2026-10-09T12:30:00.000000Z",
+  "uuid4": "00000000-0000-4000-8000-000000000008",
+  "rating_score": 320,
+  "is_pinned": false,
+  "is_deprecated": false,
+  "has_nsfw_content": false,
+  "categories": [
+   "Mods"
+  ],
+  "versions": [
+   {
+    "name": "FPSCounter",
+    "full_name": "kingofnetflix-FPSCounter-1.0.4",
+    "description": "Small fps counter on your wrist. Nothing fancy.",
+    "icon": "https://gcdn.thunderstore.io/live/repository/icons/kingofnetflix-FPSCounter-1.0.4.png",
+    "version_number": "1.0.4",
+    "dependencies": [
+     "BepInEx-BepInExPack_GorillaTag-5.4.2304"
+    ],
+    "download_url": "https://thunderstore.io/package/download/kingofnetflix/FPSCounter/1.0.4/",
+    "downloads": 1960,
+    "date_created": "2026-09-20T09:00:00.000000Z",
+    "website_url": "https://github.com/kingofnetflix/FPSCounter",
+    "is_active": true,
+    "uuid4": "10000000-0000-4000-8000-000000000008",
+    "file_size": 64000
+   },
+   {
+    "name": "FPSCounter",
+    "full_name": "kingofnetflix-FPSCounter-0.0.1",
+    "description": "older",
+    "icon": "",
+    "version_number": "0.0.1",
+    "dependencies": [],
+    "download_url": "https://thunderstore.io/package/download/kingofnetflix/FPSCounter/0.0.1/",
+    "downloads": 10,
+    "date_created": "2025-03-01T09:00:00.000000Z",
+    "website_url": "",
+    "is_active": true,
+    "uuid4": "20000000-0000-4000-8000-000000000008",
+    "file_size": 1000
+   }
+  ]
+ },
+ {
+  "name": "PhotonUtility",
+  "full_name": "Auros-PhotonUtility",
+  "owner": "Auros",
+  "package_url": "https://thunderstore.io/c/gorilla-tag/p/Auros/PhotonUtility/",
+  "date_created": "2025-03-01T10:00:00.000000Z",
+  "date_updated": "2026-10-10T12:30:00.000000Z",
+  "uuid4": "00000000-0000-4000-8000-000000000009",
+  "rating_score": 410,
+  "is_pinned": false,
+  "is_deprecated": false,
+  "has_nsfw_content": false,
+  "categories": [
+   "Mods"
+  ],
+  "versions": [
+   {
+    "name": "PhotonUtility",
+    "full_name": "Auros-PhotonUtility-2.0.1",
+    "description": "Helpers for room properties, custom properties and player lookup.",
+    "icon": "https://gcdn.thunderstore.io/live/repository/icons/Auros-PhotonUtility-2.0.1.png",
+    "version_number": "2.0.1",
+    "dependencies": [
+     "BepInEx-BepInExPack_GorillaTag-5.4.2304"
+    ],
+    "download_url": "https://thunderstore.io/package/download/Auros/PhotonUtility/2.0.1/",
+    "downloads": 2230,
+    "date_created": "2026-09-20T09:00:00.000000Z",
+    "website_url": "https://github.com/Auros/PhotonUtility",
+    "is_active": true,
+    "uuid4": "10000000-0000-4000-8000-000000000009",
+    "file_size": 67000
+   },
+   {
+    "name": "PhotonUtility",
+    "full_name": "Auros-PhotonUtility-0.0.1",
+    "description": "older",
+    "icon": "",
+    "version_number": "0.0.1",
+    "dependencies": [],
+    "download_url": "https://thunderstore.io/package/download/Auros/PhotonUtility/0.0.1/",
+    "downloads": 10,
+    "date_created": "2025-03-01T09:00:00.000000Z",
+    "website_url": "",
+    "is_active": true,
+    "uuid4": "20000000-0000-4000-8000-000000000009",
+    "file_size": 1000
+   }
+  ]
+ },
+ {
+  "name": "GorillaTagVoiceFix",
+  "full_name": "Kyle-GorillaTagVoiceFix",
+  "owner": "Kyle",
+  "package_url": "https://thunderstore.io/c/gorilla-tag/p/Kyle/GorillaTagVoiceFix/",
+  "date_created": "2025-03-02T10:00:00.000000Z",
+  "date_updated": "2026-10-11T12:30:00.000000Z",
+  "uuid4": "00000000-0000-4000-8000-000000000010",
+  "rating_score": 188,
+  "is_pinned": false,
+  "is_deprecated": false,
+  "has_nsfw_content": false,
+  "categories": [
+   "Mods"
+  ],
+  "versions": [
+   {
+    "name": "GorillaTagVoiceFix",
+    "full_name": "Kyle-GorillaTagVoiceFix-1.1.0",
+    "description": "Fixes voice chat dropping out on long sessions.",
+    "icon": "https://gcdn.thunderstore.io/live/repository/icons/Kyle-GorillaTagVoiceFix-1.1.0.png",
+    "version_number": "1.1.0",
+    "dependencies": [
+     "BepInEx-BepInExPack_GorillaTag-5.4.2304"
+    ],
+    "download_url": "https://thunderstore.io/package/download/Kyle/GorillaTagVoiceFix/1.1.0/",
+    "downloads": 1564,
+    "date_created": "2026-09-20T09:00:00.000000Z",
+    "website_url": "https://github.com/Kyle/GorillaTagVoiceFix",
+    "is_active": true,
+    "uuid4": "10000000-0000-4000-8000-000000000010",
+    "file_size": 70000
+   },
+   {
+    "name": "GorillaTagVoiceFix",
+    "full_name": "Kyle-GorillaTagVoiceFix-0.0.1",
+    "description": "older",
+    "icon": "",
+    "version_number": "0.0.1",
+    "dependencies": [],
+    "download_url": "https://thunderstore.io/package/download/Kyle/GorillaTagVoiceFix/0.0.1/",
+    "downloads": 10,
+    "date_created": "2025-03-01T09:00:00.000000Z",
+    "website_url": "",
+    "is_active": true,
+    "uuid4": "20000000-0000-4000-8000-000000000010",
+    "file_size": 1000
+   }
+  ]
+ },
+ {
+  "name": "MonkeBackgroundTweaks",
+  "full_name": "Cyclone-MonkeBackgroundTweaks",
+  "owner": "Cyclone",
+  "package_url": "https://thunderstore.io/c/gorilla-tag/p/Cyclone/MonkeBackgroundTweaks/",
+  "date_created": "2025-03-03T10:00:00.000000Z",
+  "date_updated": "2026-10-12T12:30:00.000000Z",
+  "uuid4": "00000000-0000-4000-8000-000000000011",
+  "rating_score": 96,
+  "is_pinned": false,
+  "is_deprecated": false,
+  "has_nsfw_content": false,
+  "categories": [
+   "Mods"
+  ],
+  "versions": [
+   {
+    "name": "MonkeBackgroundTweaks",
+    "full_name": "Cyclone-MonkeBackgroundTweaks-0.3.2",
+    "description": "Change sky, fog and lighting in custom maps.",
+    "icon": "https://gcdn.thunderstore.io/live/repository/icons/Cyclone-MonkeBackgroundTweaks-0.3.2.png",
+    "version_number": "0.3.2",
+    "dependencies": [
+     "Bobbie-MonkeMapLoader-0.9.6"
+    ],
+    "download_url": "https://thunderstore.io/package/download/Cyclone/MonkeBackgroundTweaks/0.3.2/",
+    "downloads": 1288,
+    "date_created": "2026-09-20T09:00:00.000000Z",
+    "website_url": "https://github.com/Cyclone/MonkeBackgroundTweaks",
+    "is_active": true,
+    "uuid4": "10000000-0000-4000-8000-000000000011",
+    "file_size": 73000
+   },
+   {
+    "name": "MonkeBackgroundTweaks",
+    "full_name": "Cyclone-MonkeBackgroundTweaks-0.0.1",
+    "description": "older",
+    "icon": "",
+    "version_number": "0.0.1",
+    "dependencies": [],
+    "download_url": "https://thunderstore.io/package/download/Cyclone/MonkeBackgroundTweaks/0.0.1/",
+    "downloads": 10,
+    "date_created": "2025-03-01T09:00:00.000000Z",
+    "website_url": "",
+    "is_active": true,
+    "uuid4": "20000000-0000-4000-8000-000000000011",
+    "file_size": 1000
+   }
+  ]
+ },
+ {
+  "name": "PlayerNameTags",
+  "full_name": "sabinaaa-PlayerNameTags",
+  "owner": "sabinaaa",
+  "package_url": "https://thunderstore.io/c/gorilla-tag/p/sabinaaa/PlayerNameTags/",
+  "date_created": "2025-03-04T10:00:00.000000Z",
+  "date_updated": "2026-10-13T12:30:00.000000Z",
+  "uuid4": "00000000-0000-4000-8000-000000000012",
+  "rating_score": 355,
+  "is_pinned": false,
+  "is_deprecated": false,
+  "has_nsfw_content": false,
+  "categories": [
+   "Mods"
+  ],
+  "versions": [
+   {
+    "name": "PlayerNameTags",
+    "full_name": "sabinaaa-PlayerNameTags-1.4.0",
+    "description": "Show names above heads with colors and a toggle on the computer.",
+    "icon": "https://gcdn.thunderstore.io/live/repository/icons/sabinaaa-PlayerNameTags-1.4.0.png",
+    "version_number": "1.4.0",
+    "dependencies": [
+     "BepInEx-BepInExPack_GorillaTag-5.4.2304",
+     "ToniMacaroni-ComputerInterface-1.5.2"
+    ],
+    "download_url": "https://thunderstore.io/package/download/sabinaaa/PlayerNameTags/1.4.0/",
+    "downloads": 2065,
+    "date_created": "2026-09-20T09:00:00.000000Z",
+    "website_url": "https://github.com/sabinaaa/PlayerNameTags",
+    "is_active": true,
+    "uuid4": "10000000-0000-4000-8000-000000000012",
+    "file_size": 76000
+   },
+   {
+    "name": "PlayerNameTags",
+    "full_name": "sabinaaa-PlayerNameTags-0.0.1",
+    "description": "older",
+    "icon": "",
+    "version_number": "0.0.1",
+    "dependencies": [],
+    "download_url": "https://thunderstore.io/package/download/sabinaaa/PlayerNameTags/0.0.1/",
+    "downloads": 10,
+    "date_created": "2025-03-01T09:00:00.000000Z",
+    "website_url": "",
+    "is_active": true,
+    "uuid4": "20000000-0000-4000-8000-000000000012",
+    "file_size": 1000
+   }
+  ]
+ },
+ {
+  "name": "GorillaSpeedLimit",
+  "full_name": "Mikey-GorillaSpeedLimit",
+  "owner": "Mikey",
+  "package_url": "https://thunderstore.io/c/gorilla-tag/p/Mikey/GorillaSpeedLimit/",
+  "date_created": "2025-03-05T10:00:00.000000Z",
+  "date_updated": "2026-10-14T12:30:00.000000Z",
+  "uuid4": "00000000-0000-4000-8000-000000000013",
+  "rating_score": 74,
+  "is_pinned": false,
+  "is_deprecated": true,
+  "has_nsfw_content": false,
+  "categories": [
+   "Mods"
+  ],
+  "versions": [
+   {
+    "name": "GorillaSpeedLimit",
+    "full_name": "Mikey-GorillaSpeedLimit-1.0.0",
+    "description": "Practice mode with a speed cap. Not a cheat.",
+    "icon": "https://gcdn.thunderstore.io/live/repository/icons/Mikey-GorillaSpeedLimit-1.0.0.png",
+    "version_number": "1.0.0",
+    "dependencies": [
+     "BepInEx-BepInExPack_GorillaTag-5.4.2304"
+    ],
+    "download_url": "https://thunderstore.io/package/download/Mikey/GorillaSpeedLimit/1.0.0/",
+    "downloads": 1222,
+    "date_created": "2026-09-20T09:00:00.000000Z",
+    "website_url": "https://github.com/Mikey/GorillaSpeedLimit",
+    "is_active": true,
+    "uuid4": "10000000-0000-4000-8000-000000000013",
+    "file_size": 79000
+   },
+   {
+    "name": "GorillaSpeedLimit",
+    "full_name": "Mikey-GorillaSpeedLimit-0.0.1",
+    "description": "older",
+    "icon": "",
+    "version_number": "0.0.1",
+    "dependencies": [],
+    "download_url": "https://thunderstore.io/package/download/Mikey/GorillaSpeedLimit/0.0.1/",
+    "downloads": 10,
+    "date_created": "2025-03-01T09:00:00.000000Z",
+    "website_url": "",
+    "is_active": true,
+    "uuid4": "20000000-0000-4000-8000-000000000013",
+    "file_size": 1000
+   }
+  ]
+ },
+ {
+  "name": "HandTrackingTweaks",
+  "full_name": "Marcus-HandTrackingTweaks",
+  "owner": "Marcus",
+  "package_url": "https://thunderstore.io/c/gorilla-tag/p/Marcus/HandTrackingTweaks/",
+  "date_created": "2025-03-06T10:00:00.000000Z",
+  "date_updated": "2026-10-15T12:30:00.000000Z",
+  "uuid4": "00000000-0000-4000-8000-000000000014",
+  "rating_score": 121,
+  "is_pinned": false,
+  "is_deprecated": false,
+  "has_nsfw_content": false,
+  "categories": [
+   "Mods"
+  ],
+  "versions": [
+   {
+    "name": "HandTrackingTweaks",
+    "full_name": "Marcus-HandTrackingTweaks-0.7.5",
+    "description": "Tune finger tracking and thresholds for hand tracking users.",
+    "icon": "https://gcdn.thunderstore.io/live/repository/icons/Marcus-HandTrackingTweaks-0.7.5.png",
+    "version_number": "0.7.5",
+    "dependencies": [],
+    "download_url": "https://thunderstore.io/package/download/Marcus/HandTrackingTweaks/0.7.5/",
+    "downloads": 1363,
+    "date_created": "2026-09-20T09:00:00.000000Z",
+    "website_url": "https://github.com/Marcus/HandTrackingTweaks",
+    "is_active": true,
+    "uuid4": "10000000-0000-4000-8000-000000000014",
+    "file_size": 82000
+   },
+   {
+    "name": "HandTrackingTweaks",
+    "full_name": "Marcus-HandTrackingTweaks-0.0.1",
+    "description": "older",
+    "icon": "",
+    "version_number": "0.0.1",
+    "dependencies": [],
+    "download_url": "https://thunderstore.io/package/download/Marcus/HandTrackingTweaks/0.0.1/",
+    "downloads": 10,
+    "date_created": "2025-03-01T09:00:00.000000Z",
+    "website_url": "",
+    "is_active": true,
+    "uuid4": "20000000-0000-4000-8000-000000000014",
+    "file_size": 1000
+   }
+  ]
+ },
+ {
+  "name": "GorillaLights",
+  "full_name": "ZeroNull-GorillaLights",
+  "owner": "ZeroNull",
+  "package_url": "https://thunderstore.io/c/gorilla-tag/p/ZeroNull/GorillaLights/",
+  "date_created": "2025-03-07T10:00:00.000000Z",
+  "date_updated": "2026-10-16T12:30:00.000000Z",
+  "uuid4": "00000000-0000-4000-8000-000000000015",
+  "rating_score": 262,
+  "is_pinned": false,
+  "is_deprecated": false,
+  "has_nsfw_content": false,
+  "categories": [
+   "Mods"
+  ],
+  "versions": [
+   {
+    "name": "GorillaLights",
+    "full_name": "ZeroNull-GorillaLights-1.3.1",
+    "description": "Flashlight and glow sticks for dark maps.",
+    "icon": "https://gcdn.thunderstore.io/live/repository/icons/ZeroNull-GorillaLights-1.3.1.png",
+    "version_number": "1.3.1",
+    "dependencies": [
+     "BepInEx-BepInExPack_GorillaTag-5.4.2304"
+    ],
+    "download_url": "https://thunderstore.io/package/download/ZeroNull/GorillaLights/1.3.1/",
+    "downloads": 1786,
+    "date_created": "2026-09-20T09:00:00.000000Z",
+    "website_url": "https://github.com/ZeroNull/GorillaLights",
+    "is_active": true,
+    "uuid4": "10000000-0000-4000-8000-000000000015",
+    "file_size": 85000
+   },
+   {
+    "name": "GorillaLights",
+    "full_name": "ZeroNull-GorillaLights-0.0.1",
+    "description": "older",
+    "icon": "",
+    "version_number": "0.0.1",
+    "dependencies": [],
+    "download_url": "https://thunderstore.io/package/download/ZeroNull/GorillaLights/0.0.1/",
+    "downloads": 10,
+    "date_created": "2025-03-01T09:00:00.000000Z",
+    "website_url": "",
+    "is_active": true,
+    "uuid4": "20000000-0000-4000-8000-000000000015",
+    "file_size": 1000
+   }
+  ]
+ },
+ {
+  "name": "MonkeEmotes",
+  "full_name": "Hexa-MonkeEmotes",
+  "owner": "Hexa",
+  "package_url": "https://thunderstore.io/c/gorilla-tag/p/Hexa/MonkeEmotes/",
+  "date_created": "2025-03-08T10:00:00.000000Z",
+  "date_updated": "2026-10-17T12:30:00.000000Z",
+  "uuid4": "00000000-0000-4000-8000-000000000016",
+  "rating_score": 840,
+  "is_pinned": true,
+  "is_deprecated": false,
+  "has_nsfw_content": false,
+  "categories": [
+   "Mods"
+  ],
+  "versions": [
+   {
+    "name": "MonkeEmotes",
+    "full_name": "Hexa-MonkeEmotes-2.2.0",
+    "description": "Wave, dance and point with simple hand gestures.",
+    "icon": "https://gcdn.thunderstore.io/live/repository/icons/Hexa-MonkeEmotes-2.2.0.png",
+    "version_number": "2.2.0",
+    "dependencies": [
+     "BepInEx-BepInExPack_GorillaTag-5.4.2304",
+     "legoandmars-Utilla-1.6.4"
+    ],
+    "download_url": "https://thunderstore.io/package/download/Hexa/MonkeEmotes/2.2.0/",
+    "downloads": 3520,
+    "date_created": "2026-09-20T09:00:00.000000Z",
+    "website_url": "https://github.com/Hexa/MonkeEmotes",
+    "is_active": true,
+    "uuid4": "10000000-0000-4000-8000-000000000016",
+    "file_size": 88000
+   },
+   {
+    "name": "MonkeEmotes",
+    "full_name": "Hexa-MonkeEmotes-0.0.1",
+    "description": "older",
+    "icon": "",
+    "version_number": "0.0.1",
+    "dependencies": [],
+    "download_url": "https://thunderstore.io/package/download/Hexa/MonkeEmotes/0.0.1/",
+    "downloads": 10,
+    "date_created": "2025-03-01T09:00:00.000000Z",
+    "website_url": "",
+    "is_active": true,
+    "uuid4": "20000000-0000-4000-8000-000000000016",
+    "file_size": 1000
+   }
+  ]
+ },
+ {
+  "name": "BananaCounter",
+  "full_name": "Zivi-BananaCounter",
+  "owner": "Zivi",
+  "package_url": "https://thunderstore.io/c/gorilla-tag/p/Zivi/BananaCounter/",
+  "date_created": "2025-03-09T10:00:00.000000Z",
+  "date_updated": "2026-10-18T12:30:00.000000Z",
+  "uuid4": "00000000-0000-4000-8000-000000000017",
+  "rating_score": 55,
+  "is_pinned": false,
+  "is_deprecated": true,
+  "has_nsfw_content": false,
+  "categories": [
+   "Mods"
+  ],
+  "versions": [
+   {
+    "name": "BananaCounter",
+    "full_name": "Zivi-BananaCounter-1.0.2",
+    "description": "Counts bananas you pick up in modded maps.",
+    "icon": "https://gcdn.thunderstore.io/live/repository/icons/Zivi-BananaCounter-1.0.2.png",
+    "version_number": "1.0.2",
+    "dependencies": [],
+    "download_url": "https://thunderstore.io/package/download/Zivi/BananaCounter/1.0.2/",
+    "downloads": 1165,
+    "date_created": "2026-09-20T09:00:00.000000Z",
+    "website_url": "https://github.com/Zivi/BananaCounter",
+    "is_active": true,
+    "uuid4": "10000000-0000-4000-8000-000000000017",
+    "file_size": 91000
+   },
+   {
+    "name": "BananaCounter",
+    "full_name": "Zivi-BananaCounter-0.0.1",
+    "description": "older",
+    "icon": "",
+    "version_number": "0.0.1",
+    "dependencies": [],
+    "download_url": "https://thunderstore.io/package/download/Zivi/BananaCounter/0.0.1/",
+    "downloads": 10,
+    "date_created": "2025-03-01T09:00:00.000000Z",
+    "website_url": "",
+    "is_active": true,
+    "uuid4": "20000000-0000-4000-8000-000000000017",
+    "file_size": 1000
+   }
+  ]
+ },
+ {
+  "name": "GorillaScreenshot",
+  "full_name": "Pixel-GorillaScreenshot",
+  "owner": "Pixel",
+  "package_url": "https://thunderstore.io/c/gorilla-tag/p/Pixel/GorillaScreenshot/",
+  "date_created": "2025-03-01T10:00:00.000000Z",
+  "date_updated": "2026-10-19T12:30:00.000000Z",
+  "uuid4": "00000000-0000-4000-8000-000000000018",
+  "rating_score": 233,
+  "is_pinned": false,
+  "is_deprecated": false,
+  "has_nsfw_content": false,
+  "categories": [
+   "Mods"
+  ],
+  "versions": [
+   {
+    "name": "GorillaScreenshot",
+    "full_name": "Pixel-GorillaScreenshot-1.5.0",
+    "description": "Take screenshots with a gesture and save them to disk.",
+    "icon": "https://gcdn.thunderstore.io/live/repository/icons/Pixel-GorillaScreenshot-1.5.0.png",
+    "version_number": "1.5.0",
+    "dependencies": [
+     "BepInEx-BepInExPack_GorillaTag-5.4.2304"
+    ],
+    "download_url": "https://thunderstore.io/package/download/Pixel/GorillaScreenshot/1.5.0/",
+    "downloads": 1699,
+    "date_created": "2026-09-20T09:00:00.000000Z",
+    "website_url": "https://github.com/Pixel/GorillaScreenshot",
+    "is_active": true,
+    "uuid4": "10000000-0000-4000-8000-000000000018",
+    "file_size": 94000
+   },
+   {
+    "name": "GorillaScreenshot",
+    "full_name": "Pixel-GorillaScreenshot-0.0.1",
+    "description": "older",
+    "icon": "",
+    "version_number": "0.0.1",
+    "dependencies": [],
+    "download_url": "https://thunderstore.io/package/download/Pixel/GorillaScreenshot/0.0.1/",
+    "downloads": 10,
+    "date_created": "2025-03-01T09:00:00.000000Z",
+    "website_url": "",
+    "is_active": true,
+    "uuid4": "20000000-0000-4000-8000-000000000018",
+    "file_size": 1000
+   }
+  ]
+ },
+ {
+  "name": "RoomCodeCopier",
+  "full_name": "Nova-RoomCodeCopier",
+  "owner": "Nova",
+  "package_url": "https://thunderstore.io/c/gorilla-tag/p/Nova/RoomCodeCopier/",
+  "date_created": "2025-03-02T10:00:00.000000Z",
+  "date_updated": "2026-10-20T12:30:00.000000Z",
+  "uuid4": "00000000-0000-4000-8000-000000000019",
+  "rating_score": 147,
+  "is_pinned": false,
+  "is_deprecated": false,
+  "has_nsfw_content": false,
+  "categories": [
+   "Mods"
+  ],
+  "versions": [
+   {
+    "name": "RoomCodeCopier",
+    "full_name": "Nova-RoomCodeCopier-1.1.3",
+    "description": "Copy the room code to clipboard with one button.",
+    "icon": "https://gcdn.thunderstore.io/live/repository/icons/Nova-RoomCodeCopier-1.1.3.png",
+    "version_number": "1.1.3",
+    "dependencies": [
+     "ToniMacaroni-ComputerInterface-1.5.2"
+    ],
+    "download_url": "https://thunderstore.io/package/download/Nova/RoomCodeCopier/1.1.3/",
+    "downloads": 1441,
+    "date_created": "2026-09-20T09:00:00.000000Z",
+    "website_url": "https://github.com/Nova/RoomCodeCopier",
+    "is_active": true,
+    "uuid4": "10000000-0000-4000-8000-000000000019",
+    "file_size": 97000
+   },
+   {
+    "name": "RoomCodeCopier",
+    "full_name": "Nova-RoomCodeCopier-0.0.1",
+    "description": "older",
+    "icon": "",
+    "version_number": "0.0.1",
+    "dependencies": [],
+    "download_url": "https://thunderstore.io/package/download/Nova/RoomCodeCopier/0.0.1/",
+    "downloads": 10,
+    "date_created": "2025-03-01T09:00:00.000000Z",
+    "website_url": "",
+    "is_active": true,
+    "uuid4": "20000000-0000-4000-8000-000000000019",
+    "file_size": 1000
+   }
+  ]
+ },
+ {
+  "name": "ModdedLobbyBrowser",
+  "full_name": "Ellie-ModdedLobbyBrowser",
+  "owner": "Ellie",
+  "package_url": "https://thunderstore.io/c/gorilla-tag/p/Ellie/ModdedLobbyBrowser/",
+  "date_created": "2025-03-03T10:00:00.000000Z",
+  "date_updated": "2026-10-21T12:30:00.000000Z",
+  "uuid4": "00000000-0000-4000-8000-000000000020",
+  "rating_score": 301,
+  "is_pinned": false,
+  "is_deprecated": false,
+  "has_nsfw_content": false,
+  "categories": [
+   "Mods"
+  ],
+  "versions": [
+   {
+    "name": "ModdedLobbyBrowser",
+    "full_name": "Ellie-ModdedLobbyBrowser-0.5.0",
+    "description": "Browse modded public rooms by gamemode and player count.",
+    "icon": "https://gcdn.thunderstore.io/live/repository/icons/Ellie-ModdedLobbyBrowser-0.5.0.png",
+    "version_number": "0.5.0",
+    "dependencies": [
+     "legoandmars-Utilla-1.6.4",
+     "Auros-PhotonUtility-2.0.1"
+    ],
+    "download_url": "https://thunderstore.io/package/download/Ellie/ModdedLobbyBrowser/0.5.0/",
+    "downloads": 1903,
+    "date_created": "2026-09-20T09:00:00.000000Z",
+    "website_url": "https://github.com/Ellie/ModdedLobbyBrowser",
+    "is_active": true,
+    "uuid4": "10000000-0000-4000-8000-000000000020",
+    "file_size": 100000
+   },
+   {
+    "name": "ModdedLobbyBrowser",
+    "full_name": "Ellie-ModdedLobbyBrowser-0.0.1",
+    "description": "older",
+    "icon": "",
+    "version_number": "0.0.1",
+    "dependencies": [],
+    "download_url": "https://thunderstore.io/package/download/Ellie/ModdedLobbyBrowser/0.0.1/",
+    "downloads": 10,
+    "date_created": "2025-03-01T09:00:00.000000Z",
+    "website_url": "",
+    "is_active": true,
+    "uuid4": "20000000-0000-4000-8000-000000000020",
+    "file_size": 1000
+   }
+  ]
+ },
+ {
+  "name": "GorillaHats",
+  "full_name": "Quinn-GorillaHats",
+  "owner": "Quinn",
+  "package_url": "https://thunderstore.io/c/gorilla-tag/p/Quinn/GorillaHats/",
+  "date_created": "2025-03-04T10:00:00.000000Z",
+  "date_updated": "2026-10-22T12:30:00.000000Z",
+  "uuid4": "00000000-0000-4000-8000-000000000021",
+  "rating_score": 480,
+  "is_pinned": false,
+  "is_deprecated": false,
+  "has_nsfw_content": false,
+  "categories": [
+   "Mods"
+  ],
+  "versions": [
+   {
+    "name": "GorillaHats",
+    "full_name": "Quinn-GorillaHats-3.0.0",
+    "description": "A pile of hats. Added a few more this time.",
+    "icon": "https://gcdn.thunderstore.io/live/repository/icons/Quinn-GorillaHats-3.0.0.png",
+    "version_number": "3.0.0",
+    "dependencies": [
+     "Graic-GorillaCosmetics-2.1.0"
+    ],
+    "download_url": "https://thunderstore.io/package/download/Quinn/GorillaHats/3.0.0/",
+    "downloads": 2440,
+    "date_created": "2026-09-20T09:00:00.000000Z",
+    "website_url": "https://github.com/Quinn/GorillaHats",
+    "is_active": true,
+    "uuid4": "10000000-0000-4000-8000-000000000021",
+    "file_size": 103000
+   },
+   {
+    "name": "GorillaHats",
+    "full_name": "Quinn-GorillaHats-0.0.1",
+    "description": "older",
+    "icon": "",
+    "version_number": "0.0.1",
+    "dependencies": [],
+    "download_url": "https://thunderstore.io/package/download/Quinn/GorillaHats/0.0.1/",
+    "downloads": 10,
+    "date_created": "2025-03-01T09:00:00.000000Z",
+    "website_url": "",
+    "is_active": true,
+    "uuid4": "20000000-0000-4000-8000-000000000021",
+    "file_size": 1000
+   }
+  ]
+ },
+ {
+  "name": "TagHelper",
+  "full_name": "Rowan-TagHelper",
+  "owner": "Rowan",
+  "package_url": "https://thunderstore.io/c/gorilla-tag/p/Rowan/TagHelper/",
+  "date_created": "2025-03-05T10:00:00.000000Z",
+  "date_updated": "2026-10-23T12:30:00.000000Z",
+  "uuid4": "00000000-0000-4000-8000-000000000022",
+  "rating_score": 392,
+  "is_pinned": false,
+  "is_deprecated": false,
+  "has_nsfw_content": false,
+  "categories": [
+   "Mods"
+  ],
+  "versions": [
+   {
+    "name": "TagHelper",
+    "full_name": "Rowan-TagHelper-1.2.1",
+    "description": "Highlights who is it with a bright outline.",
+    "icon": "https://gcdn.thunderstore.io/live/repository/icons/Rowan-TagHelper-1.2.1.png",
+    "version_number": "1.2.1",
+    "dependencies": [
+     "BepInEx-BepInExPack_GorillaTag-5.4.2304"
+    ],
+    "download_url": "https://thunderstore.io/package/download/Rowan/TagHelper/1.2.1/",
+    "downloads": 2176,
+    "date_created": "2026-09-20T09:00:00.000000Z",
+    "website_url": "https://github.com/Rowan/TagHelper",
+    "is_active": true,
+    "uuid4": "10000000-0000-4000-8000-000000000022",
+    "file_size": 106000
+   },
+   {
+    "name": "TagHelper",
+    "full_name": "Rowan-TagHelper-0.0.1",
+    "description": "older",
+    "icon": "",
+    "version_number": "0.0.1",
+    "dependencies": [],
+    "download_url": "https://thunderstore.io/package/download/Rowan/TagHelper/0.0.1/",
+    "downloads": 10,
+    "date_created": "2025-03-01T09:00:00.000000Z",
+    "website_url": "",
+    "is_active": true,
+    "uuid4": "20000000-0000-4000-8000-000000000022",
+    "file_size": 1000
+   }
+  ]
+ },
+ {
+  "name": "CustomGamemodesPack",
+  "full_name": "Sky-CustomGamemodesPack",
+  "owner": "Sky",
+  "package_url": "https://thunderstore.io/c/gorilla-tag/p/Sky/CustomGamemodesPack/",
+  "date_created": "2025-03-06T10:00:00.000000Z",
+  "date_updated": "2026-10-24T12:30:00.000000Z",
+  "uuid4": "00000000-0000-4000-8000-000000000023",
+  "rating_score": 505,
+  "is_pinned": false,
+  "is_deprecated": false,
+  "has_nsfw_content": false,
+  "categories": [
+   "Mods"
+  ],
+  "versions": [
+   {
+    "name": "CustomGamemodesPack",
+    "full_name": "Sky-CustomGamemodesPack-1.0.8",
+    "description": "Hide and seek, freeze tag and a few others as gamemodes.",
+    "icon": "https://gcdn.thunderstore.io/live/repository/icons/Sky-CustomGamemodesPack-1.0.8.png",
+    "version_number": "1.0.8",
+    "dependencies": [
+     "legoandmars-Utilla-1.6.4"
+    ],
+    "download_url": "https://thunderstore.io/package/download/Sky/CustomGamemodesPack/1.0.8/",
+    "downloads": 2515,
+    "date_created": "2026-09-20T09:00:00.000000Z",
+    "website_url": "https://github.com/Sky/CustomGamemodesPack",
+    "is_active": true,
+    "uuid4": "10000000-0000-4000-8000-000000000023",
+    "file_size": 109000
+   },
+   {
+    "name": "CustomGamemodesPack",
+    "full_name": "Sky-CustomGamemodesPack-0.0.1",
+    "description": "older",
+    "icon": "",
+    "version_number": "0.0.1",
+    "dependencies": [],
+    "download_url": "https://thunderstore.io/package/download/Sky/CustomGamemodesPack/0.0.1/",
+    "downloads": 10,
+    "date_created": "2025-03-01T09:00:00.000000Z",
+    "website_url": "",
+    "is_active": true,
+    "uuid4": "20000000-0000-4000-8000-000000000023",
+    "file_size": 1000
+   }
+  ]
+ },
+ {
+  "name": "GorillaDebugConsole",
+  "full_name": "Dex-GorillaDebugConsole",
+  "owner": "Dex",
+  "package_url": "https://thunderstore.io/c/gorilla-tag/p/Dex/GorillaDebugConsole/",
+  "date_created": "2025-03-07T10:00:00.000000Z",
+  "date_updated": "2026-10-25T12:30:00.000000Z",
+  "uuid4": "00000000-0000-4000-8000-000000000024",
+  "rating_score": 62,
+  "is_pinned": false,
+  "is_deprecated": false,
+  "has_nsfw_content": false,
+  "categories": [
+   "Mods"
+  ],
+  "versions": [
+   {
+    "name": "GorillaDebugConsole",
+    "full_name": "Dex-GorillaDebugConsole-0.2.0",
+    "description": "In-game console that mirrors the BepInEx log.",
+    "icon": "https://gcdn.thunderstore.io/live/repository/icons/Dex-GorillaDebugConsole-0.2.0.png",
+    "version_number": "0.2.0",
+    "dependencies": [
+     "BepInEx-BepInExPack_GorillaTag-5.4.2304"
+    ],
+    "download_url": "https://thunderstore.io/package/download/Dex/GorillaDebugConsole/0.2.0/",
+    "downloads": 1186,
+    "date_created": "2026-09-20T09:00:00.000000Z",
+    "website_url": "https://github.com/Dex/GorillaDebugConsole",
+    "is_active": true,
+    "uuid4": "10000000-0000-4000-8000-000000000024",
+    "file_size": 112000
+   },
+   {
+    "name": "GorillaDebugConsole",
+    "full_name": "Dex-GorillaDebugConsole-0.0.1",
+    "description": "older",
+    "icon": "",
+    "version_number": "0.0.1",
+    "dependencies": [],
+    "download_url": "https://thunderstore.io/package/download/Dex/GorillaDebugConsole/0.0.1/",
+    "downloads": 10,
+    "date_created": "2025-03-01T09:00:00.000000Z",
+    "website_url": "",
+    "is_active": true,
+    "uuid4": "20000000-0000-4000-8000-000000000024",
+    "file_size": 1000
+   }
+  ]
+ },
+ {
+  "name": "ColorPickerPlus",
+  "full_name": "Imogen-ColorPickerPlus",
+  "owner": "Imogen",
+  "package_url": "https://thunderstore.io/c/gorilla-tag/p/Imogen/ColorPickerPlus/",
+  "date_created": "2025-03-08T10:00:00.000000Z",
+  "date_updated": "2026-10-26T12:30:00.000000Z",
+  "uuid4": "00000000-0000-4000-8000-000000000025",
+  "rating_score": 176,
+  "is_pinned": false,
+  "is_deprecated": false,
+  "has_nsfw_content": false,
+  "categories": [
+   "Mods"
+  ],
+  "versions": [
+   {
+    "name": "ColorPickerPlus",
+    "full_name": "Imogen-ColorPickerPlus-1.0.5",
+    "description": "More precise color picker for your monkey.",
+    "icon": "https://gcdn.thunderstore.io/live/repository/icons/Imogen-ColorPickerPlus-1.0.5.png",
+    "version_number": "1.0.5",
+    "dependencies": [],
+    "download_url": "https://thunderstore.io/package/download/Imogen/ColorPickerPlus/1.0.5/",
+    "downloads": 1528,
+    "date_created": "2026-09-20T09:00:00.000000Z",
+    "website_url": "https://github.com/Imogen/ColorPickerPlus",
+    "is_active": true,
+    "uuid4": "10000000-0000-4000-8000-000000000025",
+    "file_size": 115000
+   },
+   {
+    "name": "ColorPickerPlus",
+    "full_name": "Imogen-ColorPickerPlus-0.0.1",
+    "description": "older",
+    "icon": "",
+    "version_number": "0.0.1",
+    "dependencies": [],
+    "download_url": "https://thunderstore.io/package/download/Imogen/ColorPickerPlus/0.0.1/",
+    "downloads": 10,
+    "date_created": "2025-03-01T09:00:00.000000Z",
+    "website_url": "",
+    "is_active": true,
+    "uuid4": "20000000-0000-4000-8000-000000000025",
+    "file_size": 1000
+   }
+  ]
+ },
+ {
+  "name": "MonkeAudioBoost",
+  "full_name": "Theo-MonkeAudioBoost",
+  "owner": "Theo",
+  "package_url": "https://thunderstore.io/c/gorilla-tag/p/Theo/MonkeAudioBoost/",
+  "date_created": "2025-03-09T10:00:00.000000Z",
+  "date_updated": "2026-10-27T12:30:00.000000Z",
+  "uuid4": "00000000-0000-4000-8000-000000000026",
+  "rating_score": 214,
+  "is_pinned": false,
+  "is_deprecated": false,
+  "has_nsfw_content": false,
+  "categories": [
+   "Mods"
+  ],
+  "versions": [
+   {
+    "name": "MonkeAudioBoost",
+    "full_name": "Theo-MonkeAudioBoost-1.3.0",
+    "description": "Spatial audio tweaks for voice and footsteps.",
+    "icon": "https://gcdn.thunderstore.io/live/repository/icons/Theo-MonkeAudioBoost-1.3.0.png",
+    "version_number": "1.3.0",
+    "dependencies": [
+     "BepInEx-BepInExPack_GorillaTag-5.4.2304"
+    ],
+    "download_url": "https://thunderstore.io/package/download/Theo/MonkeAudioBoost/1.3.0/",
+    "downloads": 1642,
+    "date_created": "2026-09-20T09:00:00.000000Z",
+    "website_url": "https://github.com/Theo/MonkeAudioBoost",
+    "is_active": true,
+    "uuid4": "10000000-0000-4000-8000-000000000026",
+    "file_size": 118000
+   },
+   {
+    "name": "MonkeAudioBoost",
+    "full_name": "Theo-MonkeAudioBoost-0.0.1",
+    "description": "older",
+    "icon": "",
+    "version_number": "0.0.1",
+    "dependencies": [],
+    "download_url": "https://thunderstore.io/package/download/Theo/MonkeAudioBoost/0.0.1/",
+    "downloads": 10,
+    "date_created": "2025-03-01T09:00:00.000000Z",
+    "website_url": "",
+    "is_active": true,
+    "uuid4": "20000000-0000-4000-8000-000000000026",
+    "file_size": 1000
+   }
+  ]
+ },
+ {
+  "name": "SeasonalDecor",
+  "full_name": "Lux-SeasonalDecor",
+  "owner": "Lux",
+  "package_url": "https://thunderstore.io/c/gorilla-tag/p/Lux/SeasonalDecor/",
+  "date_created": "2025-03-01T10:00:00.000000Z",
+  "date_updated": "2026-10-01T12:30:00.000000Z",
+  "uuid4": "00000000-0000-4000-8000-000000000027",
+  "rating_score": 31,
+  "is_pinned": false,
+  "is_deprecated": true,
+  "has_nsfw_content": false,
+  "categories": [
+   "Mods"
+  ],
+  "versions": [
+   {
+    "name": "SeasonalDecor",
+    "full_name": "Lux-SeasonalDecor-0.8.0",
+    "description": "Seasonal props in the lobby areas. Old and no longer updated.",
+    "icon": "https://gcdn.thunderstore.io/live/repository/icons/Lux-SeasonalDecor-0.8.0.png",
+    "version_number": "0.8.0",
+    "dependencies": [],
+    "download_url": "https://thunderstore.io/package/download/Lux/SeasonalDecor/0.8.0/",
+    "downloads": 1093,
+    "date_created": "2026-09-20T09:00:00.000000Z",
+    "website_url": "https://github.com/Lux/SeasonalDecor",
+    "is_active": true,
+    "uuid4": "10000000-0000-4000-8000-000000000027",
+    "file_size": 121000
+   },
+   {
+    "name": "SeasonalDecor",
+    "full_name": "Lux-SeasonalDecor-0.0.1",
+    "description": "older",
+    "icon": "",
+    "version_number": "0.0.1",
+    "dependencies": [],
+    "download_url": "https://thunderstore.io/package/download/Lux/SeasonalDecor/0.0.1/",
+    "downloads": 10,
+    "date_created": "2025-03-01T09:00:00.000000Z",
+    "website_url": "",
+    "is_active": true,
+    "uuid4": "20000000-0000-4000-8000-000000000027",
+    "file_size": 1000
+   }
+  ]
+ },
+ {
+  "name": "GorillaBadges",
+  "full_name": "Odin-GorillaBadges",
+  "owner": "Odin",
+  "package_url": "https://thunderstore.io/c/gorilla-tag/p/Odin/GorillaBadges/",
+  "date_created": "2025-03-02T10:00:00.000000Z",
+  "date_updated": "2026-10-02T12:30:00.000000Z",
+  "uuid4": "00000000-0000-4000-8000-000000000028",
+  "rating_score": 129,
+  "is_pinned": false,
+  "is_deprecated": false,
+  "has_nsfw_content": false,
+  "categories": [
+   "Mods"
+  ],
+  "versions": [
+   {
+    "name": "GorillaBadges",
+    "full_name": "Odin-GorillaBadges-1.1.4",
+    "description": "Show badges for mod creators and supporters.",
+    "icon": "https://gcdn.thunderstore.io/live/repository/icons/Odin-GorillaBadges-1.1.4.png",
+    "version_number": "1.1.4",
+    "dependencies": [
+     "ToniMacaroni-ComputerInterface-1.5.2"
+    ],
+    "download_url": "https://thunderstore.io/package/download/Odin/GorillaBadges/1.1.4/",
+    "downloads": 1387,
+    "date_created": "2026-09-20T09:00:00.000000Z",
+    "website_url": "https://github.com/Odin/GorillaBadges",
+    "is_active": true,
+    "uuid4": "10000000-0000-4000-8000-000000000028",
+    "file_size": 124000
+   },
+   {
+    "name": "GorillaBadges",
+    "full_name": "Odin-GorillaBadges-0.0.1",
+    "description": "older",
+    "icon": "",
+    "version_number": "0.0.1",
+    "dependencies": [],
+    "download_url": "https://thunderstore.io/package/download/Odin/GorillaBadges/0.0.1/",
+    "downloads": 10,
+    "date_created": "2025-03-01T09:00:00.000000Z",
+    "website_url": "",
+    "is_active": true,
+    "uuid4": "20000000-0000-4000-8000-000000000028",
+    "file_size": 1000
+   }
+  ]
+ },
+ {
+  "name": "PrivateRoomTools",
+  "full_name": "Fern-PrivateRoomTools",
+  "owner": "Fern",
+  "package_url": "https://thunderstore.io/c/gorilla-tag/p/Fern/PrivateRoomTools/",
+  "date_created": "2025-03-03T10:00:00.000000Z",
+  "date_updated": "2026-10-03T12:30:00.000000Z",
+  "uuid4": "00000000-0000-4000-8000-000000000029",
+  "rating_score": 188,
+  "is_pinned": false,
+  "is_deprecated": false,
+  "has_nsfw_content": false,
+  "categories": [
+   "Mods"
+  ],
+  "versions": [
+   {
+    "name": "PrivateRoomTools",
+    "full_name": "Fern-PrivateRoomTools-1.0.1",
+    "description": "Kick, mute and rename tools for your own private room.",
+    "icon": "https://gcdn.thunderstore.io/live/repository/icons/Fern-PrivateRoomTools-1.0.1.png",
+    "version_number": "1.0.1",
+    "dependencies": [
+     "BepInEx-BepInExPack_GorillaTag-5.4.2304"
+    ],
+    "download_url": "https://thunderstore.io/package/download/Fern/PrivateRoomTools/1.0.1/",
+    "downloads": 1564,
+    "date_created": "2026-09-20T09:00:00.000000Z",
+    "website_url": "https://github.com/Fern/PrivateRoomTools",
+    "is_active": true,
+    "uuid4": "10000000-0000-4000-8000-000000000029",
+    "file_size": 127000
+   },
+   {
+    "name": "PrivateRoomTools",
+    "full_name": "Fern-PrivateRoomTools-0.0.1",
+    "description": "older",
+    "icon": "",
+    "version_number": "0.0.1",
+    "dependencies": [],
+    "download_url": "https://thunderstore.io/package/download/Fern/PrivateRoomTools/0.0.1/",
+    "downloads": 10,
+    "date_created": "2025-03-01T09:00:00.000000Z",
+    "website_url": "",
+    "is_active": true,
+    "uuid4": "20000000-0000-4000-8000-000000000029",
+    "file_size": 1000
+   }
+  ]
+ },
+ {
+  "name": "MonkeMinimap",
+  "full_name": "Kai-MonkeMinimap",
+  "owner": "Kai",
+  "package_url": "https://thunderstore.io/c/gorilla-tag/p/Kai/MonkeMinimap/",
+  "date_created": "2025-03-04T10:00:00.000000Z",
+  "date_updated": "2026-10-04T12:30:00.000000Z",
+  "uuid4": "00000000-0000-4000-8000-000000000030",
+  "rating_score": 287,
+  "is_pinned": false,
+  "is_deprecated": false,
+  "has_nsfw_content": false,
+  "categories": [
+   "Mods"
+  ],
+  "versions": [
+   {
+    "name": "MonkeMinimap",
+    "full_name": "Kai-MonkeMinimap-0.6.2",
+    "description": "Minimap on your wrist that shows friends and the map layout.",
+    "icon": "https://gcdn.thunderstore.io/live/repository/icons/Kai-MonkeMinimap-0.6.2.png",
+    "version_number": "0.6.2",
+    "dependencies": [
+     "Fchb1239-GorillaFriends-1.8.0"
+    ],
+    "download_url": "https://thunderstore.io/package/download/Kai/MonkeMinimap/0.6.2/",
+    "downloads": 1861,
+    "date_created": "2026-09-20T09:00:00.000000Z",
+    "website_url": "https://github.com/Kai/MonkeMinimap",
+    "is_active": true,
+    "uuid4": "10000000-0000-4000-8000-000000000030",
+    "file_size": 130000
+   },
+   {
+    "name": "MonkeMinimap",
+    "full_name": "Kai-MonkeMinimap-0.0.1",
+    "description": "older",
+    "icon": "",
+    "version_number": "0.0.1",
+    "dependencies": [],
+    "download_url": "https://thunderstore.io/package/download/Kai/MonkeMinimap/0.0.1/",
+    "downloads": 10,
+    "date_created": "2025-03-01T09:00:00.000000Z",
+    "website_url": "",
+    "is_active": true,
+    "uuid4": "20000000-0000-4000-8000-000000000030",
+    "file_size": 1000
+   }
+  ]
+ },
+ {
+  "name": "WristClock",
+  "full_name": "Ruby-WristClock",
+  "owner": "Ruby",
+  "package_url": "https://thunderstore.io/c/gorilla-tag/p/Ruby/WristClock/",
+  "date_created": "2025-03-05T10:00:00.000000Z",
+  "date_updated": "2026-10-05T12:30:00.000000Z",
+  "uuid4": "00000000-0000-4000-8000-000000000031",
+  "rating_score": 99,
+  "is_pinned": false,
+  "is_deprecated": false,
+  "has_nsfw_content": false,
+  "categories": [
+   "Mods"
+  ],
+  "versions": [
+   {
+    "name": "WristClock",
+    "full_name": "Ruby-WristClock-1.0.0",
+    "description": "A clock. That is it. That is the mod.",
+    "icon": "https://gcdn.thunderstore.io/live/repository/icons/Ruby-WristClock-1.0.0.png",
+    "version_number": "1.0.0",
+    "dependencies": [],
+    "download_url": "https://thunderstore.io/package/download/Ruby/WristClock/1.0.0/",
+    "downloads": 1297,
+    "date_created": "2026-09-20T09:00:00.000000Z",
+    "website_url": "https://github.com/Ruby/WristClock",
+    "is_active": true,
+    "uuid4": "10000000-0000-4000-8000-000000000031",
+    "file_size": 133000
+   },
+   {
+    "name": "WristClock",
+    "full_name": "Ruby-WristClock-0.0.1",
+    "description": "older",
+    "icon": "",
+    "version_number": "0.0.1",
+    "dependencies": [],
+    "download_url": "https://thunderstore.io/package/download/Ruby/WristClock/0.0.1/",
+    "downloads": 10,
+    "date_created": "2025-03-01T09:00:00.000000Z",
+    "website_url": "",
+    "is_active": true,
+    "uuid4": "20000000-0000-4000-8000-000000000031",
+    "file_size": 1000
+   }
+  ]
+ },
+ {
+  "name": "LegacyMovement",
+  "full_name": "Arlo-LegacyMovement",
+  "owner": "Arlo",
+  "package_url": "https://thunderstore.io/c/gorilla-tag/p/Arlo/LegacyMovement/",
+  "date_created": "2025-03-06T10:00:00.000000Z",
+  "date_updated": "2026-10-06T12:30:00.000000Z",
+  "uuid4": "00000000-0000-4000-8000-000000000032",
+  "rating_score": 40,
+  "is_pinned": false,
+  "is_deprecated": true,
+  "has_nsfw_content": false,
+  "categories": [
+   "Mods"
+  ],
+  "versions": [
+   {
+    "name": "LegacyMovement",
+    "full_name": "Arlo-LegacyMovement-0.4.0",
+    "description": "Old movement physics for nostalgia. Deprecated by the author.",
+    "icon": "https://gcdn.thunderstore.io/live/repository/icons/Arlo-LegacyMovement-0.4.0.png",
+    "version_number": "0.4.0",
+    "dependencies": [
+     "BepInEx-BepInExPack_GorillaTag-5.4.2304"
+    ],
+    "download_url": "https://thunderstore.io/package/download/Arlo/LegacyMovement/0.4.0/",
+    "downloads": 1120,
+    "date_created": "2026-09-20T09:00:00.000000Z",
+    "website_url": "https://github.com/Arlo/LegacyMovement",
+    "is_active": true,
+    "uuid4": "10000000-0000-4000-8000-000000000032",
+    "file_size": 136000
+   },
+   {
+    "name": "LegacyMovement",
+    "full_name": "Arlo-LegacyMovement-0.0.1",
+    "description": "older",
+    "icon": "",
+    "version_number": "0.0.1",
+    "dependencies": [],
+    "download_url": "https://thunderstore.io/package/download/Arlo/LegacyMovement/0.0.1/",
+    "downloads": 10,
+    "date_created": "2025-03-01T09:00:00.000000Z",
+    "website_url": "",
+    "is_active": true,
+    "uuid4": "20000000-0000-4000-8000-000000000032",
+    "file_size": 1000
+   }
+  ]
+ },
+ {
+  "name": "ModdedLeaderboard",
+  "full_name": "Mina-ModdedLeaderboard",
+  "owner": "Mina",
+  "package_url": "https://thunderstore.io/c/gorilla-tag/p/Mina/ModdedLeaderboard/",
+  "date_created": "2025-03-07T10:00:00.000000Z",
+  "date_updated": "2026-10-07T12:30:00.000000Z",
+  "uuid4": "00000000-0000-4000-8000-000000000033",
+  "rating_score": 164,
+  "is_pinned": false,
+  "is_deprecated": false,
+  "has_nsfw_content": false,
+  "categories": [
+   "Mods"
+  ],
+  "versions": [
+   {
+    "name": "ModdedLeaderboard",
+    "full_name": "Mina-ModdedLeaderboard-1.2.0",
+    "description": "Tracks your tag stats across modded sessions.",
+    "icon": "https://gcdn.thunderstore.io/live/repository/icons/Mina-ModdedLeaderboard-1.2.0.png",
+    "version_number": "1.2.0",
+    "dependencies": [
+     "Auros-PhotonUtility-2.0.1"
+    ],
+    "download_url": "https://thunderstore.io/package/download/Mina/ModdedLeaderboard/1.2.0/",
+    "downloads": 1492,
+    "date_created": "2026-09-20T09:00:00.000000Z",
+    "website_url": "https://github.com/Mina/ModdedLeaderboard",
+    "is_active": true,
+    "uuid4": "10000000-0000-4000-8000-000000000033",
+    "file_size": 139000
+   },
+   {
+    "name": "ModdedLeaderboard",
+    "full_name": "Mina-ModdedLeaderboard-0.0.1",
+    "description": "older",
+    "icon": "",
+    "version_number": "0.0.1",
+    "dependencies": [],
+    "download_url": "https://thunderstore.io/package/download/Mina/ModdedLeaderboard/0.0.1/",
+    "downloads": 10,
+    "date_created": "2025-03-01T09:00:00.000000Z",
+    "website_url": "",
+    "is_active": true,
+    "uuid4": "20000000-0000-4000-8000-000000000033",
+    "file_size": 1000
+   }
+  ]
+ },
+ {
+  "name": "GorillaTagRadio",
+  "full_name": "Joss-GorillaTagRadio",
+  "owner": "Joss",
+  "package_url": "https://thunderstore.io/c/gorilla-tag/p/Joss/GorillaTagRadio/",
+  "date_created": "2025-03-08T10:00:00.000000Z",
+  "date_updated": "2026-10-08T12:30:00.000000Z",
+  "uuid4": "00000000-0000-4000-8000-000000000034",
+  "rating_score": 342,
+  "is_pinned": false,
+  "is_deprecated": false,
+  "has_nsfw_content": false,
+  "categories": [
+   "Mods"
+  ],
+  "versions": [
+   {
+    "name": "GorillaTagRadio",
+    "full_name": "Joss-GorillaTagRadio-1.4.1",
+    "description": "Play music from a folder in the lobby for everyone with the mod.",
+    "icon": "https://gcdn.thunderstore.io/live/repository/icons/Joss-GorillaTagRadio-1.4.1.png",
+    "version_number": "1.4.1",
+    "dependencies": [
+     "BepInEx-BepInExPack_GorillaTag-5.4.2304"
+    ],
+    "download_url": "https://thunderstore.io/package/download/Joss/GorillaTagRadio/1.4.1/",
+    "downloads": 2026,
+    "date_created": "2026-09-20T09:00:00.000000Z",
+    "website_url": "https://github.com/Joss/GorillaTagRadio",
+    "is_active": true,
+    "uuid4": "10000000-0000-4000-8000-000000000034",
+    "file_size": 142000
+   },
+   {
+    "name": "GorillaTagRadio",
+    "full_name": "Joss-GorillaTagRadio-0.0.1",
+    "description": "older",
+    "icon": "",
+    "version_number": "0.0.1",
+    "dependencies": [],
+    "download_url": "https://thunderstore.io/package/download/Joss/GorillaTagRadio/0.0.1/",
+    "downloads": 10,
+    "date_created": "2025-03-01T09:00:00.000000Z",
+    "website_url": "",
+    "is_active": true,
+    "uuid4": "20000000-0000-4000-8000-000000000034",
+    "file_size": 1000
+   }
+  ]
+ },
+ {
+  "name": "ControllerRemapper",
+  "full_name": "Pia-ControllerRemapper",
+  "owner": "Pia",
+  "package_url": "https://thunderstore.io/c/gorilla-tag/p/Pia/ControllerRemapper/",
+  "date_created": "2025-03-09T10:00:00.000000Z",
+  "date_updated": "2026-10-09T12:30:00.000000Z",
+  "uuid4": "00000000-0000-4000-8000-000000000035",
+  "rating_score": 218,
+  "is_pinned": false,
+  "is_deprecated": false,
+  "has_nsfw_content": false,
+  "categories": [
+   "Mods"
+  ],
+  "versions": [
+   {
+    "name": "ControllerRemapper",
+    "full_name": "Pia-ControllerRemapper-0.9.0",
+    "description": "Remap buttons on any controller layout.",
+    "icon": "https://gcdn.thunderstore.io/live/repository/icons/Pia-ControllerRemapper-0.9.0.png",
+    "version_number": "0.9.0",
+    "dependencies": [],
+    "download_url": "https://thunderstore.io/package/download/Pia/ControllerRemapper/0.9.0/",
+    "downloads": 1654,
+    "date_created": "2026-09-20T09:00:00.000000Z",
+    "website_url": "https://github.com/Pia/ControllerRemapper",
+    "is_active": true,
+    "uuid4": "10000000-0000-4000-8000-000000000035",
+    "file_size": 145000
+   },
+   {
+    "name": "ControllerRemapper",
+    "full_name": "Pia-ControllerRemapper-0.0.1",
+    "description": "older",
+    "icon": "",
+    "version_number": "0.0.1",
+    "dependencies": [],
+    "download_url": "https://thunderstore.io/package/download/Pia/ControllerRemapper/0.0.1/",
+    "downloads": 10,
+    "date_created": "2025-03-01T09:00:00.000000Z",
+    "website_url": "",
+    "is_active": true,
+    "uuid4": "20000000-0000-4000-8000-000000000035",
+    "file_size": 1000
+   }
+  ]
+ },
+ {
+  "name": "GorillaCrashLogger",
+  "full_name": "Hal-GorillaCrashLogger",
+  "owner": "Hal",
+  "package_url": "https://thunderstore.io/c/gorilla-tag/p/Hal/GorillaCrashLogger/",
+  "date_created": "2025-03-01T10:00:00.000000Z",
+  "date_updated": "2026-10-10T12:30:00.000000Z",
+  "uuid4": "00000000-0000-4000-8000-000000000036",
+  "rating_score": 83,
+  "is_pinned": false,
+  "is_deprecated": false,
+  "has_nsfw_content": false,
+  "categories": [
+   "Mods"
+  ],
+  "versions": [
+   {
+    "name": "GorillaCrashLogger",
+    "full_name": "Hal-GorillaCrashLogger-1.0.3",
+    "description": "Writes a readable crash report next to the game.",
+    "icon": "https://gcdn.thunderstore.io/live/repository/icons/Hal-GorillaCrashLogger-1.0.3.png",
+    "version_number": "1.0.3",
+    "dependencies": [
+     "BepInEx-BepInExPack_GorillaTag-5.4.2304"
+    ],
+    "download_url": "https://thunderstore.io/package/download/Hal/GorillaCrashLogger/1.0.3/",
+    "downloads": 1249,
+    "date_created": "2026-09-20T09:00:00.000000Z",
+    "website_url": "https://github.com/Hal/GorillaCrashLogger",
+    "is_active": true,
+    "uuid4": "10000000-0000-4000-8000-000000000036",
+    "file_size": 148000
+   },
+   {
+    "name": "GorillaCrashLogger",
+    "full_name": "Hal-GorillaCrashLogger-0.0.1",
+    "description": "older",
+    "icon": "",
+    "version_number": "0.0.1",
+    "dependencies": [],
+    "download_url": "https://thunderstore.io/package/download/Hal/GorillaCrashLogger/0.0.1/",
+    "downloads": 10,
+    "date_created": "2025-03-01T09:00:00.000000Z",
+    "website_url": "",
+    "is_active": true,
+    "uuid4": "20000000-0000-4000-8000-000000000036",
+    "file_size": 1000
+   }
+  ]
+ },
+ {
+  "name": "StumpDecorations",
+  "full_name": "Brae-StumpDecorations",
+  "owner": "Brae",
+  "package_url": "https://thunderstore.io/c/gorilla-tag/p/Brae/StumpDecorations/",
+  "date_created": "2025-03-02T10:00:00.000000Z",
+  "date_updated": "2026-10-11T12:30:00.000000Z",
+  "uuid4": "00000000-0000-4000-8000-000000000037",
+  "rating_score": 17,
+  "is_pinned": false,
+  "is_deprecated": true,
+  "has_nsfw_content": false,
+  "categories": [
+   "Mods"
+  ],
+  "versions": [
+   {
+    "name": "StumpDecorations",
+    "full_name": "Brae-StumpDecorations-0.2.1",
+    "description": "Decorate the stump with stuff from your cosmetics.",
+    "icon": "https://gcdn.thunderstore.io/live/repository/icons/Brae-StumpDecorations-0.2.1.png",
+    "version_number": "0.2.1",
+    "dependencies": [
+     "Graic-GorillaCosmetics-2.1.0"
+    ],
+    "download_url": "https://thunderstore.io/package/download/Brae/StumpDecorations/0.2.1/",
+    "downloads": 1051,
+    "date_created": "2026-09-20T09:00:00.000000Z",
+    "website_url": "https://github.com/Brae/StumpDecorations",
+    "is_active": true,
+    "uuid4": "10000000-0000-4000-8000-000000000037",
+    "file_size": 151000
+   },
+   {
+    "name": "StumpDecorations",
+    "full_name": "Brae-StumpDecorations-0.0.1",
+    "description": "older",
+    "icon": "",
+    "version_number": "0.0.1",
+    "dependencies": [],
+    "download_url": "https://thunderstore.io/package/download/Brae/StumpDecorations/0.0.1/",
+    "downloads": 10,
+    "date_created": "2025-03-01T09:00:00.000000Z",
+    "website_url": "",
+    "is_active": true,
+    "uuid4": "20000000-0000-4000-8000-000000000037",
+    "file_size": 1000
+   }
+  ]
+ },
+ {
+  "name": "QuickRejoin",
+  "full_name": "Cole-QuickRejoin",
+  "owner": "Cole",
+  "package_url": "https://thunderstore.io/c/gorilla-tag/p/Cole/QuickRejoin/",
+  "date_created": "2025-03-03T10:00:00.000000Z",
+  "date_updated": "2026-10-12T12:30:00.000000Z",
+  "uuid4": "00000000-0000-4000-8000-000000000038",
+  "rating_score": 270,
+  "is_pinned": false,
+  "is_deprecated": false,
+  "has_nsfw_content": false,
+  "categories": [
+   "Mods"
+  ],
+  "versions": [
+   {
+    "name": "QuickRejoin",
+    "full_name": "Cole-QuickRejoin-1.1.0",
+    "description": "Rejoin the last room with one gesture after a disconnect.",
+    "icon": "https://gcdn.thunderstore.io/live/repository/icons/Cole-QuickRejoin-1.1.0.png",
+    "version_number": "1.1.0",
+    "dependencies": [
+     "Auros-PhotonUtility-2.0.1"
+    ],
+    "download_url": "https://thunderstore.io/package/download/Cole/QuickRejoin/1.1.0/",
+    "downloads": 1810,
+    "date_created": "2026-09-20T09:00:00.000000Z",
+    "website_url": "https://github.com/Cole/QuickRejoin",
+    "is_active": true,
+    "uuid4": "10000000-0000-4000-8000-000000000038",
+    "file_size": 154000
+   },
+   {
+    "name": "QuickRejoin",
+    "full_name": "Cole-QuickRejoin-0.0.1",
+    "description": "older",
+    "icon": "",
+    "version_number": "0.0.1",
+    "dependencies": [],
+    "download_url": "https://thunderstore.io/package/download/Cole/QuickRejoin/0.0.1/",
+    "downloads": 10,
+    "date_created": "2025-03-01T09:00:00.000000Z",
+    "website_url": "",
+    "is_active": true,
+    "uuid4": "20000000-0000-4000-8000-000000000038",
+    "file_size": 1000
+   }
+  ]
+ },
+ {
+  "name": "MonkeGUI",
+  "full_name": "Vee-MonkeGUI",
+  "owner": "Vee",
+  "package_url": "https://thunderstore.io/c/gorilla-tag/p/Vee/MonkeGUI/",
+  "date_created": "2025-03-04T10:00:00.000000Z",
+  "date_updated": "2026-10-13T12:30:00.000000Z",
+  "uuid4": "00000000-0000-4000-8000-000000000039",
+  "rating_score": 450,
+  "is_pinned": false,
+  "is_deprecated": false,
+  "has_nsfw_content": false,
+  "categories": [
+   "Mods"
+  ],
+  "versions": [
+   {
+    "name": "MonkeGUI",
+    "full_name": "Vee-MonkeGUI-2.0.3",
+    "description": "Small immediate-mode UI helper used by other mods.",
+    "icon": "https://gcdn.thunderstore.io/live/repository/icons/Vee-MonkeGUI-2.0.3.png",
+    "version_number": "2.0.3",
+    "dependencies": [
+     "BepInEx-BepInExPack_GorillaTag-5.4.2304"
+    ],
+    "download_url": "https://thunderstore.io/package/download/Vee/MonkeGUI/2.0.3/",
+    "downloads": 2350,
+    "date_created": "2026-09-20T09:00:00.000000Z",
+    "website_url": "https://github.com/Vee/MonkeGUI",
+    "is_active": true,
+    "uuid4": "10000000-0000-4000-8000-000000000039",
+    "file_size": 157000
+   },
+   {
+    "name": "MonkeGUI",
+    "full_name": "Vee-MonkeGUI-0.0.1",
+    "description": "older",
+    "icon": "",
+    "version_number": "0.0.1",
+    "dependencies": [],
+    "download_url": "https://thunderstore.io/package/download/Vee/MonkeGUI/0.0.1/",
+    "downloads": 10,
+    "date_created": "2025-03-01T09:00:00.000000Z",
+    "website_url": "",
+    "is_active": true,
+    "uuid4": "20000000-0000-4000-8000-000000000039",
+    "file_size": 1000
+   }
+  ]
+ }
+]

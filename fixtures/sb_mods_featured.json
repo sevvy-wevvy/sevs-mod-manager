@@ -1,0 +1,50 @@
+{
+ "success": true,
+ "page": 1,
+ "mods": [
+  {
+   "id": 100,
+   "name": "BepInExPack_GorillaTag",
+   "dll_name": "BepInExPack_GorillaTag.dll",
+   "repo_url": "https://github.com/BepInEx/BepInExPack_GorillaTag",
+   "description": "BepInEx pack for Gorilla Tag. Preconfigured and ready to use.",
+   "author_username": "BepInEx",
+   "upvotes": 421,
+   "is_verified": 1,
+   "is_featured": 1
+  },
+  {
+   "id": 101,
+   "name": "Utilla",
+   "dll_name": "Utilla.dll",
+   "repo_url": "https://github.com/legoandmars/Utilla",
+   "description": "Utility library for Gorilla Tag mods: room detection, gamemodes and more.",
+   "author_username": "legoandmars",
+   "upvotes": 98,
+   "is_verified": 1,
+   "is_featured": 1
+  },
+  {
+   "id": 102,
+   "name": "ComputerInterface",
+   "dll_name": "ComputerInterface.dll",
+   "repo_url": "https://github.com/ToniMacaroni/ComputerInterface",
+   "description": "Adds a usable computer to the wrist. Lets other mods add their own screens.",
+   "author_username": "ToniMacaroni",
+   "upvotes": 153,
+   "is_verified": 0,
+   "is_featured": 1
+  },
+  {
+   "id": 103,
+   "name": "GorillaCosmetics",
+   "dll_name": "GorillaCosmetics.dll",
+   "repo_url": "https://github.com/Graic/GorillaCosmetics",
+   "description": "Load custom cosmetics and materials from files. Share them with friends.",
+   "author_username": "Graic",
+   "upvotes": 76,
+   "is_verified": 1,
+   "is_featured": 1
+  }
+ ]
+}

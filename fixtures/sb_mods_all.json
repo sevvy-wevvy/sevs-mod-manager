@@ -1,0 +1,226 @@
+{
+ "success": true,
+ "page": 1,
+ "mods": [
+  {
+   "id": 100,
+   "name": "BepInExPack_GorillaTag",
+   "dll_name": "BepInExPack_GorillaTag.dll",
+   "repo_url": "https://github.com/BepInEx/BepInExPack_GorillaTag",
+   "description": "BepInEx pack for Gorilla Tag. Preconfigured and ready to use.",
+   "author_username": "BepInEx",
+   "upvotes": 421,
+   "is_verified": 1,
+   "is_featured": 1
+  },
+  {
+   "id": 101,
+   "name": "Utilla",
+   "dll_name": "Utilla.dll",
+   "repo_url": "https://github.com/legoandmars/Utilla",
+   "description": "Utility library for Gorilla Tag mods: room detection, gamemodes and more.",
+   "author_username": "legoandmars",
+   "upvotes": 98,
+   "is_verified": 1,
+   "is_featured": 1
+  },
+  {
+   "id": 102,
+   "name": "ComputerInterface",
+   "dll_name": "ComputerInterface.dll",
+   "repo_url": "https://github.com/ToniMacaroni/ComputerInterface",
+   "description": "Adds a usable computer to the wrist. Lets other mods add their own screens.",
+   "author_username": "ToniMacaroni",
+   "upvotes": 153,
+   "is_verified": 0,
+   "is_featured": 1
+  },
+  {
+   "id": 103,
+   "name": "GorillaCosmetics",
+   "dll_name": "GorillaCosmetics.dll",
+   "repo_url": "https://github.com/Graic/GorillaCosmetics",
+   "description": "Load custom cosmetics and materials from files. Share them with friends.",
+   "author_username": "Graic",
+   "upvotes": 76,
+   "is_verified": 1,
+   "is_featured": 1
+  },
+  {
+   "id": 104,
+   "name": "MonkeMapLoader",
+   "dll_name": "MonkeMapLoader.dll",
+   "repo_url": "https://github.com/Bobbie/MonkeMapLoader",
+   "description": "Load custom maps into the game from the in-game computer.",
+   "author_username": "Bobbie",
+   "upvotes": 64,
+   "is_verified": 1,
+   "is_featured": 0
+  },
+  {
+   "id": 105,
+   "name": "GorillaInfoWatch",
+   "dll_name": "GorillaInfoWatch.dll",
+   "repo_url": "https://github.com/developer9998/GorillaInfoWatch",
+   "description": "A watch for your wrist with room info, friends and a clock.",
+   "author_username": "developer9998",
+   "upvotes": 59,
+   "is_verified": 0,
+   "is_featured": 0
+  },
+  {
+   "id": 106,
+   "name": "GorillaFriends",
+   "dll_name": "GorillaFriends.dll",
+   "repo_url": "https://github.com/Fchb1239/GorillaFriends",
+   "description": "Friend list, recently met players and notifications when friends join.",
+   "author_username": "Fchb1239",
+   "upvotes": 71,
+   "is_verified": 1,
+   "is_featured": 0
+  },
+  {
+   "id": 107,
+   "name": "CustomCosmeticsMenu",
+   "dll_name": "CustomCosmeticsMenu.dll",
+   "repo_url": "https://github.com/Lofiat/CustomCosmeticsMenu",
+   "description": "Menu to equip custom cosmetics without leaving the lobby.",
+   "author_username": "Lofiat",
+   "upvotes": 20,
+   "is_verified": 1,
+   "is_featured": 0
+  },
+  {
+   "id": 108,
+   "name": "FPSCounter",
+   "dll_name": "FPSCounter.dll",
+   "repo_url": "https://github.com/kingofnetflix/FPSCounter",
+   "description": "Small fps counter on your wrist. Nothing fancy.",
+   "author_username": "kingofnetflix",
+   "upvotes": 32,
+   "is_verified": 0,
+   "is_featured": 0
+  },
+  {
+   "id": 109,
+   "name": "PhotonUtility",
+   "dll_name": "PhotonUtility.dll",
+   "repo_url": "https://github.com/Auros/PhotonUtility",
+   "description": "Helpers for room properties, custom properties and player lookup.",
+   "author_username": "Auros",
+   "upvotes": 41,
+   "is_verified": 1,
+   "is_featured": 0
+  },
+  {
+   "id": 110,
+   "name": "GorillaTagVoiceFix",
+   "dll_name": "GorillaTagVoiceFix.dll",
+   "repo_url": "https://github.com/Kyle/GorillaTagVoiceFix",
+   "description": "Fixes voice chat dropping out on long sessions.",
+   "author_username": "Kyle",
+   "upvotes": 18,
+   "is_verified": 1,
+   "is_featured": 0
+  },
+  {
+   "id": 111,
+   "name": "MonkeBackgroundTweaks",
+   "dll_name": "MonkeBackgroundTweaks.dll",
+   "repo_url": "https://github.com/Cyclone/MonkeBackgroundTweaks",
+   "description": "Change sky, fog and lighting in custom maps.",
+   "author_username": "Cyclone",
+   "upvotes": 9,
+   "is_verified": 0,
+   "is_featured": 0
+  },
+  {
+   "id": 112,
+   "name": "PlayerNameTags",
+   "dll_name": "PlayerNameTags.dll",
+   "repo_url": "https://github.com/sabinaaa/PlayerNameTags",
+   "description": "Show names above heads with colors and a toggle on the computer.",
+   "author_username": "sabinaaa",
+   "upvotes": 35,
+   "is_verified": 1,
+   "is_featured": 0
+  },
+  {
+   "id": 113,
+   "name": "GorillaSpeedLimit",
+   "dll_name": "GorillaSpeedLimit.dll",
+   "repo_url": "https://github.com/Mikey/GorillaSpeedLimit",
+   "description": "Practice mode with a speed cap. Not a cheat.",
+   "author_username": "Mikey",
+   "upvotes": 7,
+   "is_verified": 1,
+   "is_featured": 0
+  },
+  {
+   "id": 114,
+   "name": "HandTrackingTweaks",
+   "dll_name": "HandTrackingTweaks.dll",
+   "repo_url": "https://github.com/Marcus/HandTrackingTweaks",
+   "description": "Tune finger tracking and thresholds for hand tracking users.",
+   "author_username": "Marcus",
+   "upvotes": 12,
+   "is_verified": 0,
+   "is_featured": 0
+  },
+  {
+   "id": 115,
+   "name": "GorillaLights",
+   "dll_name": "GorillaLights.dll",
+   "repo_url": "https://github.com/ZeroNull/GorillaLights",
+   "description": "Flashlight and glow sticks for dark maps.",
+   "author_username": "ZeroNull",
+   "upvotes": 26,
+   "is_verified": 1,
+   "is_featured": 0
+  },
+  {
+   "id": 116,
+   "name": "MonkeEmotes",
+   "dll_name": "MonkeEmotes.dll",
+   "repo_url": "https://github.com/Hexa/MonkeEmotes",
+   "description": "Wave, dance and point with simple hand gestures.",
+   "author_username": "Hexa",
+   "upvotes": 84,
+   "is_verified": 1,
+   "is_featured": 0
+  },
+  {
+   "id": 117,
+   "name": "BananaCounter",
+   "dll_name": "BananaCounter.dll",
+   "repo_url": "https://github.com/Zivi/BananaCounter",
+   "description": "Counts bananas you pick up in modded maps.",
+   "author_username": "Zivi",
+   "upvotes": 5,
+   "is_verified": 0,
+   "is_featured": 0
+  },
+  {
+   "id": 118,
+   "name": "GorillaScreenshot",
+   "dll_name": "GorillaScreenshot.dll",
+   "repo_url": "https://github.com/Pixel/GorillaScreenshot",
+   "description": "Take screenshots with a gesture and save them to disk.",
+   "author_username": "Pixel",
+   "upvotes": 23,
+   "is_verified": 1,
+   "is_featured": 0
+  },
+  {
+   "id": 119,
+   "name": "RoomCodeCopier",
+   "dll_name": "RoomCodeCopier.dll",
+   "repo_url": "https://github.com/Nova/RoomCodeCopier",
+   "description": "Copy the room code to clipboard with one button.",
+   "author_username": "Nova",
+   "upvotes": 14,
+   "is_verified": 1,
+   "is_featured": 0
+  }
+ ]
+}

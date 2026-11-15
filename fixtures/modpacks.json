@@ -1,0 +1,30 @@
+[
+ {
+  "name": "Friends lobby",
+  "author": "sevvy",
+  "mods": [
+   "legoandmars-Utilla",
+   "ToniMacaroni-ComputerInterface",
+   "Fchb1239-GorillaFriends",
+   "sabinaaa-PlayerNameTags"
+  ]
+ },
+ {
+  "name": "Map testing",
+  "author": "bobbie",
+  "mods": [
+   "legoandmars-Utilla",
+   "ToniMacaroni-ComputerInterface",
+   "Bobbie-MonkeMapLoader",
+   "kingofnetflix-FPSCounter"
+  ]
+ },
+ {
+  "name": "Cosmetics only",
+  "author": "sevvy",
+  "mods": [
+   "legoandmars-Utilla",
+   "Graic-GorillaCosmetics"
+  ]
+ }
+]

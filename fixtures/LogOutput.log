@@ -1,0 +1,50 @@
+[Message:   BepInEx] BepInEx 5.4.23.5 - Gorilla Tag (15/11/2026 19:02:11)
+[Info   :   BepInEx] Running under Unity v2022.3.2f1
+[Info   :   BepInEx] CLR runtime version: 4.0.30319.42000
+[Info   :   BepInEx] Supports SRE: True
+[Info   :   BepInEx] System platform: Bits64, Windows
+[Info   :   BepInEx] Loaded 2 patcher plugins
+[Message:   BepInEx] Preloader started
+[Info   :   BepInEx] 4 patcher plugins loaded
+[Message:   BepInEx] Chainloader initialized
+[Message:   BepInEx] Chainloader started
+[Info   :   BepInEx] 10 plugins to load
+[Info   :   BepInEx] Loading [Utilla 1.6.4]
+[Info   :   BepInEx] Loading [Auros PhotonUtility 2.0.1]
+[Info   :   BepInEx] Loading [MonkeGUI 2.0.3]
+[Info   :   BepInEx] Loading [ComputerInterface 1.5.0]
+[Info   :   BepInEx] Loading [GorillaCosmetics 2.1.0]
+[Info   :   BepInEx] Loading [GorillaFriends 1.7.2]
+[Warning:GorillaFriends] Friend list file not found, creating a new one
+[Info   :   BepInEx] Loading [PlayerNameTags 1.3.0]
+[Info   :   BepInEx] Loading [FPSCounter 1.0.4]
+[Info   :   BepInEx] Loading [WristClock 1.0.0]
+[Info   :   BepInEx] Loading [SpeedrunTimer 0.3.0]
+[Message:   BepInEx] Chainloader startup complete
+[Info   :ComputerInterface] Registered 4 screens
+[Info   :     Utilla] Room joined: ABCD1234 (modded casual)
+[Debug  :GorillaCosmetics] Loaded 12 cosmetics from disk
+[Warning:GorillaCosmetics] Material 'rainbow_v2' is missing a shader, using default
+[Info   :PlayerNameTags] Spawned 8 tags
+[Debug  :  FPSCounter] Counter attached to left wrist
+[Info   :     Utilla] Player joined: monkeFriend42
+[Warning:GorillaFriends] Notification queue is long (14), dropping oldest
+[Info   :     Utilla] Room left
+[Info   :     Utilla] Room joined: WXYZ9876 (modded infection)
+[Warning:   Unity] The referenced script on this Behaviour is missing!
+[Error  :   Unity] NullReferenceException: Object reference not set to an instance of an object
+Stack trace:
+GorillaFriends.FriendList.UpdateEntries () (at <5d3a0cc4>:0)
+GorillaFriends.NotificationToast.Show (System.String text) (at <5d3a0cc4>:0)
+GorillaFriends.Plugin.OnPlayerJoined (Photon.Realtime.Player player) (at <5d3a0cc4>:0)
+Utilla.Events.RoomJoinedHandler.Invoke (System.String gamemode) (at <9f1ab2e1>:0)
+Utilla.Behaviours.RoomMonitor.OnJoinedRoom () (at <9f1ab2e1>:0)
+Photon.Pun.PhotonNetwork.OnJoinedRoom () (at <4bd44c10>:0)
+UnityEngine.Events.InvokableCall.Invoke () (at <1a0c3ed0>:0)
+
+[Info   :PlayerNameTags] Cleared tags after error
+[Warning:   Unity] Shader 'GorillaTag/UberShader' not supported on this GPU, falling back
+[Error  :ComputerInterface] Screen 'Mods' threw while drawing: Index was out of range.
+[Info   :ComputerInterface] Screen 'Mods' disabled for this session
+[Info   :     Utilla] Room left
+[Message:   BepInEx] Game closing

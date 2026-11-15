@@ -1,0 +1,39 @@
+[
+ {
+  "Number": 1,
+  "Name": "Daily driver",
+  "EnabledMods": [
+   "WristClock",
+   "SpeedrunTimer"
+  ],
+  "DisabledMods": [
+   "MyLocalTweaks",
+   "OldHatsBackup"
+  ],
+  "MissingMods": []
+ },
+ {
+  "Number": 2,
+  "Name": "Maps night",
+  "EnabledMods": [
+   "WristClock"
+  ],
+  "DisabledMods": [
+   "SpeedrunTimer"
+  ],
+  "MissingMods": [
+   "MapPack2"
+  ]
+ },
+ {
+  "Number": 3,
+  "Name": "",
+  "EnabledMods": [],
+  "DisabledMods": [
+   "WristClock",
+   "SpeedrunTimer",
+   "MyLocalTweaks"
+  ],
+  "MissingMods": []
+ }
+]

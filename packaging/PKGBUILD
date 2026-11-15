@@ -1,0 +1,30 @@
+pkgname=sevs-mod-manager-git
+pkgver=0
+pkgrel=1
+pkgdesc="A mod manager that works for nearly all unity games"
+arch=('x86_64' 'aarch64')
+url="https://github.com/sevvy-wevvy/sevs-mod-manager"
+license=('GPL3')
+depends=('curl' 'glibc')
+optdepends=('zenity: file pickers' 'steam: find your games')
+makedepends=('git' 'gcc')
+provides=('sevs-mod-manager')
+source=("git+$url.git#branch=dev")
+sha256sums=('SKIP')
+
+pkgver() {
+  cd sevs-mod-manager
+  printf 'r%s.%s' "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+}
+
+build() {
+  cd sevs-mod-manager
+  ./build.sh
+}
+
+package() {
+  cd sevs-mod-manager
+  install -Dm755 build/smm "$pkgdir/usr/bin/smm"
+  printf '[Desktop Entry]\nType=Application\nName=Sevs Mod Manager\nExec=smm\nCategories=Game;Utility;\nTerminal=false\n' > sevs-mod-manager.desktop
+  install -Dm644 sevs-mod-manager.desktop "$pkgdir/usr/share/applications/sevs-mod-manager.desktop"
+}

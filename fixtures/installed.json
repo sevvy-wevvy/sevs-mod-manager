@@ -1,0 +1,76 @@
+[
+ {
+  "name": "legoandmars-Utilla",
+  "folder": true,
+  "enabled": true,
+  "version": "1.6.4"
+ },
+ {
+  "name": "ToniMacaroni-ComputerInterface",
+  "folder": true,
+  "enabled": true,
+  "version": "1.5.0"
+ },
+ {
+  "name": "Graic-GorillaCosmetics",
+  "folder": true,
+  "enabled": true,
+  "version": "2.1.0"
+ },
+ {
+  "name": "Fchb1239-GorillaFriends",
+  "folder": true,
+  "enabled": true,
+  "version": "1.7.2"
+ },
+ {
+  "name": "Bobbie-MonkeMapLoader",
+  "folder": true,
+  "enabled": false,
+  "version": "0.9.6"
+ },
+ {
+  "name": "kingofnetflix-FPSCounter",
+  "folder": true,
+  "enabled": true,
+  "version": "1.0.4"
+ },
+ {
+  "name": "Auros-PhotonUtility",
+  "folder": true,
+  "enabled": true,
+  "version": "2.0.1"
+ },
+ {
+  "name": "sabinaaa-PlayerNameTags",
+  "folder": true,
+  "enabled": true,
+  "version": "1.3.0"
+ },
+ {
+  "name": "Vee-MonkeGUI",
+  "folder": true,
+  "enabled": true,
+  "version": "2.0.3"
+ },
+ {
+  "name": "WristClock",
+  "folder": false,
+  "enabled": true
+ },
+ {
+  "name": "SpeedrunTimer",
+  "folder": false,
+  "enabled": true
+ },
+ {
+  "name": "MyLocalTweaks",
+  "folder": false,
+  "enabled": false
+ },
+ {
+  "name": "OldHatsBackup",
+  "folder": false,
+  "enabled": false
+ }
+]
