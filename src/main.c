@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "ui/app.h"
+#include "core/internal.h"
 #include "ui/integrate.h"
 
 void chrome_draw(void);
@@ -42,9 +43,7 @@ void app_startup(const char *pack_path, int skip_picker)
     int demo = smm_demo_enabled();
     if (!demo && !skip_picker && !pack_path) smm_settings.game_path[0] = 0;
     if (!demo && app_has_game()) {
-        FILE *f = fopen(smm_settings.game_path, "rb");
-        if (f) fclose(f);
-        else smm_settings.game_path[0] = 0;
+        if (!smm_os_is_file(smm_settings.game_path)) smm_settings.game_path[0] = 0;
     }
     theme_refresh();
     if (!app_has_game()) dlg_game_picker_open();
@@ -137,6 +136,7 @@ int main(int argc, char **argv)
 {
     const char *pack = NULL;
     int skip = 0;
+    smm_os_prepare_args(&argc, &argv);
     for (int i = 1; i < argc; i++) {
         int rc = integrate_cli(argv[i]);
         if (rc >= 0) return rc;

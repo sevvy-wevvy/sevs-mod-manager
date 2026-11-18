@@ -108,6 +108,7 @@ void smm_os_cond_wait(void *c, void *m);
 void smm_os_cond_signal(void *c);
 void smm_os_cond_broadcast(void *c);
 int smm_os_registry_steam(char *out, size_t n);
+void smm_os_prepare_args(int *argc, char ***argv);
 
 typedef struct SmmJson SmmJson;
 enum { SMM_J_NULL, SMM_J_BOOL, SMM_J_NUM, SMM_J_STR, SMM_J_ARR, SMM_J_OBJ };

@@ -4,27 +4,68 @@
 #include "internal.h"
 #include <windows.h>
 #include <shellapi.h>
+#include <objbase.h>
 #include <tlhelp32.h>
 #include <stdlib.h>
 #include <wchar.h>
+#include <stdio.h>
 
 struct SmmProc {
     HANDLE h;
 };
 
-static wchar_t *to_wide(const char *s)
+static wchar_t *utf8_to_wide(const char *s)
 {
     int n = MultiByteToWideChar(CP_UTF8, 0, s, -1, NULL, 0);
+    if (n <= 0) {
+        wchar_t *e = smm_xmalloc(sizeof(wchar_t));
+        e[0] = 0;
+        return e;
+    }
     wchar_t *w = smm_xmalloc((size_t)n * sizeof(wchar_t));
     MultiByteToWideChar(CP_UTF8, 0, s, -1, w, n);
-    for (wchar_t *p = w; *p; p++)
-        if (*p == L'/') *p = L'\\';
     return w;
 }
 
-static void from_wide(const wchar_t *w, char *out, size_t n)
+static wchar_t *to_wide(const char *s)
 {
-    WideCharToMultiByte(CP_UTF8, 0, w, -1, out, (int)n, NULL, NULL);
+    wchar_t *w = utf8_to_wide(s);
+    for (wchar_t *p = w; *p; p++)
+        if (*p == L'/') *p = L'\\';
+    size_t n = wcslen(w);
+    int drive = n >= 3 && w[1] == L':' && w[2] == L'\\';
+    if (n >= 240 && drive) {
+        wchar_t *l = smm_xmalloc((n + 5) * sizeof(wchar_t));
+        wcscpy(l, L"\\\\?\\");
+        wcscpy(l + 4, w);
+        free(w);
+        return l;
+    }
+    return w;
+}
+
+static int from_wide(const wchar_t *w, char *out, size_t n)
+{
+    int r = WideCharToMultiByte(CP_UTF8, 0, w, -1, out, (int)n, NULL, NULL);
+    if (r <= 0) {
+        if (n) out[0] = 0;
+        return -1;
+    }
+    return 0;
+}
+
+static const char *env_utf8(const char *k)
+{
+    static char ring[8][2048];
+    static LONG next;
+    char *slot = ring[(unsigned)InterlockedIncrement(&next) % 8];
+    wchar_t *wk = utf8_to_wide(k);
+    wchar_t val[2048];
+    DWORD got = GetEnvironmentVariableW(wk, val, 2048);
+    free(wk);
+    if (got == 0 || got >= 2048) return NULL;
+    if (from_wide(val, slot, 2048) != 0) return NULL;
+    return slot;
 }
 
 FILE *smm_os_fopen(const char *path, const char *mode)
@@ -93,8 +134,10 @@ int smm_os_mkdir_p(const char *path)
 {
     wchar_t *w = to_wide(path);
     size_t n = wcslen(w);
-    while (n > 3 && w[n - 1] == L'\\') w[--n] = 0;
-    for (wchar_t *p = w + 3; *p; p++) {
+    size_t root = wcsncmp(w, L"\\\\?\\", 4) == 0 ? 7 : 3;
+    while (n > root && w[n - 1] == L'\\') w[--n] = 0;
+    if (n < root) root = n;
+    for (wchar_t *p = w + root; *p; p++) {
         if (*p != L'\\') continue;
         *p = 0;
         CreateDirectoryW(w, NULL);
@@ -106,11 +149,23 @@ int smm_os_mkdir_p(const char *path)
     return a != INVALID_FILE_ATTRIBUTES && (a & FILE_ATTRIBUTE_DIRECTORY) ? 0 : -1;
 }
 
+static int retryable(DWORD e)
+{
+    return e == ERROR_SHARING_VIOLATION || e == ERROR_ACCESS_DENIED || e == ERROR_LOCK_VIOLATION;
+}
+
 int smm_os_remove(const char *path)
 {
     wchar_t *w = to_wide(path);
-    BOOL ok = DeleteFileW(w);
-    if (!ok) ok = RemoveDirectoryW(w);
+    BOOL ok = FALSE;
+    for (int i = 0; i < 6 && !ok; i++) {
+        DWORD a = GetFileAttributesW(w);
+        if (a == INVALID_FILE_ATTRIBUTES) break;
+        if (a & FILE_ATTRIBUTE_READONLY) SetFileAttributesW(w, a & ~(DWORD)FILE_ATTRIBUTE_READONLY);
+        ok = (a & FILE_ATTRIBUTE_DIRECTORY) ? RemoveDirectoryW(w) : DeleteFileW(w);
+        if (!ok && !retryable(GetLastError())) break;
+        if (!ok) Sleep(40);
+    }
     free(w);
     return ok ? 0 : -1;
 }
@@ -136,8 +191,9 @@ int smm_os_list(const char *dir, SmmDirList *out)
             out->cap = out->cap ? out->cap * 2 : 32;
             out->v = smm_xrealloc(out->v, (size_t)out->cap * sizeof(SmmDirEntry));
         }
-        SmmDirEntry *x = &out->v[out->n++];
-        from_wide(fd.cFileName, x->name, sizeof x->name);
+        SmmDirEntry *x = &out->v[out->n];
+        if (from_wide(fd.cFileName, x->name, sizeof x->name) != 0) continue;
+        out->n++;
         x->is_dir = (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
         x->size = ((long long)fd.nFileSizeHigh << 32) | fd.nFileSizeLow;
         x->mtime = ft_to_unix(fd.ftLastWriteTime);
@@ -149,7 +205,7 @@ int smm_os_list(const char *dir, SmmDirList *out)
 int smm_os_remove_tree(const char *path)
 {
     if (!smm_os_exists(path)) return 0;
-    if (!smm_os_is_dir(path)) return smm_os_remove(path);
+    if (!smm_os_is_dir(path) || (attrs(path) & FILE_ATTRIBUTE_REPARSE_POINT)) return smm_os_remove(path);
     SmmDirList l = {0};
     smm_os_list(path, &l);
     for (int i = 0; i < l.n; i++) {
@@ -164,7 +220,12 @@ int smm_os_remove_tree(const char *path)
 int smm_os_rename(const char *from, const char *to)
 {
     wchar_t *a = to_wide(from), *b = to_wide(to);
-    BOOL ok = MoveFileExW(a, b, MOVEFILE_REPLACE_EXISTING);
+    BOOL ok = FALSE;
+    for (int i = 0; i < 6 && !ok; i++) {
+        ok = MoveFileExW(a, b, MOVEFILE_REPLACE_EXISTING);
+        if (!ok && !retryable(GetLastError())) break;
+        if (!ok) Sleep(40);
+    }
     free(a);
     free(b);
     return ok ? 0 : -1;
@@ -262,7 +323,7 @@ const char *smm_os_home(void)
 {
     static char home[SMM_PATH];
     if (!home[0]) {
-        const char *h = getenv("USERPROFILE");
+        const char *h = env_utf8("USERPROFILE");
         smm_copy(home, sizeof home, h ? h : "C:\\");
     }
     return home;
@@ -270,35 +331,37 @@ const char *smm_os_home(void)
 
 void smm_os_config_base(char *out, size_t n)
 {
-    const char *a = getenv("APPDATA");
+    const char *a = env_utf8("APPDATA");
     if (a && *a) smm_copy(out, n, a);
     else smm_join(out, n, smm_os_home(), "AppData\\Roaming");
 }
 
 void smm_os_temp_dir(char *out, size_t n)
 {
-    const char *t = getenv("SMM_TMP");
-    if (!t || !*t) t = getenv("TEMP");
+    const char *t = env_utf8("SMM_TMP");
+    if (!t || !*t) t = env_utf8("TEMP");
     smm_copy(out, n, t && *t ? t : "C:\\Windows\\Temp");
 }
 
 const char *smm_os_getenv(const char *k)
 {
-    return getenv(k);
+    return env_utf8(k);
 }
 
 int smm_os_setenv(const char *k, const char *v)
 {
-    return _putenv_s(k, v);
+    wchar_t *wk = utf8_to_wide(k), *wv = utf8_to_wide(v);
+    int rc = _wputenv_s(wk, wv);
+    free(wk);
+    free(wv);
+    return rc;
 }
 
 static wchar_t *build_cmdline(const char *const *argv)
 {
     SmmBuf b = {0};
     smm_cmdline_quote(argv, &b);
-    int n = MultiByteToWideChar(CP_UTF8, 0, b.p, -1, NULL, 0);
-    wchar_t *w = smm_xmalloc((size_t)n * sizeof(wchar_t));
-    MultiByteToWideChar(CP_UTF8, 0, b.p, -1, w, n);
+    wchar_t *w = utf8_to_wide(b.p);
     smm_buf_free(&b);
     return w;
 }
@@ -311,10 +374,13 @@ static HANDLE create_proc(const char *const *argv, HANDLE out_h, const char *cwd
     si.cb = sizeof si;
     si.dwFlags = STARTF_USESHOWWINDOW | (out_h ? STARTF_USESTDHANDLES : 0);
     si.wShowWindow = SW_HIDE;
+    SECURITY_ATTRIBUTES sa = {sizeof sa, NULL, TRUE};
+    HANDLE nul = INVALID_HANDLE_VALUE;
     if (out_h) {
+        nul = CreateFileW(L"NUL", GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, &sa, OPEN_EXISTING, 0, NULL);
         si.hStdOutput = out_h;
-        si.hStdError = INVALID_HANDLE_VALUE;
-        si.hStdInput = INVALID_HANDLE_VALUE;
+        si.hStdError = nul;
+        si.hStdInput = nul;
     }
     wchar_t *cmd = build_cmdline(argv);
     wchar_t *wd = cwd && *cwd ? to_wide(cwd) : NULL;
@@ -324,21 +390,37 @@ static HANDLE create_proc(const char *const *argv, HANDLE out_h, const char *cwd
         si.wShowWindow = SW_SHOWNORMAL;
     }
     BOOL ok = CreateProcessW(NULL, cmd, NULL, NULL, out_h ? TRUE : FALSE, flags, NULL, wd, &si, &pi);
+    if (!ok && detached && GetLastError() == ERROR_ELEVATION_REQUIRED) {
+        wchar_t *exe = to_wide(argv[0]);
+        HINSTANCE r = ShellExecuteW(NULL, L"open", exe, NULL, wd, SW_SHOWNORMAL);
+        free(exe);
+        free(cmd);
+        free(wd);
+        return (INT_PTR)r > 32 ? INVALID_HANDLE_VALUE : NULL;
+    }
     free(cmd);
     free(wd);
+    if (nul != INVALID_HANDLE_VALUE) CloseHandle(nul);
     if (!ok) return NULL;
     CloseHandle(pi.hThread);
     return pi.hProcess;
 }
 
+static SRWLOCK inherit_lock = SRWLOCK_INIT;
+
 int smm_os_run(const char *const *argv, SmmBuf *out, int *exit_code)
 {
     SECURITY_ATTRIBUTES sa = {sizeof sa, NULL, TRUE};
     HANDLE rd, wr;
-    if (!CreatePipe(&rd, &wr, &sa, 0)) return -1;
+    AcquireSRWLockExclusive(&inherit_lock);
+    if (!CreatePipe(&rd, &wr, &sa, 0)) {
+        ReleaseSRWLockExclusive(&inherit_lock);
+        return -1;
+    }
     SetHandleInformation(rd, HANDLE_FLAG_INHERIT, 0);
     HANDLE h = create_proc(argv, wr, NULL, 0);
     CloseHandle(wr);
+    ReleaseSRWLockExclusive(&inherit_lock);
     if (!h) {
         CloseHandle(rd);
         return -1;
@@ -385,7 +467,7 @@ int smm_os_launch_detached(const char *const *argv, const char *cwd)
 {
     HANDLE h = create_proc(argv, NULL, cwd, 1);
     if (!h) return -1;
-    CloseHandle(h);
+    if (h != INVALID_HANDLE_VALUE) CloseHandle(h);
     return 0;
 }
 
@@ -436,7 +518,9 @@ int smm_os_open(const char *target)
     if (strstr(target, "://"))
         for (wchar_t *p = w; *p; p++)
             if (*p == L'\\') *p = L'/';
+    HRESULT com = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
     HINSTANCE r = ShellExecuteW(NULL, L"open", w, NULL, NULL, SW_SHOWNORMAL);
+    if (SUCCEEDED(com)) CoUninitialize();
     free(w);
     return (INT_PTR)r > 32 ? 0 : -1;
 }
@@ -534,31 +618,50 @@ void smm_os_cond_broadcast(void *c)
     WakeAllConditionVariable(c);
 }
 
-int smm_os_registry_steam(char *out, size_t n)
+static int reg_string(HKEY root, const wchar_t *key, const wchar_t *name, char *out, size_t n)
 {
     HKEY k;
-    char buf[SMM_PATH];
-    DWORD sz = sizeof buf, type = 0;
-    if (RegOpenKeyExA(HKEY_CURRENT_USER, "Software\\Valve\\Steam", 0, KEY_READ, &k) == ERROR_SUCCESS) {
-        if (RegQueryValueExA(k, "SteamPath", NULL, &type, (BYTE *)buf, &sz) == ERROR_SUCCESS && type == REG_SZ) {
-            RegCloseKey(k);
-            smm_copy(out, n, buf);
-            for (char *p = out; *p; p++)
-                if (*p == '/') *p = '\\';
-            return 0;
-        }
-        RegCloseKey(k);
+    wchar_t buf[SMM_PATH];
+    DWORD sz = sizeof buf - sizeof(wchar_t), type = 0;
+    if (RegOpenKeyExW(root, key, 0, KEY_READ, &k) != ERROR_SUCCESS) return -1;
+    LONG rc = RegQueryValueExW(k, name, NULL, &type, (BYTE *)buf, &sz);
+    RegCloseKey(k);
+    if (rc != ERROR_SUCCESS || (type != REG_SZ && type != REG_EXPAND_SZ)) return -1;
+    buf[sz / sizeof(wchar_t)] = 0;
+    return from_wide(buf, out, n);
+}
+
+int smm_os_registry_steam(char *out, size_t n)
+{
+    if (reg_string(HKEY_CURRENT_USER, L"Software\\Valve\\Steam", L"SteamPath", out, n) == 0 && out[0]) {
+        for (char *p = out; *p; p++)
+            if (*p == '/') *p = '\\';
+        return 0;
     }
-    sz = sizeof buf;
-    if (RegOpenKeyExA(HKEY_LOCAL_MACHINE, "SOFTWARE\\WOW6432Node\\Valve\\Steam", 0, KEY_READ, &k) == ERROR_SUCCESS ||
-        RegOpenKeyExA(HKEY_LOCAL_MACHINE, "SOFTWARE\\Valve\\Steam", 0, KEY_READ, &k) == ERROR_SUCCESS) {
-        if (RegQueryValueExA(k, "InstallPath", NULL, &type, (BYTE *)buf, &sz) == ERROR_SUCCESS && type == REG_SZ) {
-            RegCloseKey(k);
-            smm_copy(out, n, buf);
-            return 0;
-        }
-        RegCloseKey(k);
-    }
+    if (reg_string(HKEY_LOCAL_MACHINE, L"SOFTWARE\\WOW6432Node\\Valve\\Steam", L"InstallPath", out, n) == 0 && out[0]) return 0;
+    if (reg_string(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Valve\\Steam", L"InstallPath", out, n) == 0 && out[0]) return 0;
     return -1;
+}
+
+void smm_os_prepare_args(int *argc, char ***argv)
+{
+    if (*argc > 1 && AttachConsole(ATTACH_PARENT_PROCESS)) {
+        freopen("CONOUT$", "w", stdout);
+        freopen("CONOUT$", "w", stderr);
+    }
+    int n = 0;
+    wchar_t **w = CommandLineToArgvW(GetCommandLineW(), &n);
+    if (!w) return;
+    char **v = smm_xmalloc(((size_t)n + 1) * sizeof *v);
+    for (int i = 0; i < n; i++) {
+        int len = WideCharToMultiByte(CP_UTF8, 0, w[i], -1, NULL, 0, NULL, NULL);
+        v[i] = smm_xmalloc((size_t)(len > 0 ? len : 1));
+        v[i][0] = 0;
+        if (len > 0) WideCharToMultiByte(CP_UTF8, 0, w[i], -1, v[i], len, NULL, NULL);
+    }
+    v[n] = NULL;
+    LocalFree(w);
+    *argc = n;
+    *argv = v;
 }
 #endif

@@ -11,7 +11,7 @@ win)
   cc="${CC:-x86_64-w64-mingw32-gcc}"
   out=build-win
   ext=.exe
-  libs=(-lws2_32 -lgdi32 -lole32 -lshell32 -ladvapi32 -static)
+  libs=(-lws2_32 -lgdi32 -lole32 -lshell32 -ladvapi32 -static -mwindows -D__USE_MINGW_ANSI_STDIO=1)
   ;;
 *)
   case "$(uname -s)" in

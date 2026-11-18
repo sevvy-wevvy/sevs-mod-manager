@@ -533,4 +533,10 @@ int smm_os_registry_steam(char *out, size_t n)
     (void)n;
     return -1;
 }
+
+void smm_os_prepare_args(int *argc, char ***argv)
+{
+    (void)argc;
+    (void)argv;
+}
 #endif
