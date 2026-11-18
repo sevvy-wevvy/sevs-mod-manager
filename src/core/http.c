@@ -23,6 +23,11 @@ const char *smm_http_backend(void)
     return "curl";
 }
 
+static const char *revoke_flag(void)
+{
+    return smm_os_is_windows() ? "--ssl-no-revoke" : "-s";
+}
+
 static int curl_missing(void)
 {
     smm_set_error("curl was not found. Install curl to use online features.");
@@ -67,9 +72,10 @@ int smm_http_get(const char *url, SmmBuf *out)
     int handled = 0;
     int r = smm_demo_http(url, NULL, out, &handled);
     if (handled) return r;
-    const char *argv[16];
+    const char *argv[18];
     int n = 0;
     argv[n++] = "curl";
+    argv[n++] = revoke_flag();
     argv[n++] = "-sSL";
     argv[n++] = "--max-time";
     argv[n++] = "30";
@@ -102,7 +108,7 @@ int smm_http_post_form(const char *url, const SmmMap *fields, SmmBuf *out)
         smm_buf_free(&body);
         return r;
     }
-    const char *argv[] = {"curl", "-sSL", "--max-time", "15", "-A", SMM_USER_AGENT, "-X", "POST", "--data", body.p,
+    const char *argv[] = {"curl", revoke_flag(), "-sSL", "--max-time", "15", "-A", SMM_USER_AGENT, "-X", "POST", "--data", body.p,
                           "-w", "\n%{http_code}", url, NULL};
     r = run_curl(argv, out);
     smm_buf_free(&body);
@@ -117,7 +123,7 @@ int smm_http_url_exists(const char *url)
     int r = smm_demo_http(url, NULL, &junk, &handled);
     smm_buf_free(&junk);
     if (handled) return r != 404;
-    const char *argv[] = {"curl", "-sL", "--max-time", "15", "-A", SMM_USER_AGENT, "-r", "0-0", "-o", "-", "-w", "\n%{http_code}", url, NULL};
+    const char *argv[] = {"curl", revoke_flag(), "-sL", "--max-time", "15", "-A", SMM_USER_AGENT, "-r", "0-0", "-o", "-", "-w", "\n%{http_code}", url, NULL};
     SmmBuf b = {0};
     int code = run_curl(argv, &b);
     smm_buf_free(&b);
@@ -126,7 +132,7 @@ int smm_http_url_exists(const char *url)
 
 static long long content_length(const char *url)
 {
-    const char *argv[] = {"curl", "-sIL", "--max-time", "20", "-A", SMM_USER_AGENT, url, NULL};
+    const char *argv[] = {"curl", revoke_flag(), "-sIL", "--max-time", "20", "-A", SMM_USER_AGENT, url, NULL};
     SmmBuf b = {0};
     int code = 0;
     long long len = -1;
@@ -154,7 +160,7 @@ int smm_http_download(const char *url, const char *dest, SmmProgress *p, const c
     if (dir[0]) smm_os_mkdir_p(dir);
     smm_os_remove(part);
     long long total = content_length(url);
-    const char *argv[] = {"curl", "-sSL", "--fail", "--max-time", "300", "-A", SMM_USER_AGENT, "-o", part, url, NULL};
+    const char *argv[] = {"curl", revoke_flag(), "-sSL", "--fail", "--max-time", "300", "-A", SMM_USER_AGENT, "-o", part, url, NULL};
     SmmProc *proc = smm_os_spawn(argv);
     if (!proc) return curl_missing();
     int code = 0;
