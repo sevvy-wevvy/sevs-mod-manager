@@ -53,6 +53,27 @@ static void test_util(void)
     CHECK_STR(iso, "2026-11-15T10:20:30Z");
 }
 
+static void test_text(const char *work)
+{
+    char out[64];
+    smm_dirname("C:\\x.exe", out, sizeof out);
+    CHECK_STR(out, "C:\\");
+    smm_dirname("C:\\Games\\x.exe", out, sizeof out);
+    CHECK_STR(out, "C:\\Games");
+    smm_dirname("/x.exe", out, sizeof out);
+    CHECK_STR(out, "/");
+    char f[SMM_PATH];
+    smm_join(f, sizeof f, work, "bom.cfg");
+    const char *raw = "\xEF\xBB\xBF## head\r\n[Sec]\r\nk = v\r\n";
+    CHECK(smm_file_write(f, raw, strlen(raw)) == 0);
+    SmmStrs lines = {0};
+    CHECK(smm_read_lines(f, &lines) == 0);
+    CHECK(lines.n == 3);
+    CHECK_STR(lines.v[0], "## head");
+    CHECK_STR(lines.v[2], "k = v");
+    smm_strs_free(&lines);
+}
+
 static void test_json(void)
 {
     const char *txt = "{\"a\":[1,2,{\"b\":\"x\\u00e9\\n\"}],\"t\":true,\"n\":null,\"f\":-1.5e2,\"s\":\"\\ud83d\\ude00\"}";
@@ -1142,6 +1163,7 @@ int main(int argc, char **argv)
     g_fix_dir = argc > 2 ? argv[2] : "fixtures";
     test_util();
     test_json();
+    test_text(work);
     test_zip(work);
     if (smm_demo_init(argc > 2 ? argv[2] : "fixtures") != 0) {
         printf("demo init failed: %s\n", smm_error());

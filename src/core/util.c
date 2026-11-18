@@ -137,7 +137,8 @@ void smm_dirname(const char *path, char *out, size_t n)
 {
     const char *b = smm_basename(path);
     size_t l = (size_t)(b - path);
-    if (l > 1) l--;
+    int drive_root = l == 3 && path[1] == ':';
+    if (l > 1 && !drive_root) l--;
     if (l >= n) l = n - 1;
     memcpy(out, path, l);
     out[l] = 0;
@@ -392,7 +393,13 @@ int smm_read_lines(const char *path, SmmStrs *out)
 {
     SmmBuf b = {0};
     if (smm_file_read(path, &b) != 0) return -1;
-    smm_split_lines(b.p, b.n, out);
+    const char *text = b.p;
+    size_t len = b.n;
+    if (len >= 3 && (unsigned char)text[0] == 0xEF && (unsigned char)text[1] == 0xBB && (unsigned char)text[2] == 0xBF) {
+        text += 3;
+        len -= 3;
+    }
+    smm_split_lines(text, len, out);
     smm_buf_free(&b);
     return 0;
 }

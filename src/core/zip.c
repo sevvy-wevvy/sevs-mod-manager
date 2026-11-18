@@ -273,6 +273,8 @@ static int parse_central(SmmZip *z, long long total)
         size_t cp = nl < sizeof e->name - 1 ? nl : sizeof e->name - 1;
         memcpy(e->name, cd + p + 46, cp);
         e->name[cp] = 0;
+        for (char *c = e->name; *c; c++)
+            if (*c == '\\') *c = '/';
         z->n++;
         p += 46 + nl + el + cl;
     }
