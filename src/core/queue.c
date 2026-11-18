@@ -17,6 +17,8 @@ static void *g_gate;
 static void *g_gate_cond;
 static unsigned g_serving;
 static unsigned g_next_ticket;
+static unsigned g_skipped[32];
+static int g_skipped_n;
 static SmmOp g_hist[MAX_HISTORY];
 static int g_hist_n;
 static int g_next_id = 1;
@@ -45,6 +47,21 @@ void smm_sleep_ms(int ms)
 int smm_thread_start(SmmThreadFn fn, void *arg)
 {
     return smm_os_thread(fn, arg);
+}
+
+static void advance_serving(void)
+{
+    g_serving++;
+    for (int i = 0; i < g_skipped_n;) {
+        if (g_skipped[i] == g_serving) {
+            g_skipped[i] = g_skipped[--g_skipped_n];
+            g_serving++;
+            i = 0;
+        } else {
+            i++;
+        }
+    }
+    smm_os_cond_broadcast(g_gate_cond);
 }
 
 static SmmOp *find_op(int id)
@@ -114,8 +131,7 @@ static void worker(void *arg)
     g_changed++;
     smm_os_mutex_unlock(g_lock);
     smm_os_mutex_lock(g_gate);
-    g_serving++;
-    smm_os_cond_broadcast(g_gate_cond);
+    advance_serving();
     smm_os_mutex_unlock(g_gate);
     if (job->done) job->done(rc, job->arg);
     free(job);
@@ -153,7 +169,13 @@ int smm_queue_run(const char *name, SmmWorkFn fn, void *arg, SmmDoneFn done)
             op->status = SMM_OP_FAILED;
             smm_copy(op->error, sizeof op->error, "Couldn't start a worker thread");
         }
+        g_changed++;
         smm_os_mutex_unlock(g_lock);
+        smm_os_mutex_lock(g_gate);
+        if (g_serving == job->ticket) advance_serving();
+        else if (g_skipped_n < 32) g_skipped[g_skipped_n++] = job->ticket;
+        smm_os_mutex_unlock(g_gate);
+        if (done) done(-1, arg);
         free(job);
         return -1;
     }
