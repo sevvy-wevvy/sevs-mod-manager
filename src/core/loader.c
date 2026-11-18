@@ -76,7 +76,7 @@ int smm_exe_is_x64(const char *exe)
     return x64;
 }
 
-int smm_loader_install(int kind, const char *game_dir, SmmProgress *p)
+int smm_loader_install_after(int kind, const char *game_dir, SmmProgress *p, void (*wipe)(void))
 {
     int x64 = smm_exe_is_x64(smm_settings.game_path);
     const char *url = kind == SMM_LOADER_BEPINEX ? bep_url(x64) : ml_url(x64);
@@ -89,12 +89,13 @@ int smm_loader_install(int kind, const char *game_dir, SmmProgress *p)
     smm_join(zip, sizeof zip, tmp, file);
     smm_progress(p, 5, "Downloading %s...", name);
     if (smm_http_download(url, zip, p, name, 5, 85) != 0) return -1;
-    smm_progress(p, 88, "Extracting %s...", name);
     SmmZip z;
     if (smm_zip_open_file(&z, zip) != 0) {
         smm_os_remove(zip);
         return -1;
     }
+    if (wipe) wipe();
+    smm_progress(p, 88, "Extracting %s...", name);
     int rc = smm_zip_extract_all(&z, game_dir);
     smm_zip_close(&z);
     smm_os_remove(zip);
@@ -117,6 +118,11 @@ int smm_loader_install(int kind, const char *game_dir, SmmProgress *p)
     smm_progress(p, 98, "Cleaning up...");
     smm_progress(p, 100, "%s installed.", name);
     return 0;
+}
+
+int smm_loader_install(int kind, const char *game_dir, SmmProgress *p)
+{
+    return smm_loader_install_after(kind, game_dir, p, NULL);
 }
 
 int smm_loader_uninstall(int kind, const char *game_dir)

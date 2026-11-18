@@ -172,9 +172,8 @@ int smm_pack_blank_setup(SmmProgress *p)
     char game[SMM_PATH];
     if (!smm_game_dir(game, sizeof game)) return smm_op_fail(p, "No game path set.");
     int loader = smm_detect_loader();
-    smm_progress(p, 0, "Removing current setup...");
-    remove_roots();
-    return smm_loader_install(loader, game, p);
+    smm_progress(p, 0, "Downloading the mod loader...");
+    return smm_loader_install_after(loader, game, p, remove_roots);
 }
 
 static void safe_file_name(const char *name, char *out, size_t n)
@@ -218,7 +217,7 @@ static int write_pack(const char *name, const char *author, const SmmStrs *files
     SmmPackRoot roots[8];
     int nr = smm_pack_roots(roots, 8);
     if (nr == 0) return smm_op_fail(p, "No mod loader folder found.");
-    char dir[SMM_PATH], safe[256], fn[300], dest[SMM_PATH];
+    char dir[SMM_PATH], safe[200], fn[300], dest[SMM_PATH];
     smm_packs_dir(dir, sizeof dir);
     smm_os_mkdir_p(dir);
     safe_file_name(name, safe, sizeof safe);
@@ -306,9 +305,7 @@ int smm_pack_apply(const char *pack_path, SmmProgress *p)
     if (nr == 0) return smm_op_fail(p, "No mod loader folder found.");
     SmmZip z;
     if (smm_zip_open_file(&z, pack_path) != 0) return -1;
-    smm_progress(p, 0, "Removing current setup...");
-    remove_roots();
-    if (smm_loader_install(loader, game, p) != 0) {
+    if (smm_loader_install_after(loader, game, p, remove_roots) != 0) {
         smm_zip_close(&z);
         return -1;
     }
