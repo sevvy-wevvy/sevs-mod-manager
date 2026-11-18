@@ -340,21 +340,26 @@ void smm_ensure_sb_folder(void)
 static char g_cfg_game[SMM_PATH];
 static SmmMap g_cfg;
 
-static void sb_paths(char *dir, char *file, size_t n)
+static int sb_paths(char *dir, char *file, size_t n)
 {
     char sb[SMM_PATH];
-    if (!smm_sb_dir(sb, sizeof sb)) sb[0] = 0;
+    if (!smm_sb_dir(sb, sizeof sb)) {
+        if (dir) dir[0] = 0;
+        if (file) file[0] = 0;
+        return 0;
+    }
     char settings[SMM_PATH];
     smm_join(settings, sizeof settings, sb, "settings");
     if (dir) smm_copy(dir, n, settings);
     if (file) smm_join(file, n, settings, "settings.json");
+    return 1;
 }
 
 int smm_dc_load_settings(void)
 {
     smm_map_free(&g_cfg);
     char file[SMM_PATH];
-    sb_paths(NULL, file, sizeof file);
+    if (!sb_paths(NULL, file, sizeof file)) return 0;
     smm_copy(g_cfg_game, sizeof g_cfg_game, file);
     SmmBuf b = {0};
     if (smm_file_read(file, &b) != 0) return 0;
@@ -387,7 +392,7 @@ static int is_number(const char *s)
 static void flush_settings(void)
 {
     char dir[SMM_PATH], file[SMM_PATH];
-    sb_paths(dir, file, sizeof dir);
+    if (!sb_paths(dir, file, sizeof dir)) return;
     smm_os_mkdir_p(dir);
     SmmBuf b = {0};
     smm_buf_append(&b, "{", 1);
@@ -444,17 +449,18 @@ void smm_dc_set_string(const char *key, const char *val)
     flush_settings();
 }
 
-static void auth_path(char *out, size_t n)
+static int auth_path(char *out, size_t n)
 {
     char d[SMM_PATH];
-    sb_paths(d, NULL, sizeof d);
+    if (!sb_paths(d, NULL, sizeof d)) return 0;
     smm_join(out, n, d, "auth.json");
+    return 1;
 }
 
 int smm_token_load(char *out, size_t n)
 {
     char p[SMM_PATH];
-    auth_path(p, sizeof p);
+    if (!auth_path(p, sizeof p)) return 0;
     SmmBuf b = {0};
     if (smm_file_read(p, &b) != 0) return 0;
     SmmJson *j = smm_json_parse(b.p, b.n);
@@ -469,7 +475,7 @@ int smm_token_load(char *out, size_t n)
 int smm_token_save(const char *token)
 {
     char d[SMM_PATH], p[SMM_PATH];
-    sb_paths(d, NULL, sizeof d);
+    if (!sb_paths(d, NULL, sizeof d)) return -1;
     smm_os_mkdir_p(d);
     auth_path(p, sizeof p);
     SmmBuf b = {0};
@@ -484,21 +490,21 @@ int smm_token_save(const char *token)
 void smm_token_delete(void)
 {
     char p[SMM_PATH];
-    auth_path(p, sizeof p);
-    smm_os_remove(p);
+    if (auth_path(p, sizeof p)) smm_os_remove(p);
 }
 
-static void modver_path(char *out, size_t n)
+static int modver_path(char *out, size_t n)
 {
     char d[SMM_PATH];
-    sb_paths(d, NULL, sizeof d);
+    if (!sb_paths(d, NULL, sizeof d)) return 0;
     smm_join(out, n, d, "mod_versions.json");
+    return 1;
 }
 
 static void modver_load(SmmMap *m)
 {
     char p[SMM_PATH];
-    modver_path(p, sizeof p);
+    if (!modver_path(p, sizeof p)) return;
     SmmBuf b = {0};
     if (smm_file_read(p, &b) != 0) return;
     SmmJson *j = smm_json_parse(b.p, b.n);
@@ -510,7 +516,7 @@ static void modver_load(SmmMap *m)
 static void modver_save(const SmmMap *m)
 {
     char d[SMM_PATH], p[SMM_PATH];
-    sb_paths(d, NULL, sizeof d);
+    if (!sb_paths(d, NULL, sizeof d)) return;
     smm_os_mkdir_p(d);
     modver_path(p, sizeof p);
     SmmBuf b = {0};
@@ -552,14 +558,15 @@ void smm_mod_version_delete(const char *key)
     smm_map_free(&m);
 }
 
-static void loadouts_path(char *dir, char *file, size_t n)
+static int loadouts_path(char *dir, char *file, size_t n)
 {
     char sb[SMM_PATH];
-    if (!smm_sb_dir(sb, sizeof sb)) sb[0] = 0;
+    if (!smm_sb_dir(sb, sizeof sb)) return 0;
     char d[SMM_PATH];
     smm_join(d, sizeof d, sb, "loadouts");
     if (dir) smm_copy(dir, n, d);
     if (file) smm_join(file, n, d, "loadouts.json");
+    return 1;
 }
 
 static void load_strs_into(SmmStrs *s, const SmmJson *a)
@@ -570,7 +577,7 @@ static void load_strs_into(SmmStrs *s, const SmmJson *a)
 int smm_loadouts_load(SmmLoadouts *out)
 {
     char f[SMM_PATH];
-    loadouts_path(NULL, f, sizeof f);
+    if (!loadouts_path(NULL, f, sizeof f)) return 0;
     SmmBuf b = {0};
     if (smm_file_read(f, &b) != 0) return 0;
     SmmJson *j = smm_json_parse(b.p, b.n);
@@ -609,7 +616,7 @@ static void write_str_array(SmmBuf *b, const char *key, const SmmStrs *s)
 int smm_loadouts_save(const SmmLoadouts *l)
 {
     char d[SMM_PATH], f[SMM_PATH];
-    loadouts_path(d, f, sizeof d);
+    if (!loadouts_path(d, f, sizeof d)) return -1;
     smm_os_mkdir_p(d);
     SmmBuf b = {0};
     smm_buf_append(&b, "[", 1);

@@ -4,7 +4,10 @@
 static void snapshot_dir(int number, char *out, size_t n)
 {
     char sb[SMM_PATH], a[SMM_PATH], b[SMM_PATH], num[16];
-    if (!smm_sb_dir(sb, sizeof sb)) sb[0] = 0;
+    if (!smm_sb_dir(sb, sizeof sb)) {
+        out[0] = 0;
+        return;
+    }
     smm_join(a, sizeof a, sb, "loadouts");
     smm_join(b, sizeof b, a, "config_snapshots");
     smm_fmt(num, sizeof num, "%d", number);
@@ -143,7 +146,7 @@ int smm_loadout_apply(SmmLoadouts *l, int number)
         } else if (smm_os_is_file(dll)) {
             smm_strs_add(&en, name);
         } else {
-            smm_strs_add(&x->missing, name);
+            if (smm_strs_find(&x->missing, name, 0) < 0) smm_strs_add(&x->missing, name);
         }
     }
     for (int i = 0; i < x->disabled.n; i++) {
@@ -159,7 +162,7 @@ int smm_loadout_apply(SmmLoadouts *l, int number)
         } else if (smm_os_is_file(off)) {
             smm_strs_add(&dis, name);
         } else {
-            smm_strs_add(&x->missing, name);
+            if (smm_strs_find(&x->missing, name, 0) < 0) smm_strs_add(&x->missing, name);
         }
     }
     smm_strs_free(&x->enabled);
