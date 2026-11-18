@@ -270,6 +270,10 @@ static int parse_central(SmmZip *z, long long total)
         e->csize = rd32(cd + p + 20);
         e->size = rd32(cd + p + 24);
         e->local_off = rd32(cd + p + 42);
+        if (e->csize == 0xFFFFFFFFu || e->size == 0xFFFFFFFFu || e->local_off == 0xFFFFFFFFll) {
+            free(cd);
+            return -1;
+        }
         size_t cp = nl < sizeof e->name - 1 ? nl : sizeof e->name - 1;
         memcpy(e->name, cd + p + 46, cp);
         e->name[cp] = 0;
@@ -331,6 +335,7 @@ int smm_zip_extract_mem(const SmmZip *z, int i, SmmBuf *out)
 {
     const SmmZipEntry *e = &z->e[i];
     unsigned char lh[30];
+    if (e->size > (1u << 30) || e->csize > (1u << 30)) return -1;
     if (read_at(z, e->local_off, lh, 30) != 0 || rd32(lh) != 0x04034b50u) return -1;
     long long data_off = e->local_off + 30 + rd16(lh + 26) + rd16(lh + 28);
     unsigned char *comp = smm_xmalloc(e->csize ? e->csize : 1);
@@ -543,8 +548,13 @@ int smm_zipw_add_mem(SmmZipWriter *w, const char *name, const void *data, size_t
             plen = cn;
         }
     }
-    SmmBuf h = {0};
     size_t nl = strlen(name);
+    if (n >= 0xFFFFFFFFu || w->off + (long long)n + 1024 >= 0xFFFFFFFFll || w->n >= 65535 || nl > 65535) {
+        free(comp);
+        smm_set_error("That is too much to fit in one zip file");
+        return -1;
+    }
+    SmmBuf h = {0};
     put32(&h, 0x04034b50u);
     put16(&h, 20);
     put16(&h, 0x0800);

@@ -181,6 +181,7 @@ int smm_demo_running_flag(int set, int val);
 void smm_url_escape(const char *s, char *out, size_t n);
 void smm_dir_for_loader(int kind, char *out, size_t n);
 int smm_mod_install_zip_file(const char *zip, const char *folder_name, SmmProgress *p);
+int smm_loader_install_after(int kind, const char *game_dir, SmmProgress *p, void (*wipe)(void));
 int smm_sha256_file(const char *path, char *hex_out);
 
 typedef struct {

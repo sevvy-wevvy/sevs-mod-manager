@@ -77,9 +77,15 @@ static void pretty_name(long long t, char *out, size_t n)
     time_t tt = (time_t)t;
     struct tm tmv;
 #if defined(_WIN32)
-    localtime_s(&tmv, &tt);
+    if (localtime_s(&tmv, &tt) != 0) {
+        smm_copy(out, n, "Unknown date");
+        return;
+    }
 #else
-    localtime_r(&tt, &tmv);
+    if (!localtime_r(&tt, &tmv)) {
+        smm_copy(out, n, "Unknown date");
+        return;
+    }
 #endif
     static const char *mon[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
     int h = tmv.tm_hour % 12;

@@ -97,8 +97,10 @@ static int build_symlink_bundle(const char *app, const char *exe, const unsigned
 
 int integ_os_register(const char *exe, const unsigned char *png, size_t png_len)
 {
-    char app[SMM_PATH];
+    char app[SMM_PATH], parent[SMM_PATH];
     app_dir(app, sizeof app);
+    smm_dirname(app, parent, sizeof parent);
+    smm_os_mkdir_p(parent);
     if (build_applet(app, exe, png, png_len) != 0 && build_symlink_bundle(app, exe, png, png_len) != 0) return -1;
     integ_run_quiet(LSREGISTER, "-f", app, NULL, NULL);
     return 0;

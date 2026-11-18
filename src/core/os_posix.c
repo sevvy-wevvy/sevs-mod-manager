@@ -139,6 +139,8 @@ int smm_os_rename(const char *from, const char *to)
 
 int smm_os_copy(const char *from, const char *to)
 {
+    struct stat sa, sb;
+    if (stat(from, &sa) == 0 && stat(to, &sb) == 0 && sa.st_dev == sb.st_dev && sa.st_ino == sb.st_ino) return 0;
     FILE *a = fopen(from, "rb");
     if (!a) return -1;
     char dir[SMM_PATH];
@@ -159,9 +161,10 @@ int smm_os_copy(const char *from, const char *to)
     return ok ? 0 : -1;
 }
 
-int smm_os_copy_tree(const char *from, const char *to)
+static int copy_tree(const char *from, const char *to, int depth)
 {
     if (!smm_os_is_dir(from)) return smm_os_copy(from, to);
+    if (depth > 40) return -1;
     smm_os_mkdir_p(to);
     SmmDirList l = {0};
     if (smm_os_list(from, &l) != 0) return -1;
@@ -170,10 +173,15 @@ int smm_os_copy_tree(const char *from, const char *to)
         char a[SMM_PATH], b[SMM_PATH];
         smm_join(a, sizeof a, from, l.v[i].name);
         smm_join(b, sizeof b, to, l.v[i].name);
-        if (smm_os_copy_tree(a, b) != 0) rc = -1;
+        if (copy_tree(a, b, depth + 1) != 0) rc = -1;
     }
     smm_dirlist_free(&l);
     return rc;
+}
+
+int smm_os_copy_tree(const char *from, const char *to)
+{
+    return copy_tree(from, to, 0);
 }
 
 int smm_os_move_tree(const char *from, const char *to)
@@ -183,14 +191,15 @@ int smm_os_move_tree(const char *from, const char *to)
     return smm_os_remove_tree(from);
 }
 
-static void walk(const char *dir, SmmStrs *out)
+static void walk(const char *dir, SmmStrs *out, int depth)
 {
+    if (depth > 40) return;
     SmmDirList l = {0};
     if (smm_os_list(dir, &l) != 0) return;
     for (int i = 0; i < l.n; i++) {
         char full[SMM_PATH];
         smm_join(full, sizeof full, dir, l.v[i].name);
-        if (l.v[i].is_dir) walk(full, out);
+        if (l.v[i].is_dir) walk(full, out, depth + 1);
         else smm_strs_add(out, full);
     }
     smm_dirlist_free(&l);
@@ -199,7 +208,7 @@ static void walk(const char *dir, SmmStrs *out)
 int smm_os_walk_files(const char *dir, SmmStrs *out)
 {
     if (!smm_os_is_dir(dir)) return -1;
-    walk(dir, out);
+    walk(dir, out, 0);
     return 0;
 }
 
@@ -289,6 +298,8 @@ int smm_os_run(const char *const *argv, SmmBuf *out, int *exit_code)
 {
     int fds[2];
     if (pipe(fds) != 0) return -1;
+    fcntl(fds[0], F_SETFD, FD_CLOEXEC);
+    fcntl(fds[1], F_SETFD, FD_CLOEXEC);
     pid_t pid = spawn_pid(argv, fds[1], NULL);
     close(fds[1]);
     if (pid < 0) {
@@ -297,11 +308,12 @@ int smm_os_run(const char *const *argv, SmmBuf *out, int *exit_code)
     }
     char buf[65536];
     ssize_t r;
-    while ((r = read(fds[0], buf, sizeof buf)) > 0)
-        if (out) smm_buf_append(out, buf, (size_t)r);
+    while ((r = read(fds[0], buf, sizeof buf)) > 0 || (r < 0 && errno == EINTR))
+        if (r > 0 && out) smm_buf_append(out, buf, (size_t)r);
     close(fds[0]);
     int st = 0;
-    waitpid(pid, &st, 0);
+    while (waitpid(pid, &st, 0) < 0 && errno == EINTR) {
+    }
     int code = WIFEXITED(st) ? WEXITSTATUS(st) : -1;
     if (exit_code) *exit_code = code;
     if (out) smm_bufs_cstr(out);
@@ -328,14 +340,28 @@ int smm_os_proc_running(SmmProc *p, int *exit_code)
 
 void smm_os_proc_free(SmmProc *p)
 {
+    int st;
+    if (waitpid(p->pid, &st, WNOHANG) == 0) {
+        kill(p->pid, SIGKILL);
+        waitpid(p->pid, &st, 0);
+    }
     free(p);
 }
 
 int smm_os_launch_detached(const char *const *argv, const char *cwd)
 {
+    int ef[2];
+    if (pipe(ef) != 0) return -1;
+    fcntl(ef[0], F_SETFD, FD_CLOEXEC);
+    fcntl(ef[1], F_SETFD, FD_CLOEXEC);
     pid_t pid = fork();
-    if (pid < 0) return -1;
+    if (pid < 0) {
+        close(ef[0]);
+        close(ef[1]);
+        return -1;
+    }
     if (pid == 0) {
+        close(ef[0]);
         setsid();
         pid_t pid2 = fork();
         if (pid2 != 0) _exit(0);
@@ -345,19 +371,43 @@ int smm_os_launch_detached(const char *const *argv, const char *cwd)
             dup2(dn, 1);
             dup2(dn, 2);
         }
-        if (cwd && *cwd && chdir(cwd) != 0) _exit(127);
-        execvp(argv[0], (char *const *)argv);
+        if (!(cwd && *cwd && chdir(cwd) != 0)) execvp(argv[0], (char *const *)argv);
+        char fail = 1;
+        if (write(ef[1], &fail, 1) < 0) fail = 0;
         _exit(127);
     }
+    close(ef[1]);
     int st;
-    waitpid(pid, &st, 0);
+    while (waitpid(pid, &st, 0) < 0 && errno == EINTR) {
+    }
+    char got = 0;
+    ssize_t r;
+    while ((r = read(ef[0], &got, 1)) < 0 && errno == EINTR) {
+    }
+    close(ef[0]);
+    if (r > 0) {
+        smm_set_error("Couldn't start %s", argv[0]);
+        return -1;
+    }
     return 0;
+}
+
+static void regex_escape(const char *s, char *out, size_t n)
+{
+    size_t k = 0;
+    for (; *s && k + 2 < n; s++) {
+        if (strchr(".^$*+?()[]{}|\\", *s)) out[k++] = '\\';
+        out[k++] = *s;
+    }
+    out[k] = 0;
 }
 
 int smm_os_process_running(const char *exe_name)
 {
     if (SMM_MAC) {
-        const char *argv[] = {"pgrep", "-f", exe_name, NULL};
+        char pat[SMM_PATH * 2];
+        regex_escape(exe_name, pat, sizeof pat);
+        const char *argv[] = {"pgrep", "-f", pat, NULL};
         int code = 1;
         smm_os_run(argv, NULL, &code);
         return code == 0;
@@ -391,7 +441,9 @@ int smm_os_process_running(const char *exe_name)
 int smm_os_process_kill(const char *exe_name)
 {
     if (SMM_MAC) {
-        const char *argv[] = {"pkill", "-f", exe_name, NULL};
+        char pat[SMM_PATH * 2];
+        regex_escape(exe_name, pat, sizeof pat);
+        const char *argv[] = {"pkill", "-f", pat, NULL};
         return smm_os_run(argv, NULL, NULL);
     }
     DIR *d = opendir("/proc");

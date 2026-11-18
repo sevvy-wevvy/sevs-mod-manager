@@ -386,10 +386,16 @@ int smm_mod_download_url(const SmmMod *m, char *out, size_t n)
     return 1;
 }
 
+static int unsafe_component(const char *s)
+{
+    return !*s || strpbrk(s, "/\\") || !strcmp(s, ".") || !strcmp(s, "..");
+}
+
 int smm_mod_install(const SmmMod *m, SmmProgress *p)
 {
     char url[600], key[200];
     if (!smm_mod_download_url(m, url, sizeof url)) return smm_op_fail(p, "%s has no download link.", m->name);
+    if (unsafe_component(m->dll_name)) return smm_op_fail(p, "%s has an invalid file name.", m->name);
     smm_mod_key(m, key, sizeof key);
     int rc;
     if (m->source == SMM_SRC_THUNDERSTORE) rc = smm_mod_install_thunderstore(url, m->dll_name, p);

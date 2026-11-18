@@ -90,6 +90,7 @@ static char *parse_string(Cur *c)
                     c->s += 6;
                 }
             }
+            if (cp >= 0xD800 && cp < 0xE000) cp = 0xFFFD;
             put_utf8(&b, (unsigned)cp);
             break;
         }
@@ -188,7 +189,8 @@ static int parse_value(Cur *c, SmmJson *out)
             tmp[n++] = *c->s++;
         tmp[n] = 0;
         out->type = SMM_J_NUM;
-        out->num = atof(tmp);
+        double v = atof(tmp);
+        out->num = v != v ? 0 : v > 2147483647.0 ? 2147483647.0 : v < -2147483648.0 ? -2147483648.0 : v;
         return 0;
     }
     return -1;
