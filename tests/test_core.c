@@ -8,8 +8,22 @@ static int g_checks, g_fails;
 #define CHECK(c) do { g_checks++; if (!(c)) { g_fails++; printf("FAIL %s:%d  %s\n", __FILE__, __LINE__, #c); } } while (0)
 #define CHECK_STR(a, b) do { g_checks++; if (strcmp((a), (b)) != 0) { g_fails++; printf("FAIL %s:%d  \"%s\" != \"%s\"\n", __FILE__, __LINE__, (a), (b)); } } while (0)
 
+static void test_cmdline(void)
+{
+    const char *a[] = {"curl", "https://sevvy-wevvy.com/mods/sb/api.php?action=register_game&slug=gorillatag", "\n%{http_code}", "C:\\Program Files\\x\\", "say \"hi\"", "", NULL};
+    SmmBuf b = {0};
+    smm_cmdline_quote(a, &b);
+    CHECK(strstr(b.p, "\"https://sevvy-wevvy.com/mods/sb/api.php?action=register_game&slug=gorillatag\"") != NULL);
+    CHECK(strchr(b.p, '/') != NULL && strstr(b.p, "https:\\") == NULL);
+    CHECK(strstr(b.p, "\"C:\\Program Files\\x\\\\\"") != NULL);
+    CHECK(strstr(b.p, "\"say \\\"hi\\\"\"") != NULL);
+    CHECK(strstr(b.p, " \"\"") != NULL);
+    smm_buf_free(&b);
+}
+
 static void test_util(void)
 {
+    test_cmdline();
     SmmStrs s = {0};
     smm_strs_add(&s, "one");
     smm_strs_add(&s, "Two");

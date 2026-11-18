@@ -423,3 +423,28 @@ int smm_parse_iso(const char *s, long long *out)
     *out = days * 86400 + h * 3600 + mi * 60 + se;
     return 0;
 }
+
+void smm_cmdline_quote(const char *const *argv, SmmBuf *out)
+{
+    for (int i = 0; argv[i]; i++) {
+        if (i) smm_buf_append(out, " ", 1);
+        smm_buf_append(out, "\"", 1);
+        int slashes = 0;
+        for (const char *p = argv[i]; *p; p++) {
+            if (*p == '\\') {
+                slashes++;
+                continue;
+            }
+            if (*p == '"') {
+                for (int k = 0; k < slashes * 2 + 1; k++) smm_buf_append(out, "\\", 1);
+            } else {
+                for (int k = 0; k < slashes; k++) smm_buf_append(out, "\\", 1);
+            }
+            slashes = 0;
+            smm_buf_append(out, p, 1);
+        }
+        for (int k = 0; k < slashes * 2; k++) smm_buf_append(out, "\\", 1);
+        smm_buf_append(out, "\"", 1);
+    }
+    smm_bufs_cstr(out);
+}

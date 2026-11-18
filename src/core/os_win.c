@@ -295,17 +295,10 @@ int smm_os_setenv(const char *k, const char *v)
 static wchar_t *build_cmdline(const char *const *argv)
 {
     SmmBuf b = {0};
-    for (int i = 0; argv[i]; i++) {
-        if (i) smm_buf_append(&b, " ", 1);
-        smm_buf_append(&b, "\"", 1);
-        for (const char *p = argv[i]; *p; p++) {
-            if (*p == '"') smm_buf_append(&b, "\\", 1);
-            smm_buf_append(&b, p, 1);
-        }
-        smm_buf_append(&b, "\"", 1);
-    }
-    smm_bufs_cstr(&b);
-    wchar_t *w = to_wide(b.p);
+    smm_cmdline_quote(argv, &b);
+    int n = MultiByteToWideChar(CP_UTF8, 0, b.p, -1, NULL, 0);
+    wchar_t *w = smm_xmalloc((size_t)n * sizeof(wchar_t));
+    MultiByteToWideChar(CP_UTF8, 0, b.p, -1, w, n);
     smm_buf_free(&b);
     return w;
 }

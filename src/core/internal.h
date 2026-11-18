@@ -85,6 +85,7 @@ void smm_os_config_base(char *out, size_t n);
 void smm_os_temp_dir(char *out, size_t n);
 const char *smm_os_getenv(const char *k);
 int smm_os_setenv(const char *k, const char *v);
+void smm_cmdline_quote(const char *const *argv, SmmBuf *out);
 int smm_os_run(const char *const *argv, SmmBuf *out, int *exit_code);
 SmmProc *smm_os_spawn(const char *const *argv);
 int smm_os_proc_running(SmmProc *p, int *exit_code);
