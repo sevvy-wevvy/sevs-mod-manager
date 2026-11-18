@@ -338,7 +338,12 @@ int smm_file_read(const char *path, SmmBuf *out)
     char tmp[65536];
     size_t r;
     while ((r = fread(tmp, 1, sizeof tmp, f)) > 0) smm_buf_append(out, tmp, r);
+    int bad = ferror(f);
     fclose(f);
+    if (bad) {
+        smm_set_error("Couldn't read %s", path);
+        return -1;
+    }
     smm_bufs_cstr(out);
     return 0;
 }

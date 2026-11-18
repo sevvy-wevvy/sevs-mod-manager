@@ -59,6 +59,7 @@ int integrate_exe_path(char *out, size_t n)
     ssize_t len = readlink("/proc/self/exe", buf, sizeof buf - 1);
     if (len <= 0) return -1;
     buf[len] = 0;
+    if (smm_ends_with(buf, " (deleted)")) buf[len - 10] = 0;
     smm_copy(out, n, buf);
     return 0;
 #endif

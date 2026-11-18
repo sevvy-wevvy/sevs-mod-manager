@@ -1131,6 +1131,64 @@ static void test_game(void)
     CHECK_STR(smm_loader_dll_override(SMM_LOADER_MELON), "version=n,b");
 }
 
+static void test_edges(const char *work)
+{
+    const char *big = "{\"n\":1e30,\"m\":-1e30,\"s\":\"a\\ud800b\"}";
+    SmmJson *j = smm_json_parse(big, strlen(big));
+    CHECK(j && smm_json_num(j, "n", 0) == 2147483647.0 && smm_json_num(j, "m", 0) == -2147483648.0);
+    CHECK_STR(smm_json_str(j, "s", ""), "a\xef\xbf\xbd" "b");
+    smm_json_free(j);
+
+    char a[SMM_PATH], b[SMM_PATH];
+    smm_join(a, sizeof a, work, "same.txt");
+    smm_file_write(a, "keep me", 7);
+    CHECK(smm_os_copy(a, a) == 0 && smm_os_size(a) == 7);
+    smm_join(b, sizeof b, work, "other.txt");
+    CHECK(smm_os_copy(a, b) == 0 && smm_os_size(b) == 7);
+
+    const char *ok[] = {"true", NULL};
+    const char *missing[] = {"smm-no-such-program-here", NULL};
+    CHECK(smm_os_launch_detached(ok, NULL) == 0);
+    CHECK(smm_os_launch_detached(missing, NULL) == -1);
+
+    char old[SMM_PATH];
+    CHECK(getcwd(old, sizeof old) != NULL);
+    char cwd[SMM_PATH];
+    smm_join(cwd, sizeof cwd, work, "nogame");
+    smm_os_mkdir_p(cwd);
+    CHECK(chdir(cwd) == 0);
+    char saved_game[SMM_PATH];
+    smm_copy(saved_game, sizeof saved_game, smm_settings.game_path);
+    smm_settings.game_path[0] = 0;
+    smm_dc_set_string("k", "v");
+    smm_token_save("tok");
+    SmmLoadouts l = {0};
+    CHECK(smm_loadouts_save(&l) != 0);
+    smm_mod_version_set("a", "1");
+    CHECK(!smm_os_exists("settings") && !smm_os_exists("loadouts"));
+    smm_copy(smm_settings.game_path, sizeof smm_settings.game_path, saved_game);
+    CHECK(chdir(old) == 0);
+
+    SmmLoadouts dup = {0};
+    CHECK(smm_loadouts_load(&dup) == 3);
+    smm_strs_add(&dup.v[0].enabled, "NotInstalledAnywhere");
+    CHECK(smm_loadout_apply(&dup, 1) == 0 && smm_loadout_apply(&dup, 1) == 0);
+    int seen = 0;
+    for (int i = 0; i < dup.v[0].missing.n; i++)
+        if (!strcmp(dup.v[0].missing.v[i], "NotInstalledAnywhere")) seen++;
+    CHECK(seen == 1);
+    smm_loadouts_free(&dup);
+
+    SmmMod m;
+    memset(&m, 0, sizeof m);
+    smm_copy(m.name, sizeof m.name, "Evil");
+    smm_copy(m.dll_name, sizeof m.dll_name, "../../evil.dll");
+    smm_copy(m.repo_url, sizeof m.repo_url, "https://example.com/evil");
+    m.source = SMM_SRC_API;
+    CHECK(smm_mod_install(&m, NULL) == -1);
+    CHECK(strstr(smm_error(), "invalid file name") != NULL);
+}
+
 int main(int argc, char **argv)
 {
     setvbuf(stdout, NULL, _IONBF, 0);
@@ -1166,6 +1224,7 @@ int main(int argc, char **argv)
     test_game();
     test_packs(work);
     test_queue();
+    test_edges(work);
     printf("%d checks, %d failed\n", g_checks, g_fails);
     return g_fails ? 1 : 0;
 }
