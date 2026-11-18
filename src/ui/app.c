@@ -3,6 +3,7 @@
 #include <string.h>
 #include <math.h>
 #include "app.h"
+#include "../core/internal.h"
 #include "webp.h"
 
 static char status[256] = "Starting...";
@@ -295,10 +296,7 @@ static int exe_icon_active;
 
 static int is_file(const char *p)
 {
-    FILE *f = fopen(p, "rb");
-    if (!f) return 0;
-    fclose(f);
-    return 1;
+    return smm_os_is_file(p);
 }
 
 static int resolve_game_exe(const char *name, char *out, size_t n)

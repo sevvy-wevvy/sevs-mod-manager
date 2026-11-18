@@ -4,6 +4,7 @@
 #include <string.h>
 #include <time.h>
 #include "app.h"
+#include "../core/internal.h"
 
 typedef struct {
     int kind;
@@ -240,9 +241,7 @@ static void switch_to_pack_game(const SmmPack *p)
         if (strcmp(pr->name, "Custom") == 0 || strcasecmp(pr->slug, slug) != 0) continue;
         const char *path = NULL;
         for (int k = 0; k < pr->n_paths; k++) {
-            FILE *f = fopen(pr->default_paths[k], "rb");
-            if (f) {
-                fclose(f);
+            if (smm_os_is_file(pr->default_paths[k])) {
                 path = pr->default_paths[k];
                 break;
             }

@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "app.h"
+#include "../core/internal.h"
 #include "dialogs.h"
 
 typedef struct {
@@ -54,10 +55,7 @@ static uint32_t accent_for(const char *name)
 
 static int file_ok(const char *p)
 {
-    FILE *f = fopen(p, "rb");
-    if (!f) return 0;
-    fclose(f);
-    return 1;
+    return smm_os_is_file(p);
 }
 
 static void commit(const char *path, const char *name)

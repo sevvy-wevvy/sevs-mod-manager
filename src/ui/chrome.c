@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "app.h"
+#include "../core/internal.h"
 
 #define TITLE_H 40
 #define TAB_H 38
@@ -36,10 +37,7 @@ static int layout(void)
 
 static int file_exists(const char *p)
 {
-    FILE *f = fopen(p, "rb");
-    if (!f) return 0;
-    fclose(f);
-    return 1;
+    return smm_os_is_file(p);
 }
 
 void play_state(int *s, int *r)

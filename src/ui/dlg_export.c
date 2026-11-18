@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "app.h"
+#include "../core/internal.h"
 #include "dialogs.h"
 
 typedef struct {
@@ -149,8 +150,8 @@ static void confirm(Dlg *d)
         dlg_message(TAG_EXPORT_EMPTY, "Nothing Selected", "Select at least one file to include.", DB_OK, DI_WARN);
         return;
     }
-    const char *user = getenv("USER");
-    if (!user) user = getenv("USERNAME");
+    const char *user = smm_os_getenv("USER");
+    if (!user) user = smm_os_getenv("USERNAME");
     smm_queue_save_pack(name, user ? user : "user", &inc);
     smm_strs_free(&inc);
     app_status("Saving \"%s\"...", name);
