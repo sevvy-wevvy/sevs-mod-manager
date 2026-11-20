@@ -72,35 +72,72 @@ int smm_steam_roots(SmmStrs *out)
     return out->n;
 }
 
-static void library_folders(SmmStrs *out)
+static int vdf_string(const char **pp, char *out, size_t n)
 {
-    char root[SMM_PATH];
-    if (!smm_steam_root(root, sizeof root)) return;
-    smm_strs_add(out, root);
-    char sa[SMM_PATH], vdf[SMM_PATH];
-    smm_join(sa, sizeof sa, root, "steamapps");
-    smm_join(vdf, sizeof vdf, sa, "libraryfolders.vdf");
-    SmmBuf b = {0};
-    if (smm_file_read(vdf, &b) != 0) return;
-    const char *p = b.p;
-    while ((p = smm_stristr(p, "\"path\""))) {
-        p += 6;
-        while (*p == ' ' || *p == '\t') p++;
-        if (*p != '"') continue;
+    const char *p = *pp;
+    size_t k = 0;
+    if (*p != '"') return 0;
+    p++;
+    while (*p && *p != '"') {
+        if (p[0] == '\\' && (p[1] == '\\' || p[1] == '"')) p++;
+        if (k + 1 < n) out[k++] = *p;
         p++;
-        const char *e = strchr(p, '"');
-        if (!e) break;
-        char path[SMM_PATH];
-        size_t k = 0;
-        for (const char *c = p; c < e && k + 1 < sizeof path; c++) {
-            if (c[0] == '\\' && c + 1 < e && c[1] == '\\') c++;
-            path[k++] = *c;
+    }
+    out[k] = 0;
+    *pp = *p == '"' ? p + 1 : p;
+    return 1;
+}
+
+static int all_digits(const char *s)
+{
+    if (!*s) return 0;
+    for (; *s; s++)
+        if (*s < '0' || *s > '9') return 0;
+    return 1;
+}
+
+static void add_library(SmmStrs *out, const char *path)
+{
+    if (path[0] && smm_strs_find(out, path, 1) < 0) smm_strs_add(out, path);
+}
+
+static void read_library_file(SmmStrs *out, const char *file)
+{
+    SmmBuf b = {0};
+    if (smm_file_read(file, &b) != 0) return;
+    const char *p = b.p;
+    char key[SMM_PATH], val[SMM_PATH];
+    while (p && *p) {
+        if (*p != '"') {
+            p++;
+            continue;
         }
-        path[k] = 0;
-        if (smm_strs_find(out, path, 1) < 0) smm_strs_add(out, path);
-        p = e + 1;
+        if (!vdf_string(&p, key, sizeof key)) break;
+        while (*p == ' ' || *p == '\t' || *p == '\r' || *p == '\n') p++;
+        if (*p != '"') continue;
+        if (!vdf_string(&p, val, sizeof val)) break;
+        if (smm_strcasecmp(key, "path") == 0 || all_digits(key)) add_library(out, val);
     }
     smm_buf_free(&b);
+}
+
+static void library_folders(SmmStrs *out)
+{
+    SmmStrs roots = {0};
+    smm_steam_roots(&roots);
+    char first[SMM_PATH];
+    if (smm_steam_root(first, sizeof first)) add_library(&roots, first);
+    for (int i = 0; i < roots.n; i++) {
+        add_library(out, roots.v[i]);
+        char f[SMM_PATH], sa[SMM_PATH], cfg[SMM_PATH];
+        smm_join(sa, sizeof sa, roots.v[i], "steamapps");
+        smm_join(f, sizeof f, sa, "libraryfolders.vdf");
+        read_library_file(out, f);
+        smm_join(cfg, sizeof cfg, roots.v[i], "config");
+        smm_join(f, sizeof f, cfg, "libraryfolders.vdf");
+        read_library_file(out, f);
+    }
+    smm_strs_free(&roots);
 }
 
 static int find_install(int appid, char *game_dir, size_t gn, char *lib, size_t ln)
