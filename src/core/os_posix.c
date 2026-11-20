@@ -522,6 +522,22 @@ static void *thread_main(void *p)
     return NULL;
 }
 
+int smm_os_realpath(const char *path, char *out, size_t n)
+{
+    char *r = realpath(path, NULL);
+    if (!r) return -1;
+    smm_copy(out, n, r);
+    free(r);
+    return 0;
+}
+
+int smm_os_copy_mode(const char *from, const char *to)
+{
+    struct stat st;
+    if (stat(from, &st) != 0) return -1;
+    return chmod(to, st.st_mode & 07777);
+}
+
 int smm_os_thread(SmmThreadFn fn, void *arg)
 {
     ThreadStart *t = smm_xmalloc(sizeof *t);

@@ -122,6 +122,7 @@ SmmInstalledList *app_installed(void)
 
 void app_game_changed(void)
 {
+    proton_refresh();
     app_refresh_installed();
     app_goto_tab(cur_tab);
 }
@@ -146,10 +147,12 @@ void app_tick(void)
             if (last >= 0 && ops[last].status == SMM_OP_FAILED) app_status("%s failed: %s", ops[last].name, ops[last].error);
             else app_status("Ready.");
             app_refresh_installed();
+            proton_refresh();
             if (cur_tab != TAB_MODS) app_goto_tab(cur_tab);
         }
     }
     queue_was_busy = busy;
+    proton_tick();
 }
 
 static void icon_fetch(void *p)

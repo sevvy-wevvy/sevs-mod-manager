@@ -35,6 +35,8 @@ enum { SMM_SRC_API = 0, SMM_SRC_THUNDERSTORE = 1, SMM_SRC_MONKEFORGE = 2 };
 enum { SMM_LOADER_BEPINEX = 0, SMM_LOADER_MELON = 1 };
 enum { SMM_THEME_BLACK = 0, SMM_THEME_WHITE = 1, SMM_THEME_CUSTOM = 2, SMM_THEME_SYNCED_SB = 3, SMM_THEME_R2MODMAN = 4 };
 enum { SMM_LAYOUT_SMM = 0, SMM_LAYOUT_R2MODMAN = 1, SMM_LAYOUT_MONKE = 2 };
+enum { SMM_PROTON_NOT_LINUX = 0, SMM_PROTON_NOT_STEAM_GAME = 1, SMM_PROTON_UNKNOWN = 2, SMM_PROTON_CONFIGURED = 3, SMM_PROTON_NEEDS_CONFIG = 4 };
+enum { SMM_PROTON_OK = 0, SMM_PROTON_ALREADY = 1, SMM_PROTON_STEAM_RUNNING = 2, SMM_PROTON_NO_CONFIG = 3, SMM_PROTON_PARSE_ERROR = 4 };
 enum { SMM_PICKER_BOTH = 0, SMM_PICKER_TEXT = 1, SMM_PICKER_ICONS = 2 };
 
 typedef struct {
@@ -152,6 +154,7 @@ typedef struct {
     SmmStrs disable_starting_indicator;
     int has_seen_tutorial;
     int disable_discord_rpc;
+    int disable_auto_proton;
     char registered_exe[SMM_PATH];
 } SmmSettings;
 
@@ -415,12 +418,19 @@ int smm_steam_find_game_path(int appid, const char *exe_name, char *out, size_t 
 int smm_steam_exe_candidates(int appid, SmmStrs *out);
 int smm_pe_icon(const char *exe_path, int want_size, unsigned **argb, int *w, int *h);
 int smm_steam_root(char *out, size_t n);
+int smm_steam_roots(SmmStrs *out);
+int smm_steam_appid_for_path(const char *path);
 int smm_steam_compat_prefix(int appid, char *out, size_t n);
 
 int smm_game_launch(void);
 int smm_game_running(void);
 int smm_game_stop(void);
 const char *smm_loader_dll_override(int kind);
+const char *smm_loader_proxy_dll(int kind);
+int smm_game_steam_appid(void);
+int smm_proton_game_appid(void);
+int smm_proton_status(int appid, const char *proxy);
+int smm_proton_configure(int appid, const char *proxy, int *accounts, int *updated, char *err, size_t err_n);
 void smm_launch_option_hint(int kind, char *out, size_t n);
 int smm_open_path(const char *path);
 int smm_open_url(const char *url);

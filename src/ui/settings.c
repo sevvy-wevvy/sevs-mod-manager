@@ -219,6 +219,17 @@ static void sec_game(void)
     snprintf(ls, sizeof(ls), "%s: %s", smm_loader_name(kind), ok ? "Installed" : "Not found");
     if (ok) ic_check(rect(X + 14 + tx_w(ls, 13, 0) + 8, Y + 4, 11, 11), col_rgb(39, 201, 63));
     label(ls, ok ? col_rgb(39, 201, 63) : col_rgb(255, 95, 86));
+    int ps = proton_state();
+    if (ps >= SMM_PROTON_UNKNOWN) {
+        char pl[160];
+        uint32_t pc = P.sub;
+        if (proton_busy()) snprintf(pl, sizeof(pl), "Proton: checking Steam's launch options...");
+        else if (ps == SMM_PROTON_CONFIGURED) snprintf(pl, sizeof(pl), "Proton: configured"), pc = col_rgb(39, 201, 63);
+        else if (ps == SMM_PROTON_NEEDS_CONFIG) snprintf(pl, sizeof(pl), "Proton: not configured for %s", smm_loader_name(proton_loader_kind())), pc = col_rgb(255, 189, 46);
+        else snprintf(pl, sizeof(pl), "Proton: unknown, launch the game once through Steam");
+        if (ps == SMM_PROTON_CONFIGURED && !proton_busy()) ic_check(rect(X + 14 + tx_w(pl, 13, 0) + 8, Y + 4, 11, 11), pc);
+        label(pl, pc);
+    }
     Y += 6;
     tx(X + 14, Y, "Force mod loader (for unusual games):", 13, P.sub, 0);
     Y += 24;
@@ -233,7 +244,17 @@ static void sec_game(void)
     snprintf(t, sizeof(t), "Update %s", smm_loader_name(kind));
     if (button(&bx, t, has_dir && ok, 0)) smm_queue_install_loader(kind);
     if (button(&bx, "Open Game Folder", has_dir, 1) && has_dir) smm_open_path(dir);
+    if (ps >= SMM_PROTON_UNKNOWN && button(&bx, "Configure to Proton", !proton_busy(), 0)) proton_configure_now();
     Y += 42;
+    if (ps >= SMM_PROTON_UNKNOWN) {
+        int pa = !smm_settings.disable_auto_proton;
+        if (w_check(X + 14, Y + 2, "Set up Steam's Proton launch option automatically", &pa)) {
+            smm_settings.disable_auto_proton = !pa;
+            smm_state_save();
+            if (pa) proton_refresh();
+        }
+        Y += 30;
+    }
     int si = smm_strs_find(&smm_settings.disable_starting_indicator, smm_settings.game_name, 1) < 0;
     int nsi = si;
     if (w_check(X + 14, Y + 2, "Show \"Starting...\" on the Play button while a game launches", &nsi)) {

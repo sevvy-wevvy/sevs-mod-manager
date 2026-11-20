@@ -1210,6 +1210,150 @@ static void test_edges(const char *work)
     CHECK(strstr(smm_error(), "invalid file name") != NULL);
 }
 
+static const char *vdf_head =
+    "\"UserLocalConfigStore\"\n{\n\t\"Software\"\n\t{\n\t\t\"Valve\"\n\t\t{\n\t\t\t\"Steam\"\n\t\t\t{\n\t\t\t\t\"AutoLaunchGameListeners\"\t\t\"1\"\n\t\t\t\t\"apps\"\n\t\t\t\t{\n"
+    "\t\t\t\t\t\"480\"\n\t\t\t\t\t{\n\t\t\t\t\t\t\"LaunchOptions\"\t\t\"-novid\"\n\t\t\t\t\t\t\"Playtime\"\t\t\"12\"\n\t\t\t\t\t}\n";
+
+static const char *vdf_tail =
+    "\t\t\t\t\t\"730\"\n\t\t\t\t\t{\n\t\t\t\t\t\t\"LaunchOptions\"\t\t\"-console\"\n\t\t\t\t\t}\n"
+    "\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n\t\"friends\"\n\t{\n\t\t\"apps\"\n\t\t{\n\t\t\t\"1533390\"\n\t\t\t{\n\t\t\t\t\"LaunchOptions\"\t\t\"decoy\"\n\t\t\t}\n\t\t}\n\t}\n}\n";
+
+static void vdf_make(SmmBuf *out, const char *app_block)
+{
+    smm_buf_append(out, vdf_head, strlen(vdf_head));
+    smm_buf_append(out, app_block, strlen(app_block));
+    smm_buf_append(out, vdf_tail, strlen(vdf_tail));
+}
+
+static int proton_opts(const char *old, char *out, size_t n)
+{
+    return smm_proton_patch_launch_options(old, "winhttp", out, n);
+}
+
+static void test_proton_options(void)
+{
+    char o[512];
+    CHECK(proton_opts("", o, sizeof o) == 1);
+    CHECK_STR(o, "WINEDLLOVERRIDES=\"winhttp=n,b\" %command%");
+    CHECK(proton_opts("  ", o, sizeof o) == 1);
+    CHECK_STR(o, "WINEDLLOVERRIDES=\"winhttp=n,b\" %command%");
+    CHECK(proton_opts("-novid -console", o, sizeof o) == 1);
+    CHECK_STR(o, "WINEDLLOVERRIDES=\"winhttp=n,b\" %command% -novid -console");
+    CHECK(proton_opts("gamemoderun %command%", o, sizeof o) == 1);
+    CHECK_STR(o, "WINEDLLOVERRIDES=\"winhttp=n,b\" gamemoderun %command%");
+    CHECK(proton_opts("FOO=1 mangohud %command% -windowed", o, sizeof o) == 1);
+    CHECK_STR(o, "WINEDLLOVERRIDES=\"winhttp=n,b\" FOO=1 mangohud %command% -windowed");
+    CHECK(proton_opts("PROTON_LOG=1 %command%", o, sizeof o) == 1);
+    CHECK_STR(o, "WINEDLLOVERRIDES=\"winhttp=n,b\" PROTON_LOG=1 %command%");
+    CHECK(proton_opts("WINEDLLOVERRIDES=\"dxgi=n\" %command%", o, sizeof o) == 1);
+    CHECK_STR(o, "WINEDLLOVERRIDES=\"dxgi=n;winhttp=n,b\" %command%");
+    CHECK(proton_opts("WINEDLLOVERRIDES='dxgi=n;d3d11=n,b' %command%", o, sizeof o) == 1);
+    CHECK_STR(o, "WINEDLLOVERRIDES='dxgi=n;d3d11=n,b;winhttp=n,b' %command%");
+    CHECK(proton_opts("WINEDLLOVERRIDES=dxgi=n %command%", o, sizeof o) == 1);
+    CHECK_STR(o, "WINEDLLOVERRIDES=\"dxgi=n;winhttp=n,b\" %command%");
+    CHECK(proton_opts("WINEDLLOVERRIDES= %command%", o, sizeof o) == 1);
+    CHECK_STR(o, "WINEDLLOVERRIDES=\"winhttp=n,b\" %command%");
+    CHECK(proton_opts("WINEDLLOVERRIDES=\"winhttp=b;dxgi=n\" %command%", o, sizeof o) == 1);
+    CHECK_STR(o, "WINEDLLOVERRIDES=\"dxgi=n;winhttp=n,b\" %command%");
+    CHECK(proton_opts("WINEDLLOVERRIDES=\"winhttp,version=b\" %command%", o, sizeof o) == 1);
+    CHECK_STR(o, "WINEDLLOVERRIDES=\"version=b;winhttp=n,b\" %command%");
+    CHECK(proton_opts("A=1 WINEDLLOVERRIDES=\"x=n\" WINEDLLOVERRIDES=\"dxgi=n\" %command%", o, sizeof o) == 1);
+    CHECK_STR(o, "A=1 WINEDLLOVERRIDES=\"x=n\" WINEDLLOVERRIDES=\"dxgi=n;winhttp=n,b\" %command%");
+    CHECK(proton_opts("%command% WINEDLLOVERRIDES=foo", o, sizeof o) == 1);
+    CHECK_STR(o, "WINEDLLOVERRIDES=\"winhttp=n,b\" %command% WINEDLLOVERRIDES=foo");
+
+    const char *same[] = {
+        "WINEDLLOVERRIDES=\"winhttp=n,b\" %command%",
+        "WINEDLLOVERRIDES=\"winhttp=n\" %command%",
+        "WINEDLLOVERRIDES=\"winhttp=native,builtin\" %command%",
+        "WINEDLLOVERRIDES='dxgi=b;winhttp=n,b' gamemoderun %command%",
+        "WINEDLLOVERRIDES=winhttp=n,b %command%",
+        "WINEDLLOVERRIDES=\"winhttp.dll=n,b\" %command%",
+        "WINEDLLOVERRIDES=\"winhttp,version=n,b\" %command%",
+        "WINEDLLOVERRIDES=\"WinHTTP=N,B\" %command%",
+    };
+    for (size_t i = 0; i < sizeof same / sizeof same[0]; i++) {
+        CHECK(proton_opts(same[i], o, sizeof o) == 0);
+        CHECK_STR(o, same[i]);
+    }
+    CHECK(proton_opts("WINEDLLOVERRIDES=\"winhttp=n,b %command%", o, sizeof o) < 0);
+    CHECK(strstr(smm_error(), "WINEDLLOVERRIDES") != NULL);
+    CHECK(proton_opts("WINEDLLOVERRIDES='winhttp=n,b %command%", o, sizeof o) < 0);
+    CHECK(smm_proton_patch_launch_options("", "version", o, sizeof o) == 1);
+    CHECK_STR(o, "WINEDLLOVERRIDES=\"version=n,b\" %command%");
+    CHECK(smm_proton_patch_launch_options("WINEDLLOVERRIDES=\"winhttp=n,b\" %command%", "version", o, sizeof o) == 1);
+    CHECK_STR(o, "WINEDLLOVERRIDES=\"winhttp=n,b;version=n,b\" %command%");
+    char tiny[16];
+    CHECK(proton_opts("", tiny, sizeof tiny) < 0);
+}
+
+static void test_proton_vdf(void)
+{
+    SmmBuf src = {0}, out = {0};
+    vdf_make(&src, "\t\t\t\t\t\"1533390\"\n\t\t\t\t\t{\n\t\t\t\t\t\t\"Playtime\"\t\t\"5\"\n\t\t\t\t\t}\n");
+    CHECK(smm_proton_patch_vdf(src.p, "1533390", "winhttp", &out) == SMM_PATCH_CHANGED);
+    const char *want_ins = "\t\t\t\t\t\t\"Playtime\"\t\t\"5\"\n\t\t\t\t\t\t\"LaunchOptions\"\t\t\"WINEDLLOVERRIDES=\\\"winhttp=n,b\\\" %command%\"\n\t\t\t\t\t}\n";
+    CHECK(strstr(out.p, want_ins) != NULL);
+    const char *start_of_block = strstr(src.p, "\"1533390\"");
+    size_t before = (size_t)(start_of_block - src.p);
+    CHECK(strncmp(out.p, src.p, before) == 0);
+    CHECK(strstr(out.p, "\"LaunchOptions\"\t\t\"-novid\"") != NULL);
+    CHECK(strstr(out.p, "\"LaunchOptions\"\t\t\"-console\"") != NULL);
+    CHECK(strstr(out.p, "\"LaunchOptions\"\t\t\"decoy\"") != NULL);
+    CHECK(strlen(out.p) == strlen(src.p) + strlen("\t\t\t\t\t\t\"LaunchOptions\"\t\t\"WINEDLLOVERRIDES=\\\"winhttp=n,b\\\" %command%\"\n"));
+    SmmBuf again = {0};
+    CHECK(smm_proton_patch_vdf(out.p, "1533390", "winhttp", &again) == SMM_PATCH_SAME);
+    smm_buf_free(&again);
+    smm_buf_free(&src);
+    smm_buf_free(&out);
+
+    vdf_make(&src, "\t\t\t\t\t\"1533390\"\n\t\t\t\t\t{\n\t\t\t\t\t\t\"LaunchOptions\"\t\t\"\"\n\t\t\t\t\t\t\"Playtime\"\t\t\"5\"\n\t\t\t\t\t}\n");
+    CHECK(smm_proton_patch_vdf(src.p, "1533390", "winhttp", &out) == SMM_PATCH_CHANGED);
+    CHECK(strstr(out.p, "\"LaunchOptions\"\t\t\"WINEDLLOVERRIDES=\\\"winhttp=n,b\\\" %command%\"\n\t\t\t\t\t\t\"Playtime\"\t\t\"5\"") != NULL);
+    smm_buf_free(&src);
+    smm_buf_free(&out);
+
+    vdf_make(&src, "\t\t\t\t\t\"1533390\"\n\t\t\t\t\t{\n\t\t\t\t\t\t\"LaunchOptions\"\t\t\"gamemoderun %command% -x \\\"a b\\\" C:\\\\g\"\n\t\t\t\t\t}\n");
+    CHECK(smm_proton_patch_vdf(src.p, "1533390", "winhttp", &out) == SMM_PATCH_CHANGED);
+    CHECK(strstr(out.p, "\"WINEDLLOVERRIDES=\\\"winhttp=n,b\\\" gamemoderun %command% -x \\\"a b\\\" C:\\\\g\"") != NULL);
+    smm_buf_free(&out);
+    CHECK(smm_proton_patch_vdf(src.p, "999", "winhttp", &out) == SMM_PATCH_NO_APP);
+    CHECK(smm_proton_patch_vdf(src.p, "730", "winhttp", &out) == SMM_PATCH_CHANGED);
+    CHECK(strstr(out.p, "\"LaunchOptions\"\t\t\"WINEDLLOVERRIDES=\\\"winhttp=n,b\\\" -console %command%\"") == NULL);
+    CHECK(strstr(out.p, "\"WINEDLLOVERRIDES=\\\"winhttp=n,b\\\" %command% -console\"") != NULL);
+    CHECK(strstr(out.p, "gamemoderun %command% -x \\\"a b\\\" C:\\\\g") != NULL);
+    smm_buf_free(&src);
+    smm_buf_free(&out);
+
+    vdf_make(&src, "\t\t\t\t\t\"1533390\"\n\t\t\t\t\t{\n\t\t\t\t\t\t\"LaunchOptions\"\t\t\"WINEDLLOVERRIDES=\\\"winhttp=n,b\\\" %command%\"\n\t\t\t\t\t}\n");
+    CHECK(smm_proton_patch_vdf(src.p, "1533390", "winhttp", &out) == SMM_PATCH_SAME);
+    CHECK(out.n == 0);
+    smm_buf_free(&src);
+
+    vdf_make(&src, "\t\t\t\t\t\"1533390\"\n\t\t\t\t\t{\n\t\t\t\t\t\t\"LaunchOptions\"\t\t\"WINEDLLOVERRIDES=\\\"winhttp=b\\\n\t\t\t\t\t}\n");
+    CHECK(smm_proton_patch_vdf(src.p, "1533390", "winhttp", &out) == SMM_PATCH_BAD);
+    smm_buf_free(&src);
+
+    vdf_make(&src, "\t\t\t\t\t\"1533390\"\n\t\t\t\t\t{\n\t\t\t\t\t\t\"LaunchOptions\"\t\t\"WINEDLLOVERRIDES=\\\"winhttp=b %command%\"\n\t\t\t\t\t}\n");
+    CHECK(smm_proton_patch_vdf(src.p, "1533390", "winhttp", &out) == SMM_PATCH_BAD);
+    CHECK(strstr(smm_error(), "WINEDLLOVERRIDES") != NULL);
+    smm_buf_free(&src);
+
+    const char *broken = "\"UserLocalConfigStore\"\n{\n\t\"Software\"\n\t{\n";
+    CHECK(smm_proton_patch_vdf(broken, "1533390", "winhttp", &out) == SMM_PATCH_NO_APP);
+    CHECK(smm_proton_patch_vdf("", "1", "winhttp", &out) == SMM_PATCH_NO_APP);
+    const char *cut = "\"UserLocalConfigStore\"\n{\"Software\"{\"Valve\"{\"Steam\"{\"apps\"{\"7\"{\"Playtime\" \"1\"\n";
+    CHECK(smm_proton_patch_vdf(cut, "7", "winhttp", &out) == SMM_PATCH_BAD);
+    const char *oneline = "\"UserLocalConfigStore\"{\"Software\"{\"Valve\"{\"Steam\"{\"apps\"{\"7\"{}}}}}}";
+    CHECK(smm_proton_patch_vdf(oneline, "7", "version", &out) == SMM_PATCH_CHANGED);
+    CHECK(strstr(out.p, "{\"LaunchOptions\"\t\t\"WINEDLLOVERRIDES=\\\"version=n,b\\\" %command%\" }") != NULL);
+    smm_buf_free(&out);
+    const char *cased = "// c\n\"UserLocalConfigStore\"\n{\n\"software\"\n{\n\"valve\"\n{\n\"steam\"\n{\n\"Apps\"\n{\n\"7\"\n{\n\"launchoptions\" \"-a\"\n}\n}\n}\n}\n}\n}\n";
+    CHECK(smm_proton_patch_vdf(cased, "7", "winhttp", &out) == SMM_PATCH_CHANGED);
+    CHECK(strstr(out.p, "\"launchoptions\" \"WINEDLLOVERRIDES=\\\"winhttp=n,b\\\" %command% -a\"") != NULL);
+    smm_buf_free(&out);
+}
+
 int main(int argc, char **argv)
 {
     setvbuf(stdout, NULL, _IONBF, 0);
@@ -1241,6 +1385,8 @@ int main(int argc, char **argv)
     test_melon(work);
     test_logs(work);
     test_steam();
+    test_proton_options();
+    test_proton_vdf();
     test_theme();
     test_peicon(work);
     test_game();

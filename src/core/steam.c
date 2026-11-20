@@ -49,6 +49,29 @@ int smm_steam_root(char *out, size_t n)
     return 0;
 }
 
+int smm_steam_roots(SmmStrs *out)
+{
+    const char *env = smm_os_getenv("SMM_STEAM_ROOT");
+    if (env && *env) {
+        smm_strs_add(out, env);
+        return out->n;
+    }
+    const char *home = smm_os_home();
+    const char *rel[] = {
+        ".steam/steam", ".local/share/Steam", ".steam/root", ".var/app/com.valvesoftware.Steam/.local/share/Steam",
+        "snap/steam/common/.local/share/Steam",
+    };
+    for (size_t i = 0; i < sizeof rel / sizeof rel[0]; i++) {
+        char p[SMM_PATH], sub[SMM_PATH], real[SMM_PATH];
+        smm_join(p, sizeof p, home, rel[i]);
+        smm_join(sub, sizeof sub, p, "userdata");
+        if (!smm_os_is_dir(sub)) continue;
+        if (smm_os_realpath(p, real, sizeof real) != 0) smm_copy(real, sizeof real, p);
+        if (smm_strs_find(out, real, 0) < 0) smm_strs_add(out, real);
+    }
+    return out->n;
+}
+
 static void library_folders(SmmStrs *out)
 {
     char root[SMM_PATH];
@@ -107,6 +130,53 @@ static int find_install(int appid, char *game_dir, size_t gn, char *lib, size_t 
     }
     smm_strs_free(&libs);
     return found;
+}
+
+static const char *under_common(const char *path, const char *common)
+{
+    size_t cl = strlen(common);
+    if (strncmp(path, common, cl) != 0 || path[cl] != '/') return NULL;
+    return path + cl + 1;
+}
+
+int smm_steam_appid_for_path(const char *path)
+{
+    char real_path[SMM_PATH];
+    if (smm_os_realpath(path, real_path, sizeof real_path) != 0) smm_copy(real_path, sizeof real_path, path);
+    SmmStrs libs = {0};
+    library_folders(&libs);
+    int found = 0;
+    for (int i = 0; i < libs.n && !found; i++) {
+        char sa[SMM_PATH], common[SMM_PATH], real_common[SMM_PATH];
+        smm_join(sa, sizeof sa, libs.v[i], "steamapps");
+        smm_join(common, sizeof common, sa, "common");
+        if (smm_os_realpath(common, real_common, sizeof real_common) != 0) smm_copy(real_common, sizeof real_common, common);
+        const char *rest = under_common(path, common);
+        if (!rest) rest = under_common(path, real_common);
+        if (!rest) rest = under_common(real_path, common);
+        if (!rest) rest = under_common(real_path, real_common);
+        if (!rest) continue;
+        char dirname[SMM_PATH];
+        size_t k = strcspn(rest, "/");
+        if (k == 0 || k >= sizeof dirname) continue;
+        memcpy(dirname, rest, k);
+        dirname[k] = 0;
+        SmmDirList l = {0};
+        if (smm_os_list(sa, &l) != 0) continue;
+        for (int m = 0; m < l.n && !found; m++) {
+            if (!smm_starts_with(l.v[m].name, "appmanifest_") || !smm_ends_with(l.v[m].name, ".acf")) continue;
+            char f[SMM_PATH], inst[SMM_PATH], id[32];
+            smm_join(f, sizeof f, sa, l.v[m].name);
+            SmmBuf b = {0};
+            if (smm_file_read(f, &b) != 0) continue;
+            if (vdf_value(b.p, "installdir", inst, sizeof inst) && strcmp(inst, dirname) == 0 && vdf_value(b.p, "appid", id, sizeof id))
+                found = atoi(id);
+            smm_buf_free(&b);
+        }
+        smm_dirlist_free(&l);
+    }
+    smm_strs_free(&libs);
+    return found > 0 ? found : 0;
 }
 
 int smm_steam_find_game_path(int appid, const char *exe_name, char *out, size_t n)

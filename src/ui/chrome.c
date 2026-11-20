@@ -144,6 +144,17 @@ static void poll_game(void)
     logs_game_state(r);
 }
 
+static void do_launch(void)
+{
+    if (smm_game_launch() >= 0) {
+        launched_at = K.now;
+        if (smm_strs_find(&smm_settings.disable_starting_indicator, smm_settings.game_name, 1) < 0) {
+            starting = 1;
+            starting_since = K.now;
+        }
+    }
+}
+
 static void on_play(void)
 {
     if (starting) return;
@@ -152,13 +163,8 @@ static void on_play(void)
         return;
     }
     if (!app_has_game()) return;
-    if (smm_game_launch() >= 0) {
-        launched_at = K.now;
-        if (smm_strs_find(&smm_settings.disable_starting_indicator, smm_settings.game_name, 1) < 0) {
-            starting = 1;
-            starting_since = K.now;
-        }
-    }
+    if (proton_before_play(do_launch)) return;
+    do_launch();
 }
 
 static void draw_play(R r)

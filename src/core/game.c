@@ -1,7 +1,7 @@
 #include "internal.h"
 #include <stdlib.h>
 
-static int steam_app_id(void)
+int smm_game_steam_appid(void)
 {
     const SmmPreset *p = smm_current_preset();
     if (p->steam_app_id > 0) return p->steam_app_id;
@@ -19,6 +19,11 @@ int smm_is_linux_proton(void)
 const char *smm_loader_dll_override(int kind)
 {
     return kind == SMM_LOADER_MELON ? "version=n,b" : "winhttp=n,b";
+}
+
+const char *smm_loader_proxy_dll(int kind)
+{
+    return kind == SMM_LOADER_MELON ? "version" : "winhttp";
 }
 
 void smm_launch_option_hint(int kind, char *out, size_t n)
@@ -49,7 +54,7 @@ int smm_game_launch(void)
         smm_set_error("The game executable wasn't found.");
         return -1;
     }
-    int appid = steam_app_id();
+    int appid = smm_game_steam_appid();
     if (appid > 0) {
         char url[64];
         smm_fmt(url, sizeof url, "steam://run/%d", appid);

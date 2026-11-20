@@ -107,6 +107,8 @@ void *smm_os_cond_new(void);
 void smm_os_cond_wait(void *c, void *m);
 void smm_os_cond_signal(void *c);
 void smm_os_cond_broadcast(void *c);
+int smm_os_realpath(const char *path, char *out, size_t n);
+int smm_os_copy_mode(const char *from, const char *to);
 int smm_os_registry_steam(char *out, size_t n);
 void smm_os_prepare_args(int *argc, char ***argv);
 
@@ -183,6 +185,11 @@ void smm_dir_for_loader(int kind, char *out, size_t n);
 int smm_mod_install_zip_file(const char *zip, const char *folder_name, SmmProgress *p);
 int smm_loader_install_after(int kind, const char *game_dir, SmmProgress *p, void (*wipe)(void));
 int smm_sha256_file(const char *path, char *hex_out);
+
+enum { SMM_PATCH_NO_APP = -1, SMM_PATCH_BAD = -2, SMM_PATCH_SAME = 0, SMM_PATCH_CHANGED = 1 };
+
+int smm_proton_patch_launch_options(const char *old, const char *proxy, char *out, size_t n);
+int smm_proton_patch_vdf(const char *source, const char *appid, const char *proxy, SmmBuf *out);
 
 typedef struct {
     char url[512];

@@ -631,6 +631,19 @@ static int reg_string(HKEY root, const wchar_t *key, const wchar_t *name, char *
     return from_wide(buf, out, n);
 }
 
+int smm_os_realpath(const char *path, char *out, size_t n)
+{
+    smm_copy(out, n, path);
+    return 0;
+}
+
+int smm_os_copy_mode(const char *from, const char *to)
+{
+    (void)from;
+    (void)to;
+    return 0;
+}
+
 int smm_os_registry_steam(char *out, size_t n)
 {
     if (reg_string(HKEY_CURRENT_USER, L"Software\\Valve\\Steam", L"SteamPath", out, n) == 0 && out[0]) {

@@ -107,6 +107,14 @@ void panel_settings(R r);
 void settings_activate(void);
 void settings_set_layout(int layout);
 
+void proton_tick(void);
+void proton_refresh(void);
+int proton_before_play(void (*launch)(void));
+int proton_state(void);
+int proton_loader_kind(void);
+int proton_busy(void);
+void proton_configure_now(void);
+
 int file_pick_open(const char *title, const char *filter_desc, const char *filter_ext, char *out, size_t n);
 int file_pick_save(const char *title, const char *default_name, const char *filter_ext, char *out, size_t n);
 
