@@ -98,6 +98,7 @@ Live game log, your last 10 sessions, search and filters<br>
 
 <b>Games</b><br>
 Finds your Steam games on every OS, Proton included, and switches between them in one click<br>
+On Linux it sets up BepInEx and MelonLoader for Proton for you (the Steam launch option), or press Configure to Proton in Settings<br>
 Shows each games own icon<br>
 Three layouts (Sev's Mod Manager, r2modman and MonkeModManager style) and five themes, all switch live<br>
 </p>
